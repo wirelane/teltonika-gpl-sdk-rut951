@@ -1,0 +1,14 @@
+--- a/drivers/staging/mt7621-pinctrl/pinctrl-rt2880.c
++++ b/drivers/staging/mt7621-pinctrl/pinctrl-rt2880.c
+@@ -153,6 +153,11 @@ static int rt2880_pmx_group_enable(struc
+ 			p->gpio[p->func[func]->pins[i]] = 0;
+ 		mode |= p->func[func]->value << shift;
+ 	}
++
++	if (reg == SYSC_REG_GPIO_MODE) {
++		mode |= 1 << 16; // workaround to set 'perst' as output
++	}
++
+ 	rt_sysc_w32(mode, reg);
+ 
+ 	return 0;

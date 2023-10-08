@@ -1,0 +1,10 @@
+#!/bin/sh
+
+case "$1" in
+	-veap) return 0;;
+	-vsae) return 0;;
+	-vowe) return 0;;
+	-vsuiteb192) return 1;;
+	-v11r) return 0;;
+	*) exit 1;;
+esac

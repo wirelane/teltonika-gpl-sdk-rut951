@@ -1,0 +1,8 @@
+#include "mt7621-teltonika-common.dtsi"
+#include "mt7621-teltonika-rutm-flash.dtsi"
+
+/ {
+	chosen {
+                bootargs = "console=ttyS0,115200";
+        };
+};

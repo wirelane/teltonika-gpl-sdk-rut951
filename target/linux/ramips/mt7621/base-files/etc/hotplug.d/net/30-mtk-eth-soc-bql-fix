@@ -1,0 +1,17 @@
+#!/bin/sh
+
+[ "$ACTION" = "add" ] && [ "$DEVICENAME" = "br-lan" ] || exit
+
+# MTK_DMA_SIZE is 2048.
+# One skb can be at most 18 fragments.
+# This bql counter is shared accross both eth0 and wan.
+# So 2048 - 128 should have sufficient headroom to ensure 
+# driver does not run out of TX descriptors
+# see target/linux/generic/hack-5.10/776-6-net-ethernet-count-txdescs-for-bql.patch
+
+QUEUE_LIMIT=1920
+
+for dev in eth0 wan ; do
+        echo $QUEUE_LIMIT > /sys/class/net/${dev}/queues/tx-0/byte_queue_limits/limit_min
+        echo $QUEUE_LIMIT > /sys/class/net/${dev}/queues/tx-0/byte_queue_limits/limit_max
+done

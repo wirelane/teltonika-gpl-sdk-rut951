@@ -1,0 +1,16 @@
+#!/bin/sh 
+
+. /lib/functions.sh
+
+cd /sys/module/
+[ -d mt7628 ] || return
+
+[ ! -f /etc/config/wireless ] && touch /etc/config/wireless
+
+config_load wireless
+
+config_get type mt7628 type
+[ -z "$type" ] || return
+
+[ -x /sbin/wifi ] && /sbin/wifi config
+

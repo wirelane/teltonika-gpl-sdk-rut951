@@ -1,0 +1,43 @@
+Index: linux-5.4.251/include/linux/netdevice.h
+===================================================================
+--- linux-5.4.251.orig/include/linux/netdevice.h
++++ linux-5.4.251/include/linux/netdevice.h
+@@ -4371,6 +4371,7 @@ void __dev_set_rx_mode(struct net_device
+ int dev_set_promiscuity(struct net_device *dev, int inc);
+ int dev_set_allmulti(struct net_device *dev, int inc);
+ void netdev_state_change(struct net_device *dev);
++void netdev_declare_event(struct net_device *dev, int event);
+ void netdev_notify_peers(struct net_device *dev);
+ void netdev_features_change(struct net_device *dev);
+ /* Load a device via the kmod */
+Index: linux-5.4.251/net/core/dev.c
+===================================================================
+--- linux-5.4.251.orig/net/core/dev.c
++++ linux-5.4.251/net/core/dev.c
+@@ -1272,6 +1272,26 @@ void netdev_state_change(struct net_devi
+ EXPORT_SYMBOL(netdev_state_change);
+ 
+ /**
++ * 	netdev_declare_event - trigger device state change
++ *	@dev: device to cause notification
++ *	@event: Netlink API based event
++ *
++ * 	Called to indicate a device has an event for it's status change.
++ * 	This function calls the notifier chains for netdev_chain and sends a event message
++ *	to the routing socket.
++ */
++void netdev_declare_event(struct net_device *dev, int event)
++{
++	struct netdev_notifier_change_info change_info = {
++		.info.dev = dev,
++	};
++
++	call_netdevice_notifiers_info(NETDEV_CHANGE, &change_info.info);
++	rtmsg_ifinfo(event, dev, 0, GFP_KERNEL);
++}
++EXPORT_SYMBOL(netdev_declare_event);
++
++/**
+  * netdev_notify_peers - notify network peers about existence of @dev
+  * @dev: network device
+  *

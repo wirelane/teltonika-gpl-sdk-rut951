@@ -1,0 +1,73 @@
+#include "mt7621-teltonika-common.dtsi"
+#include "mt7621-teltonika-tap200-flash.dtsi"
+
+/ {
+	compatible = "teltonika,tap200", "mediatek,mt7621-soc";
+	model = "Teltonika TAP200";
+	
+	chosen {
+                bootargs = "console=ttyS0,115200 rootfstype=squashfs,jffs2 root=/dev/mtdblock6";
+        };
+
+	ext_io {
+		compatible = "spi-gpio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+	};
+
+	keys {
+		compatible = "gpio-keys";
+
+		reset {
+			label = "reset";
+			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+	};
+
+	gpio-export {
+		compatible = "gpio-export";
+		#size-cells = <0>;
+
+		yellow_eth_port_4 {
+			gpio-export,name = "yellow:eth_port_4";
+			gpio-export,output = <0>;
+			gpios = <&gpio 8 GPIO_ACTIVE_HIGH>;
+		};
+
+		green_eth_port_4 {
+			gpio-export,name = "green:eth_port_4";
+			gpio-export,output = <0>;
+			gpios = <&gpio 7 GPIO_ACTIVE_HIGH>;
+		};
+
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		power_led {
+			label = "power";
+			default-state = "on";
+			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
+		};
+
+	};
+
+};
+
+
+&state_default {
+	gpio {
+		groups = "wdt", "jtag", "sdhci", "uart2", "uart3";
+		function = "gpio";
+	};
+};
+
+&gmac1 {
+	status = "okay";
+	label = "eth1";
+	phy-handle = <&ephy4>;
+	mtd-mac-address = <&config 0x0>;
+	mtd-mac-address-increment = <1>;
+};
