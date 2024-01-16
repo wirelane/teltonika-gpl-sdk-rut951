@@ -33,7 +33,7 @@
 		gpio_modem_status {
 			gpio-export,name = "modem_status";
 			gpio-export,input = <0>;
-			gpios = <&gpio 0 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 38 GPIO_ACTIVE_LOW>;
 		};
 	};
 
@@ -42,15 +42,10 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio 38 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 46 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
 
-		sim_holder {
-			label = "sim_holder";
-			linux,code = <BTN_0>;
-			gpios = <&gpio 0 GPIO_ACTIVE_HIGH>;
-		};
 	};
 
 	leds {
@@ -58,7 +53,7 @@
 
 		power_led {
 			label = "power_led";
-			gpios = <&gpio 36 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 37 GPIO_ACTIVE_LOW>;
 			default-state = "on";
 		};
 
@@ -79,7 +74,7 @@
 
 		led_gen_4 {
 			label = "mob_gen_4";
-			gpios = <&gpio 46 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
 		};
 
 		led_ssid_1 {
@@ -121,16 +116,16 @@
 			GPIO_5 {
 				line_name = "GPIO_OUT_1";
 			};
-			GPIO_11 {
+			GPIO_0 {
 				line_name = "GPIO_IN_2";
 			};
-			GPIO_37 {
+			GPIO_11 {
 				line_name = "GPIO_OUT_2";
 			};
 		};
 
 		ledman {
-			GPIO_36 {
+			GPIO_37 {
 				line_name = "LED_POWER";
 				active_low;
 			};
@@ -143,7 +138,7 @@
 			GPIO_44 {
 				line_name = "LED_TECH_GEN_3";
 			};
-			GPIO_46 {
+			GPIO_1 {
 				line_name = "LED_TECH_GEN_4";
 			};
 			GPIO_41 {
@@ -164,7 +159,7 @@
 			GPIO_3 {
 				line_name = "GPIO_MODEM_POWER_1";
 			};
-			GPIO_0 {
+			GPIO_38 {
 				line_name = "GPIO_MODEM_STATUS_1";
 				active_low;
 			};
@@ -217,7 +212,7 @@
 			#size-cells = <1>;
 
 			boot: partition@0 {
-				label = "u-boot"; 
+				label = "u-boot";
 				reg = <0x0 0x20000>;
 				read-only;
 			};

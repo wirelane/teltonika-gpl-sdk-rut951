@@ -1,1 +1,1 @@
-0x00000000	mt7628_netlink_notify	/builds/teltonika/rutx_open/build_dir/target-mipsel_24kc_musl/linux-ramips_mt76x8/mt7628-netlink_module/mt7628-4.1.1.0-DPA-20190925-1.3/build//mt7628-netlink	EXPORT_SYMBOL	
+0x00000000	mt7628_netlink_notify	/builds/teltonika/rutx_open/build_dir/target-mipsel_24kc_musl/linux-ramips_mt76x8/mt7628-netlink_module/mt7628-4.1.1.0-DPA-20190925-1.3.1/build//mt7628-netlink	EXPORT_SYMBOL	
