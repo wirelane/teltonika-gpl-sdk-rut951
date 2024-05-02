@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mctl
 
-PKG_SOURCE_VERSION:=4.4
+PKG_SOURCE_VERSION:=4.5
 PKG_LICENSE:=Teltonika-closed
 
 GPL_INCLUDE_HEADERS:=1

@@ -67,12 +67,17 @@ proto_qmi_setup() {
 	[ -z "$sim" ] && sim=$(get_config_sim "$interface")
 
 #~ Parameters part------------------------------------------------------
-
 	echo "Quering active sim position"
 	json_set_namespace gobinet old_cb
 	json_load "$(ubus call $gsm_modem get_sim_slot)"
 	json_get_var active_sim index
 	json_set_namespace $old_cb
+
+# 	Restart if check failed
+	if [ "$active_sim" -lt 1 ] || [ "$active_sim" -gt 2 ]; then
+		echo "Bad active sim: $active_sim."
+		return
+	fi
 
 	# check if current sim and interface sim match
 	[ "$active_sim" = "$sim" ] || {
@@ -151,28 +156,12 @@ attribute: /sys/class/net/$ifname/qmi/raw_ip"
 
 	[ "$deny_roaming" -ne "0" ] && deny_roaming="yes" || deny_roaming="no"
 
-	apn="$(uci -q get network.$interface.apn)"
-	echo "Starting network $interface using APN: $apn"
-
-	auth="$(uci -q get network.$interface.auth)"
-	[ -n "$auth" ] && [ "$auth" != "none" ] && {
-		username="$(uci -q get network.$interface.username)"
-		password="$(uci -q get network.$interface.password)"
-	}
-
 	cid="$(uqmi -d "$device" $options --get-client-id wds)"
 	qmi_error_handle "$cid" "$error_cnt" "$modem" || return 1
 
 #~ Do not add TABS!
 call_uqmi_command "uqmi -d $device $options --set-client-id wds,$cid --release-client-id wds \
---modify-profile --profile-identifier 3gpp,${pdp} \
---profile-name profile${pdp} \
---roaming-disallowed-flag ${deny_roaming} \
-${username:+ --username $username} \
-${password:+ --password $password} \
-${auth:+ --auth-type $auth} \
-${apn:+ --apn $apn} \
-${pdptype:+ --pdp-type $pdptype}"
+--modify-profile 3gpp,${pdp} --profile-name ${pdp} --roaming-disallowed-flag ${deny_roaming}"
 
 	retry_before_reinit="$(cat /tmp/conn_retry_$interface)" 2>/dev/null
 	[ -z "$retry_before_reinit" ] && retry_before_reinit="0"
@@ -197,8 +186,7 @@ ${pdptype:+ --pdp-type $pdptype}"
 
 		#~ Start PS call
 		pdh_4=$(call_uqmi_command "uqmi -d $device $options --set-client-id wds,$cid_4 \
---start-network ${apn:+--apn $apn} --profile $pdp ${auth:+ --auth-type $auth --username $username \
---password $password}" "true")
+--start-network --profile $pdp --ip-family ipv4" "true")
 
 		echo "pdh4: $pdh_4"
 
@@ -239,8 +227,7 @@ ${pdptype:+ --pdp-type $pdptype}"
 
 		#~ Start PS call
 		pdh_6=$(call_uqmi_command "uqmi -d $device $options --set-client-id wds,$cid_6 \
---start-network ${apn:+--apn $apn} --profile $pdp ${auth:+ --auth-type $auth --username $username \
---password $password}" "true")
+--start-network --profile $pdp --ip-family ipv6" "true")
 
 		echo "pdh6: $pdh_6"
 

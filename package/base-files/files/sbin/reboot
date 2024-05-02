@@ -123,7 +123,8 @@ if [ "$reboot" != "0" ]; then
 		var=""
 	fi
 
-	[ -e /sbin/mctl ] && /sbin/mctl -s -a
+	# Stop tracking and shutdown modems
+	[ -e /sbin/mctl ] && /sbin/mctl -w -a && /sbin/mctl -s -a
 
 	device_name=$(mnf_info -n | cut -c1-6 2>/dev/null)
 	case "$device_name" in

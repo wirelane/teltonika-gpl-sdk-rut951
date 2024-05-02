@@ -119,7 +119,7 @@ proto_ncm_setup() {
 	local mtu method device pdp modem pdptype sim dhcp dhcpv6 $PROTO_DEFAULT_OPTIONS IFACE4 IFACE6 delay
 	local ip4table ip6table mdm_ubus_obj pin_state pdp_ctx_state pdp_ctx
 	local timeout=2 retries=0
-	local multisim="0" active_sim="1"
+	local active_sim="1"
 	local retry_before_reinit
 
 	json_get_vars mtu method device modem pdptype sim dhcp dhcpv6 delay ip4table ip6table $PROTO_DEFAULT_OPTIONS
@@ -140,33 +140,18 @@ proto_ncm_setup() {
 	sleep "$delay"
 
 	[ -z "$sim" ] && sim=$(get_config_sim "$interface")
-	check_pdp_context "$pdp" "$modem" || {
-		proto_notify_error "$interface" "NO_DEVICE"
-		proto_block_restart "$interface"
-	}
 
-	#Check sim positions count in simcard config
-	get_sim_count(){
-		local section=$1
-		local sim_modem sim_position
-		config_get sim_modem "$section" modem
-		config_get sim_position "$section" position
-		[ "$modem" = "$sim_modem" ] && [ "$sim_position" -gt 1 ] && multisim="1"
-	}
-	config_load simcard
-	config_foreach get_sim_count sim
+	echo "Quering active sim position"
+	json_set_namespace gobinet old_cb
+	json_load "$(ubus call $gsm_modem get_sim_slot)"
+	json_get_var active_sim index
+	json_set_namespace $old_cb
 
-	#Check sim position in simd if modem is registered as multisim
-	[ "$multisim" = "1" ] && {
-		echo "Quering active sim position"
-		json_set_namespace gobinet old_cb
-		json_load "$(ubus call $gsm_modem get_sim_slot)"
-		json_get_var active_sim index
-		json_set_namespace $old_cb
-	}
-
-	#Restart if check failed
-	[ "$active_sim" -ge 1 ] && [ "$active_sim" -le 2 ] || return
+# 	Restart if check failed
+	if [ "$active_sim" -lt 1 ] || [ "$active_sim" -gt 2 ]; then
+		echo "Bad active sim: $active_sim."
+		return
+	fi
 
 	# check if current sim and interface sim match
 	[ "$active_sim" = "$sim" ] || {

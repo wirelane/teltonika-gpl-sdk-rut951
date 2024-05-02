@@ -46,45 +46,6 @@ handle_retry() {
 	fi
 }
 
-check_pdp_context() {
-	local pdp="$1"
-	local modem_id="$2"
-	local mdm_ubus_obj list cid found
-
-	mdm_ubus_obj="$(find_mdm_ubus_obj "$modem_id")"
-	[ -z "$mdm_ubus_obj" ] && echo "gsm.modem object not found" && return 1
-	found=0
-
-	json_load "$(ubus call "$mdm_ubus_obj" get_pdp_ctx_list)"
-	json_get_keys list list
-	json_select list
-
-	[ -z "$list" ] && echo "PDP list empty" && return
-
-	for ctx in $list; do
-		json_select "$ctx"
-		json_get_vars cid
-		[ "$cid" = "$pdp" ] && {
-			found=1
-			break
-		}
-		json_select ..
-	done
-
-	[ $found -eq 0 ] && {
-		echo "Creating context with PDP: $pdp"
-		ubus call "$mdm_ubus_obj" set_pdp_ctx "{\"cid\":${pdp},\"type\":\"ip\",\"apn\":\"\",\"addr\":\"\",\
-		\"dt_comp\":\"off\",\"hdr_comp\":\"off\",\"ipv4_alloc\":\"nas\",\"req_tp\":\"generic\"}" >/dev/null 2>/dev/null
-
-		ubus call "$mdm_ubus_obj" set_func "{\"func\":\"rf\",\"reset\":false}" >/dev/null 2>/dev/null
-
-		sleep 2
-
-		ubus call "$mdm_ubus_obj" set_func "{\"func\":\"full\",\"reset\":false}" >/dev/null 2>/dev/null
-	}
-	return 0
-}
-
 gsm_soft_reset() {
 	local modem_id="$1"
 	local mdm_ubus_obj

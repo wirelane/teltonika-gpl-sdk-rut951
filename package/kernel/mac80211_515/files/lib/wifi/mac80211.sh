@@ -342,6 +342,7 @@ detect_mac80211() {
 	local wps
 	local cust_mac
 	local ant_gain
+	local chanlist
 
 	config_load wireless
 	while :; do
@@ -432,6 +433,10 @@ detect_mac80211() {
 			fi
 		fi
 
+		[ "$mode_band" = "5g"  ] && {
+			chanlist="set wireless.radio${devidx}.channels='36-165'"
+		}
+
 		[ -z "$cust_mac" ] && cust_mac=${router_mac_end}
 
 		IFS='' read -r -d '' wifi_auth_lines <<EOF
@@ -454,6 +459,7 @@ EOF
 			${ht_capab}
 			set wireless.radio${devidx}.country=US
 			${ant_gain}
+			${chanlist}
 			#set wireless.radio${devidx}.disabled=1
 
 			set wireless.default_radio${devidx}=wifi-iface

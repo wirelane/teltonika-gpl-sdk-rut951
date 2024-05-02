@@ -159,7 +159,7 @@ proto_pppmobile_setup() {
 	local interface="$1"
 	local pdp modem sim delay $PROTO_DEFAULT_OPTIONS
 	local ip4table ip6table
-	local multisim="0" active_sim="1"
+	local active_sim="1"
 	local ifname
 
 	json_get_vars pdp pdptype modem sim delay ip4table ip6table $PROTO_DEFAULT_OPTIONS
@@ -184,35 +184,17 @@ proto_pppmobile_setup() {
 
 	echo "Got SIM$sim for modem $modem"
 
-	check_pdp_context "$pdp" "$modem" || {
-		proto_notify_error "$interface" "NO_DEVICE"
-		proto_block_restart "$interface"
-	}
-
 #~ Parameters part------------------------------------------------------
 
-# 	Check sim positions count in simcard config
-	get_sim_count(){
-		local section="$1"
-		local sim_modem sim_position
-		config_get sim_modem "$section" modem
-		config_get sim_position "$section" position
-		[ "$modem" = "$sim_modem" ] && [ "$sim_position" -gt 1 ] && multisim="1"
-	}
-	config_load simcard
-	config_foreach get_sim_count sim
-
-# 	Check sim position in simd if modem is registered as multisim
-	[ "$multisim" = "1" ] && {
-		echo "Quering active sim position"
-		json_set_namespace gobinet old_cb
-		json_load "$(ubus call $gsm_modem get_sim_slot)"
-		json_get_var active_sim index
-		json_set_namespace $old_cb
-	}
+	echo "Quering active sim position"
+	json_set_namespace gobinet old_cb
+	json_load "$(ubus call $gsm_modem get_sim_slot)"
+	json_get_var active_sim index
+	json_set_namespace $old_cb
 
 # 	Restart if check failed
-	[ "$active_sim" -ge 1 ] && [ "$active_sim" -le 2 ] || return
+	[ "$active_sim" -ge 1 ] && [ "$active_sim" -le 2 ] || echo "Bad active sim: $active_sim." && return
+
 # 	check if current sim and interface sim match
 	[ "$active_sim" = "$sim" ] || {
 		echo "Active sim: $active_sim. \
@@ -233,6 +215,7 @@ proto_pppmobile_setup() {
 			config_get deny_roaming "$section" deny_roaming "0"
 		}
 	}
+	config_load simcard
 	config_foreach get_simcard_parameters "sim"
 
 #~ Connection part------------------------------------------------------

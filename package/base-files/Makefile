@@ -194,6 +194,10 @@ define Package/base-files/install
 	$(if $(CONFIG_MOBILE_SUPPORT),,\
 		$(RM) $(1)/bin/board_modem)
 
+#		--prod flag
+	$(if $(CONFIG_VUCI_COMPILE_LUA),\
+		$(RM) $(1)/sbin/memleak_watcher $(1)/etc/init.d/memleak_watcher)
+
 	if [ ! $(CONFIG_MOBILE_SUPPORT) ] || [ $(CONFIG_BASEBAND_SUPPORT) ]; then \
 		$(RM) $(1)/lib/preinit/82_modem_power; \
 	fi;

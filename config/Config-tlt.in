@@ -905,6 +905,7 @@ config CORE_UI_PACKAGES
 	imply PACKAGE_vuci-app-backup-ui
 	imply PACKAGE_vuci-app-realtime-ui
 	imply PACKAGE_vuci-app-logs-ui
+	imply BUSYBOX_CONFIG_CHPASSWD
 
 config NORMAL_SERVICES_WEBUI
 	bool

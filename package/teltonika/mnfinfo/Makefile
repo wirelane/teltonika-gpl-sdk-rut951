@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mnfinfo
 
-PKG_SOURCE_VERSION:=2.15
+PKG_SOURCE_VERSION:=2.16.1
 
 PKG_LICENSE:=Teltonika-closed
 
@@ -18,14 +18,13 @@ define Package/mnfinfo
   SECTION:=net
   CATEGORY:=Network
   TITLE:=Device mnf-info command line interface
-  DEPENDS:=+libpthread +libmnfinfo
+  DEPENDS:=+libmnfinfo
 endef
 
 define Package/libmnfinfo
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=Device mnf-info API library
-  DEPENDS:=+libubus +libubox +libboardjson
 endef
 
 define Package/rpcd-mod-mnfinfo

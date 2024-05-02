@@ -1,3 +1,20 @@
+# 2024-04-29 00.07.07.1
+
+### Improvements
+
+* WebUI: improved first login password change logic (ID: 17829)
+* Certificates: updated Root CA certificates (ID: 17913)
+* Mobile: improved connection establish time for uqmi protocol (ID: 17633)
+
+### Fix
+
+* RS485: fixed RS485 (modem control) on TRB2 devices (ID: 17887)
+* Mobile: fixed denied roaming flag set (ID: 17878)
+* Mctl: fixed occasional mctl segfault when restarting modem (ID: 17207)
+* Boot: now powering modem during preinit after firstboot (ID: 17945)
+* Troubleshoot: patched tcpdump CVE-2024-2397 (ID: 17760)
+* Modbus TCP Over Serial Gateway: fixed gateway returning corrupted data with larger baud rates (ID: 17886)
+
 # 2024-04-10 00.07.07
 
 ### New
