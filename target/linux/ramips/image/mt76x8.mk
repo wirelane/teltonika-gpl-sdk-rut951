@@ -136,6 +136,8 @@ define Device/teltonika_rut2m
 	# Wireless related:
 	DEVICE_PACKAGES += kmod-mt76_515 kmod-mt7603_515
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	HW_MODS := mod1%260v3
 endef
 
 define Device/teltonika_rut301

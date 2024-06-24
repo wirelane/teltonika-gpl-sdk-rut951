@@ -19,10 +19,35 @@ compatible_to_ec200() {
 	return 0
 }
 
+check_hw_mod() {
+	local model min_hwver hwmod
+	model="$1"
+	min_hwver="$2"
+	hwmod="$3"
+
+	if [ "${board:3:3}" = "$model" ]; then
+		[ "$hwver" -ge "$min_hwver" ] && { ! find_hw_mod "$hwmod"; } && {
+			echo "Found new hardware revision this firmware does not support it"
+			return 1
+		}
+	fi
+	return 0
+}
+
 platform_check_hw_support() {
-	local adc_ver board exp
+
+	local adc_ver board exp hwver
 
 	board="$(cat /sys/mnf_info/name)"
+	hwver="$(cat /sys/mnf_info/hwver)"
+
+	exp="^RUT2(60)"
+	[[ $board =~ $exp ]] && {
+		{ ! prepare_metadata_hw_mods "$1"; } && return 1
+		{ ! check_hw_mod "260" 3 "260v3"; } && return 1
+		# { ! check_hw_mod "241" 5 "241v5"; } && return 1
+	}
+
 	exp="^RUT9(51|56|01|06)"
 	[[ ! $board =~ $exp ]] && return 0
 

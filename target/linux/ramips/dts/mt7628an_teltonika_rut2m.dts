@@ -39,12 +39,6 @@
 			gpios = <&gpio 46 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
-
-		sim_holder {
-			label = "sim_holder";
-			linux,code = <BTN_0>;
-			gpios = <&gpio 0 GPIO_ACTIVE_HIGH>;
-		};
 	};
 
 	leds {
@@ -121,10 +115,48 @@
 
 		ioman {
 			GPIO_4 {
-				line_name = "GPIO_IN_1";
-				active_low;
+				compatible_model_0 = "RUT260";
+				compatible_versions_0 = <0 2>;
+				line_name_0 = "GPIO_IN_1";
+
+				compatible_model_1 = "RUT241";
+				compatible_versions_1 = <0 4>;
+				line_name_1 = "GPIO_IN_1";
+
+				compatible_model_2 = "RUT200";
+				compatible_versions_2 = <0 99>;
+				line_name_2 = "GPIO_IN_1";
+			};
+			GPIO_0 {
+				compatible_model_0 = "RUT260";
+				compatible_versions_0 = <3 99>;
+				line_name_0 = "GPIO_IN_1";
+
+				compatible_model_1 = "RUT241";
+				compatible_versions_1 = <5 99>;
+				line_name_1 = "GPIO_IN_1";
 			};
 			GPIO_5 {
+				compatible_model_0 = "RUT260";
+				compatible_versions_0 = <0 2>;
+				line_name_0 = "GPIO_OUT_1";
+
+				compatible_model_1 = "RUT241";
+				compatible_versions_1 = <0 4>;
+				line_name_1 = "GPIO_OUT_1";
+
+				compatible_model_2 = "RUT200";
+				compatible_versions_2 = <0 99>;
+				line_name_2 = "GPIO_OUT_1";
+			};
+			GPIO_6 {
+				compatible_model = "RUT260";
+				compatible_versions = <3 99>;
+				line_name = "GPIO_OUT_1";
+			};
+			GPIO_37 {
+				compatible_model = "RUT241";
+				compatible_versions = <5 99>;
 				line_name = "GPIO_OUT_1";
 			};
 		};
@@ -208,7 +240,7 @@
 
 &state_default {
 	gpio {
-		groups = "i2s", "uart1", "p4led_an", "p3led_an", "p2led_an", "p1led_an", "p0led_an", "gpio", "wled_an", "perst";
+		groups = "i2s", "uart1", "p4led_an", "p3led_an", "p2led_an", "p1led_an", "p0led_an", "gpio", "wled_an", "perst", "spi cs1";
 		function = "gpio";
 	};
 };
@@ -297,3 +329,16 @@
 &esw {
 	mediatek,portmap = <0x3e>;
 };
+
+// &i2c {
+// 	status = "okay";
+// 	clock-frequency = <100000>;
+// 	tlt-mnf,device = "RUT260", "RUT241";
+// 	tlt-mnf,hwver = "5"; not implemented yet
+
+// 	tpm: tpm@2e {
+// 		compatible = "infineon,slb9673";
+// 		reg = <0x2e>;
+// 		status = "okay";
+// 	};
+// };

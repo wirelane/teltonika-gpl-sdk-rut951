@@ -251,10 +251,40 @@ int reset_button_status(void)
  */
 int digital_in_status(void)
 {
-#if defined(CONFIG_GPIO_MASK_DIGITAL_IN)
+#if defined(CONFIG_GPIO_MASK_DIGITAL_IN_OLD)
+	u32 gpio, num;
+	const uint64_t old_gpio_mask[] = { CONFIG_GPIO_MASK_DIGITAL_IN_OLD };
+	const uint64_t new_gpio_mask[] = { CONFIG_GPIO_MASK_DIGITAL_IN_NEW };
+#if defined(CONFIG_DEVICE_LIST)
+	const char *device_list[] = { CONFIG_DEVICE_LIST };
+#else
+	const char *device_list = NULL;
+#endif
+	int hwver_list[]     = { CONFIG_HW_VERSIONS };
+	const char mnf_name[12];
+	const char hwver[4];
+	mnf_get_field("name", mnf_name);
+	mnf_get_field("hwver", hwver);
+	int mnf_hwver = hwver ? (hwver[2] - '0') * 10 + (hwver[3] - '0') : 0;
+
+	int len = sizeof(old_gpio_mask) / sizeof(old_gpio_mask[0]);
+	for (u32 i = 0; i < len; i++) {
+		if (device_list) {
+			if (strncmp(device_list[i], mnf_name, strlen(device_list[i]))) {
+				continue;
+			}
+		}
+
+		num = hwver_list[i] > mnf_hwver ? mtk_gpio_num(old_gpio_mask[i]) :
+						  mtk_gpio_num(new_gpio_mask[i]);
+		break;
+	}
+	gpio = RALINK_REG(mtk_gpio_data_reg(num));
+	return !(gpio & mtk_gpio_mask(num));
+#elif defined(CONFIG_GPIO_MASK_DIGITAL_IN)
 	u32 gpio, num;
 
-	num = mtk_gpio_num(CONFIG_GPIO_MASK_DIGITAL_IN);
+	num  = mtk_gpio_num(CONFIG_GPIO_MASK_DIGITAL_IN);
 	gpio = RALINK_REG(mtk_gpio_data_reg(num));
 
 	return !(gpio & mtk_gpio_mask(num));

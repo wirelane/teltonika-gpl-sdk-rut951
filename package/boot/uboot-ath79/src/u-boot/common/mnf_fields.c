@@ -84,7 +84,7 @@ mnf_field_t mnf_fields[] = {
 #elif defined (CONFIG_FOR_TELTONIKA_TRB24XX)
 	MNF_FIELD( '2', "sim2",      "SIM 2 PIN",           0x80,   4, clear          , 0 ),
 #endif
-
+	MNF_FIELD( 'C', "simcfg",    "SIM config",         0x110,  32, clear          , 0 ),
 	MNF_FIELD( 'W', "wifi_pass", "WiFi password",       0x90,  16, clear          , 0 ),
 	MNF_FIELD( 'x', "passwd",    "Linux password",      0xA0, 106, clear          , 0 ),
 	{ '\0' }

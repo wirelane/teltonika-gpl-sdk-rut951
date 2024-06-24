@@ -39,12 +39,12 @@ extern int mnf_flash_write_finalize(void)
         /*
          * WORKAROUND
          *
-         * So it seems like the CPU cache on atheros chips is unaware of memory mapped 
-         * SPI nor flash and caches any reads/writes to that memory region. Since the flash 
-         * is written through a seperate channel, the cache does not get updated and subsequent 
-         * reads end up returning old values. Funnily enough, writes to said memory region do 
+         * So it seems like the CPU cache on atheros chips is unaware of memory mapped
+         * SPI nor flash and caches any reads/writes to that memory region. Since the flash
+         * is written through a seperate channel, the cache does not get updated and subsequent
+         * reads end up returning old values. Funnily enough, writes to said memory region do
          * not seem to cause a cpu fault or anything, so we can just 'update' the cache ourselves...
-         * 
+         *
          * And hey, it's not very critical code anyway, just don't breathe at it the wrong way.
          */
         memcpy((void *) CFG_FLASH_BASE + OFFSET_MNF_INFO, mnf_cache, MNF_INFO_SIZE);
