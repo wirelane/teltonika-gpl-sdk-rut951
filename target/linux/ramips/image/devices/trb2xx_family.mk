@@ -34,6 +34,14 @@ define Device/TEMPLATE_teltonika_trb246
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, CB, EAC, UCRF, WEEE
 endef
 
+define Device/TEMPLATE_teltonika_trb247
+	$(Device/teltonika_trb2m_common)
+	$(Device/template_trb2m)
+	DEVICE_MODEL := TRB247
+
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10.2
+endef
+
 define Device/TEMPLATE_teltonika_trb256
 	$(Device/teltonika_trb2m_common)
 	DEVICE_MODEL := TRB256

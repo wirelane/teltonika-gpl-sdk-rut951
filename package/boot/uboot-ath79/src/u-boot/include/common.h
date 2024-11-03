@@ -575,6 +575,10 @@ int	had_ctrlc (void);	/* have we had a Control-C since last clear? */
 void	clear_ctrlc (void);	/* clear the Control-C condition */
 int	disable_ctrlc (int);	/* 1 to disable, 0 to enable Control-C detect */
 
+#if defined(CONFIG_FOR_TELTONIKA_TRB2M)
+extern void init_led_on_model(void);
+#endif
+extern void init_led_animation_array(void);
 extern void led_animation(int reverse);
 extern void sr_led_animation(int reverse);
 

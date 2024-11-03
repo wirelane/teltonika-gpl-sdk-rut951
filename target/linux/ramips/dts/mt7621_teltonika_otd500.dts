@@ -24,6 +24,12 @@
 			gpios = <&gpio 48 GPIO_ACTIVE_HIGH>;
 		};
 
+		gpio_sim_select {
+			gpio-export,name = "sim_sel";
+			gpio-export,output = <0>;
+			gpios = <&gpio 9 GPIO_ACTIVE_HIGH>;
+		};
+
 		gpio_modem_power {
 			gpio-export,name = "modem_power";
 			gpio-export,output = <1>; // tmp
@@ -194,6 +200,9 @@
 			GPIO_12 {
 				line_name = "GPIO_MODEM_STATUS";
 			};
+			GPIO_9 {
+				line_name = "GPIO_SIM_SELECT";
+			};
 		};
 	};
 };
@@ -221,10 +230,16 @@
 
 &i2c {
 	status = "okay";
+
+	tpm@2e {
+		compatible = "infineon,slb9673";
+		reg = <0x2e>;
+		status = "okay";
+	};
 };
 
 &mnfinfo {
 	sim_cfg {
-		default = "1111000_1112000";
+		default = "1111100_1112000_1121200";
 	};
 };

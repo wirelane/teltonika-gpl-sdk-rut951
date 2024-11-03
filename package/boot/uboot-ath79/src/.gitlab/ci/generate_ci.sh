@@ -14,6 +14,7 @@ BOOTLOADERS=(
 "mips|tcr1xx"
 "mips|trb24x"
 "mipsel|rut14x"
+"mipsel|dap14x"
 "mipsel|rut2m"
 "mipsel|rut206"
 "mipsel|rut301"

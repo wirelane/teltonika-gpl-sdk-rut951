@@ -210,7 +210,7 @@ define Device/TEMPLATE_teltonika_rut971
 	$(Device/teltonika_rut9m_common)
 	$(Device/template_rut9m)
 	DEVICE_MODEL := RUT971
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.8.1
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10.2
 
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi antenna connectors
 	HARDWARE/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
@@ -237,7 +237,7 @@ define Device/TEMPLATE_teltonika_rut976
 	$(Device/teltonika_rut9m_common)
 	$(Device/template_rut9m_io)
 	DEVICE_MODEL := RUT976
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.8.1
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10.2
 
 	HARDWARE/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN)
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS

@@ -16,8 +16,10 @@
 #include <asm/addrspace.h>
 #include <soc/mtk_soc_common.h>
 #include <mtk_gpio.h>
+#include "mnf_info.h"
 
 #define ALIGN_SIZE "8"
+#define ARRAY_MAX_LED_COUNT 8
 
 /*
  * In case CONFIG_MTK_GPIO_MASK_LED_ACT_H is not defined, define it as empty
@@ -29,7 +31,12 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+static uint64_t global_led_animation_mask[ARRAY_MAX_LED_COUNT] = { 0 };
+static char global_led_animation_mask_len = 0;
 static u32 mac_is_not_valid = 0;
+
+extern u64 global_active_high_mask;
+extern u64 global_active_low_mask;
 
 /*
  * Put MTK SOC name, version and eco id in buffer
@@ -302,29 +309,72 @@ int digital_in_status(void)
 #endif
 }
 
+static void set_global_led_animation_cfg(uint64_t from[], uint64_t to[])
+{
+	if (global_led_animation_mask_len > ARRAY_MAX_LED_COUNT) {
+		global_led_animation_mask_len = ARRAY_MAX_LED_COUNT;
+		printf("Error: max led count exceeded\n");
+	}
+	for (int i = 0; i < global_led_animation_mask_len; i++) {
+		to[i] = from[i];
+	}
+}
+
+#if defined(CONFIG_FOR_TELTONIKA_TRB2M)
+void init_led_on_model(void)
+{
+	const char mnf_name[12];
+	mnf_get_field("name", mnf_name);
+	if (!strncmp(mnf_name, "TRB247", 6)) {
+		global_active_high_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_H_TRB247;
+		global_active_low_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_L_TRB247;
+	}
+}
+#endif
+
+void init_led_animation_array(void)
+{
+#if defined(CONFIG_MTK_LED_ANIMATION_MASK)
+	uint64_t led_animation_mask[] = { CONFIG_MTK_LED_ANIMATION_MASK };
+
+	global_led_animation_mask_len = sizeof(led_animation_mask) / sizeof(led_animation_mask[0]);
+
+#if defined (CONFIG_FOR_TELTONIKA_TRB2M)
+	uint64_t trb247_mask[] = { CONFIG_MTK_LED_ANIMATION_MASK_TRB247 };
+	const char mnf_name[12];
+	mnf_get_field("name", mnf_name);
+
+	if (!strncmp(mnf_name, "TRB247", 6)) {
+		global_led_animation_mask_len = sizeof(trb247_mask) / sizeof(trb247_mask[0]);
+		set_global_led_animation_cfg(trb247_mask, global_led_animation_mask);
+
+		return;
+	}
+#endif
+	set_global_led_animation_cfg(led_animation_mask, global_led_animation_mask);
+
+	return;
+#endif
+}
+
 /*
  * Toggle GPIOs in normal or reverse order
  */
 void led_animation(int reverse)
 {
 #if defined(CONFIG_MTK_LED_ANIMATION_MASK)
-	const uint64_t array[] = {
-		CONFIG_MTK_LED_ANIMATION_MASK
-	};
-
 	static int cycle = 0;
-	int len = sizeof(array) / sizeof(array[0]);
 	u32 num, reg, mask;
 
 	if (!reverse) {
-		if (cycle == len) {
+		if (cycle == global_led_animation_mask_len) {
 			cycle = -1;
 
-			for (u32 i = 0; i < len; i++) {
-				num = mtk_gpio_num(array[i]);
+			for (u32 i = 0; i < global_led_animation_mask_len; i++) {
+				num = mtk_gpio_num(global_led_animation_mask[i]);
 				reg = mtk_gpio_data_reg(num);
 				mask = mtk_gpio_mask(num);
-				if (array[i] & CONFIG_MTK_GPIO_MASK_LED_ACT_H) {
+				if (global_led_animation_mask[i] & global_active_high_mask) {
 					RALINK_REG(reg) |= mask;
 				} else {
 					RALINK_REG(reg) &= ~mask;
@@ -334,10 +384,10 @@ void led_animation(int reverse)
 		}
 
 		for (int i = 0; i <= cycle; i++) {
-			num = mtk_gpio_num(array[i]);
+			num = mtk_gpio_num(global_led_animation_mask[i]);
 			reg = mtk_gpio_data_reg(num);
 			mask = mtk_gpio_mask(num);
-			if (array[i] & CONFIG_MTK_GPIO_MASK_LED_ACT_H) {
+			if (global_led_animation_mask[i] & global_active_high_mask) {
 				RALINK_REG(reg) &= ~mask;
 			} else {
 				RALINK_REG(reg) |= mask;
@@ -349,13 +399,13 @@ cycle_inc:
 		return;
 	} else {
 		if (cycle == 0) {
-			cycle = len;
+			cycle = global_led_animation_mask_len;
 
-			for (u32 i = 0; i < len; i++) {
-				num = mtk_gpio_num(array[i]);
+			for (u32 i = 0; i < global_led_animation_mask_len; i++) {
+				num = mtk_gpio_num(global_led_animation_mask[i]);
 				reg = mtk_gpio_data_reg(num);
 				mask = mtk_gpio_mask(num);
-				if (array[i] & CONFIG_MTK_GPIO_MASK_LED_ACT_H) {
+				if (global_led_animation_mask[i] & global_active_high_mask) {
 					RALINK_REG(reg) |= mask;
 				} else {
 					RALINK_REG(reg) &= ~mask;
@@ -364,11 +414,11 @@ cycle_inc:
  			return;
 		}
 
-		for (int i = len - 1; i >= cycle - 1; i--) {
-			num = mtk_gpio_num(array[i]);
+		for (int i = global_led_animation_mask_len - 1; i >= cycle - 1; i--) {
+			num = mtk_gpio_num(global_led_animation_mask[i]);
 			reg = mtk_gpio_data_reg(num);
 			mask = mtk_gpio_mask(num);
-			if (array[i] & CONFIG_MTK_GPIO_MASK_LED_ACT_H) {
+			if (global_led_animation_mask[i] & global_active_high_mask) {
 				RALINK_REG(reg) &= ~mask;
 			} else {
 				RALINK_REG(reg) |= mask;

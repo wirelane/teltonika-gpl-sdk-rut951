@@ -52,7 +52,7 @@
 		};
 
 		gpio_sim_select {
-			gpio-export,name = "sim_sel";
+			gpio-export,name = "sim_sel2";
 			gpio-export,output = <1>;
 			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
 		};

@@ -10,6 +10,7 @@
 #include <common.h>
 #include <soc/mtk_soc_common.h>
 #include <mtk_gpio.h>
+#include <mnf_info.h>
 
 /* MT7628 contains 3 gpio chips
  * Each gpip chip supports 32 GPIO pins
@@ -55,6 +56,18 @@
 
 #ifndef SR_74X164_TIME_UNIT
 #define SR_74X164_TIME_UNIT 1 /* 1 usec */
+#endif
+
+#if defined CONFIG_MTK_GPIO_MASK_LED_ACT_H
+u64 global_active_high_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_H;
+#else
+u64 global_active_high_mask = 0;
+#endif
+
+#if defined CONFIG_MTK_GPIO_MASK_LED_ACT_L
+u64 global_active_low_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_L;
+#else
+u64 global_active_low_mask = 0;
 #endif
 
 typedef struct {
@@ -355,14 +368,14 @@ void all_led_on(void)
 {
 #if defined(CONFIG_MTK_GPIO_MASK_LED_ACT_H)
 	for (u32 i = 0; i < gpio_out_func_len; i++) {
-		if (gpio_out_func[i].gpio & CONFIG_MTK_GPIO_MASK_LED_ACT_H) 
+		if (gpio_out_func[i].gpio & global_active_high_mask)
 			gpio_set_level(i, 1);
 	}
 #endif // CONFIG_MTK_GPIO_MASK_LED_ACT_H
 
 #if defined(CONFIG_MTK_GPIO_MASK_LED_ACT_L)
 	for (u32 i = 0; i < gpio_out_func_len; i++) {
-		if (gpio_out_func[i].gpio & CONFIG_MTK_GPIO_MASK_LED_ACT_L) 
+		if (gpio_out_func[i].gpio & global_active_low_mask)
 			gpio_set_level(i, 0);
 	}
 #endif // CONFIG_MTK_GPIO_MASK_LED_ACT_L
@@ -381,14 +394,14 @@ void all_led_off(void)
 
 #if defined(CONFIG_MTK_GPIO_MASK_LED_ACT_H)
 	for (u32 i = 0; i < gpio_out_func_len; i++) {
-		if (gpio_out_func[i].gpio & CONFIG_MTK_GPIO_MASK_LED_ACT_H) 
+		if (gpio_out_func[i].gpio & global_active_high_mask)
 			gpio_set_level(i, 0);
 	}
 #endif // CONFIG_MTK_GPIO_MASK_LED_ACT_H
 
 #if defined(CONFIG_MTK_GPIO_MASK_LED_ACT_L)
 	for (u32 i = 0; i < gpio_out_func_len; i++) {
-		if (gpio_out_func[i].gpio & CONFIG_MTK_GPIO_MASK_LED_ACT_L) 
+		if (gpio_out_func[i].gpio & global_active_low_mask)
 			gpio_set_level(i, 1);
 	}
 #endif // CONFIG_MTK_GPIO_MASK_LED_ACT_L

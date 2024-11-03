@@ -8,6 +8,7 @@ include devices/otd1xx_family.mk
 include devices/tap1xx_family.mk
 include devices/trb2xx_family.mk
 include devices/rut1xx_family.mk
+include devices/dap1xx_family.mk
 include devices/rut2xx_family.mk
 include devices/rut3xx_family.mk
 include devices/rut9xx_family.mk
@@ -130,6 +131,22 @@ define Device/teltonika_rut14x
 	# Wireless related:
 	DEVICE_PACKAGES += kmod-mt76_515 kmod-mt7603_515
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+endef
+
+define Device/teltonika_dap14x
+	$(Device/tlt-mt7628-common)
+	DEVICE_MODEL := DAP14X
+	DEVICE_BOOT_NAME := tlt-dap14x
+	DEVICE_DTS := mt7628an_teltonika_dap14x
+	DEVICE_FEATURES += small_flash serial modbus ntrip wifi ledman-lite sw-offload portlink industrial-access-point
+	# Default common packages for DAP14X series
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	DEVICE_PACKAGES += kmod-usb-ohci kmod-usb-serial-pl2303
+
+	# Wireless related:
+	DEVICE_PACKAGES += kmod-mt76_515 kmod-mt7603_515
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 endef
 
 define Device/teltonika_rut2m

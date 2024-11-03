@@ -649,6 +649,24 @@ tlt-rut14x: rt2880_common
 	@$(call define_add,CONFIG_CMD_MNFINFO,1)
 	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
 
+tlt-dap14x: rt2880_common
+	@$(call config_init,Teltonika DAP14X,tlt-dap14x,16,0,1,MTK_MT7628_SOC)
+	@$(call define_add,CONFIG_FOR_TELTONIKA_DAP14X,1)
+	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
+	@$(call define_add,ON_BOARD_1024M_DRAM_COMPONENT,1)
+	@$(call define_add,ON_BOARD_DDR2,1)
+	@$(call define_add,ON_BOARD_DDR_WIDTH_16,1)
+	@$(call define_add,ON_BOARD_16BIT_DRAM_BUS,1)
+	@$(call define_add,RALINK_DDR_POWERSAVE,1)
+	@$(call define_add,CONFIG_DDR_CAL,1)
+	@$(call define_add,ASIC_BOARD,1)
+	@$(call define_add,MT7628_ASIC_BOARD,1)
+	@$(call define_add,CPU_FRAC_DIV,1)
+	@$(call define_add,CONFIG_EARLY_GPIO_INIT,1)
+	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
+	@$(call define_add,CONFIG_CMD_MNFINFO,1)
+	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
+
 tlt-rut2xx: ar933x_common lsdk_kernel
 	@$(call config_init,Teltonika RUT2XX,tlt-rut2xx,16,22,1,QCA_AR9331_SOC)
 	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT2XX,1)

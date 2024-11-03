@@ -98,7 +98,7 @@ define Device/TEMPLATE_teltonika_rut271
 	$(Device/teltonika_rut2m_common)
 	DEVICE_MODEL := RUT271
 	DEVICE_FEATURES := io small_flash mobile wifi
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.8.1
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10.2
 
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, ANRT, Kenya, ICASA, FCC, IC, PTCRB, NOM, RCM, KC, Giteki, \
 	IMDA, E-mark, CB, UL/CSA Safety, RoHS, REACH, R118

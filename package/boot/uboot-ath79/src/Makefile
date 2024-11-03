@@ -275,6 +275,11 @@ tlt-rut14x:
 		DEVICE_VENDOR=teltonika \
 		DEVICE_MODEL=RUT14X)
 
+tlt-dap14x:
+	@$(call build,128,0,\
+		DEVICE_VENDOR=teltonika \
+		DEVICE_MODEL=DAP14X)
+
 tlt-rut2xx:
 	@$(call build,128,1,\
 		DEVICE_VENDOR=teltonika \
