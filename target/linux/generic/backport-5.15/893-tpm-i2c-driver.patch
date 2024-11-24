@@ -31,7 +31,7 @@
  obj-$(CONFIG_TCG_TIS_I2C_NUVOTON) += tpm_i2c_nuvoton.o
 --- /dev/null
 +++ b/drivers/char/tpm/tpm_tis_i2c.c
-@@ -0,0 +1,409 @@
+@@ -0,0 +1,411 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Copyright (c) 2014-2021 Nuvoton Technology corporation
@@ -422,6 +422,8 @@
 +	{
 +		.compatible = "infineon,slb9673",
 +	},
++	{ .compatible = "st,st33htpm-i2c", },
++	{ .compatible = "tcg,tpm-tis-i2c", },
 +	{}
 +};
 +MODULE_DEVICE_TABLE(of, of_tis_i2c_match);

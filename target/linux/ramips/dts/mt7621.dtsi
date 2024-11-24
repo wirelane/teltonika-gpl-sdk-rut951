@@ -84,6 +84,7 @@
 			reg = <&config 0x58 0x4>;
 			strip-whitespaces;
 			type = "ascii";
+			default = "";
 			log;
 		};
 

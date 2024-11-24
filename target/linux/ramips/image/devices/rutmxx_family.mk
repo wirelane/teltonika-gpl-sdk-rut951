@@ -19,11 +19,36 @@ define Device/teltonika_rutm_common
 	HARDWARE/Physical_Specification/Mounting_options := $(HW_PHYSICAL_MOUNTING_KIT)
 endef
 
+define Device/template_rutm_common
+	$(Device/teltonika_rutm)
+
+	DEVICE_WLAN_BSSID_LIMIT := wlan0 16, wlan1 16
+
+	DEVICE_USB_JACK_PATH := /usb1/1-1/
+
+	DEVICE_NET_CONF :=       \
+		vlans          4094, \
+		max_mtu        2030, \
+		readonly_vlans 1
+
+	DEVICE_INTERFACE_CONF := \
+		lan default_ip 192.168.1.1
+
+	DEVICE_CHECK_PATH := pcie_check /sys/class/pci_bus/0000:00 reboot
+endef
+
 define Device/TEMPLATE_teltonika_rutm08
 	$(Device/teltonika_rutm_common)
-	$(Device/template_rutm)
+	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM08
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.6.1
+	DEVICE_FEATURES := usb ethernet ios dsa hw_nat nat_offloading multi_tag port_link \
+		soft_port_mirror gigabit_port xfrm-offload
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_WLAN_BSSID_LIMIT :=
+	DEVICE_CHECK_PATH :=
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Wireless/Wireless_mode :=
 	HARDWARE/Wireless/WIFI_users :=
@@ -32,15 +57,25 @@ define Device/TEMPLATE_teltonika_rutm08
 	HARDWARE/Power/Power_consumption := Idle < 1.8 W / Max < 5.5 W
 	HARDWARE/Physical_Specification/Weight := 353 g
 	HARDWARE/Physical_Specification/Dimensions := 115 x 32.2 x 95.2 mm
-
 endef
 
 define Device/TEMPLATE_teltonika_rutm09
 	$(Device/teltonika_rutm_common)
-	$(Device/template_rutm)
+	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM09
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.6.1
+	DEVICE_FEATURES := usb ethernet ios gps mobile dual_sim dsa \
+		hw_nat nat_offloading multi_tag port_link soft_port_mirror \
+		gigabit_port xfrm-offload
+	DEVICE_INTERFACE_CONF := \
+		lan default_ip 192.168.1.1
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_WLAN_BSSID_LIMIT :=
+	DEVICE_CHECK_PATH :=
 
+	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 12
 	HARDWARE/Wireless/Wireless_mode :=
 	HARDWARE/Wireless/WIFI_users :=
 	HARDWARE/Physical_Interfaces/Status_leds := 3 x WAN type LEDs, 3 x Mobile connection type, 5 x Mobile connection strength, 8 x LAN status, 1 x Power
@@ -48,14 +83,19 @@ define Device/TEMPLATE_teltonika_rutm09
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for Mobile, 1 x SMA for GNSS
 	HARDWARE/Physical_Specification/Weight := 457 g
 	HARDWARE/Physical_Specification/Dimensions := 115 x 44.2 x 95.1 mm
-
 endef
 
 define Device/TEMPLATE_teltonika_rutm10
 	$(Device/teltonika_rutm_common)
-	$(Device/template_rutm)
+	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM10
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.6.1
+	DEVICE_FEATURES := usb ethernet ios wifi dual_band_ssid dsa \
+		hw_nat nat_offloading multi_tag port_link soft_port_mirror \
+		gigabit_port xfrm-offload
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Physical_Interfaces/SIM :=
 	HARDWARE/Wireless/Wireless_mode := $(HW_WIFI_5)
@@ -64,29 +104,44 @@ define Device/TEMPLATE_teltonika_rutm10
 	HARDWARE/Physical_Interfaces/Antennas := 2 x RP-SMA for Wi-Fi
 	HARDWARE/Physical_Specification/Weight := 359 g
 	HARDWARE/Physical_Specification/Dimensions := 115 x 32.2 x 95.2 mm
-
 endef
 
 define Device/TEMPLATE_teltonika_rutm11
 	$(Device/teltonika_rutm_common)
-	$(Device/template_rutm)
+	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM11
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.6.1
+	DEVICE_FEATURES := usb ethernet ios gps mobile wifi \
+		dual_band_ssid dual_sim dsa hw_nat nat_offloading multi_tag \
+		port_link soft_port_mirror gigabit_port xfrm-offload
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
+	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 12
 	HARDWARE/Physical_Interfaces/Status_leds := 4 x WAN type LEDs, 2 x Mobile connection type, 5 x Mobile connection strength, 8 x LAN status, 1 x Power, 2 x 2.4G and 5G Wi-Fi
 	HARDWARE/Power/Power_consumption := Idle < 3.9 W, Max < 12.3 W
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for Mobile, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS
 	HARDWARE/Physical_Specification/Weight := 460 g
 	HARDWARE/Physical_Specification/Dimensions := 115 x 44.2 x 95.1 mm
-
 endef
 
 define Device/TEMPLATE_teltonika_rutm12
 	$(Device/teltonika_rutm_common)
-	$(Device/template_rutm)
+	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM12
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.6.1
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.9
+	DEVICE_FEATURES := ethernet ios gps mobile wifi \
+		dual_band_ssid dual_modem dsa hw_nat nat_offloading multi_tag \
+		port_link soft_port_mirror gigabit_port custom_usbcfg xfrm-offload
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_USB_JACK_PATH :=
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
+	HARDWARE/Mobile/Module := 2 x 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 12
 	HARDWARE/Physical_Interfaces/USB :=
 	HARDWARE/USB/Data_rate :=
 	HARDWARE/USB/Applications :=
@@ -97,50 +152,71 @@ define Device/TEMPLATE_teltonika_rutm12
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for Mobile, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS
 	HARDWARE/Physical_Specification/Weight := 460 g
 	HARDWARE/Physical_Specification/Dimensions := 115 x 44.2 x 95.1 mm
-
 endef
 
 define Device/TEMPLATE_teltonika_rutm50
 	$(Device/teltonika_rutm_common)
-	$(Device/template_rutm)
+	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM50
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.7
+	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
+	DEVICE_FEATURES := usb ethernet ios mobile wifi dual_band_ssid \
+		dual_sim at_sim dsa hw_nat nat_offloading multi_tag \
+		port_link soft_port_mirror gigabit_port xfrm-offload
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_USB_JACK_PATH := /usb1/1-2/
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
 	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 10 x Ethernet port status LEDs, 4 x WAN status LEDs, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
-	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for LTE, 2 x RP-SMA for WiFi, 1 x SMA for GNNS
 	HARDWARE/Physical_Interfaces/Ethernet := 5 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
 	HARDWARE/Power/Power_consumption := Idle <5 W, Max <18 W
 	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNNS
 	HARDWARE/Physical_Specification/Dimensions := 132 x 44.2 x 95.1 mm
 	HARDWARE/Physical_Specification/Weight := 519 g
-
 endef
-
 
 define Device/TEMPLATE_teltonika_rutm51
 	$(Device/teltonika_rutm_common)
-	$(Device/template_rutm)
+	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM51
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.4
+	DEVICE_USB_JACK_PATH := /usb1/1-2/
+	DEVICE_FEATURES := usb ethernet ios mobile wifi dual_band_ssid \
+		dual_sim at_sim dsa hw_nat nat_offloading multi_tag \
+		soft_port_mirror port_link gigabit_port xfrm-offload
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
+	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
+	HARDWARE/Mobile/3GPP_Release := Release 15
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
 	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 10 x Ethernet port status LEDs, 4 x WAN status LEDs, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
-	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNNS
 	HARDWARE/Physical_Interfaces/Ethernet := 5 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
 	HARDWARE/Power/Power_consumption := Idle <5 W, Max <18 W
 	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNNS
 	HARDWARE/Physical_Specification/Dimensions := 132 x 44.2 x 95.1 mm
 	HARDWARE/Physical_Specification/Weight := 519 g
-
 endef
 
 define Device/TEMPLATE_teltonika_rutm52
 	$(Device/teltonika_rutm_common)
-	$(Device/template_rutm)
+	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM52
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.7
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10
+	DEVICE_FEATURES := gps ethernet ios mobile wifi dual_band_ssid dual_sim \
+		at_sim dsa hw_nat nat_offloading multi_tag soft_port_mirror port_link \
+		gigabit_port dual_modem custom_usbcfg sd_card xfrm-offload
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_USB_JACK_PATH :=
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Physical_Interfaces/USB :=
 	HARDWARE/USB/Data_rate :=
 	HARDWARE/USB/Applications :=
@@ -148,46 +224,134 @@ define Device/TEMPLATE_teltonika_rutm52
 	HARDWARE/USB/Storage_formats :=
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
 	HARDWARE/Physical_Interfaces/Status_leds := 4 x connection status LEDs, 6 x connection strength LEDs, 10 x Ethernet port status LEDs, 4 x WAN status LEDs, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
-	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNNS
 	HARDWARE/Physical_Interfaces/Ethernet := 5 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
 	HARDWARE/Power/Power_consumption := Idle <5 W, Max <18 W
 	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNNS
 	HARDWARE/Physical_Specification/Dimensions := 132 x 44.2 x 95.1 mm
 	HARDWARE/Physical_Specification/Weight := 519 g
+endef
 
+define Device/TEMPLATE_teltonika_rutm54
+	$(Device/teltonika_rutm_common)
+	$(Device/template_rutm_common)
+	DEVICE_MODEL := RUTM54
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.11
+	DEVICE_FEATURES := gps usb ethernet ios mobile wifi dual_band_ssid \
+		dual_sim at_sim dsa hw_nat nat_offloading multi_tag soft_port_mirror \
+		port_link gigabit_port m2_modem xfrm-offload
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_USB_JACK_PATH := /usb1/1-2/
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
+
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 3.4Gbps DL, 0.55Gbps UL, SA 2.5Gbps DL, 0.9Gbps UL; 4G LTE CAT 19 DL 1.6Gbps on DL, CAT. 18 UL 211Mbps, \
+	3G HSPA+ Rel9 DL/UL 42/5.7Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 16
+	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
+	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 10 x Ethernet port status LEDs, 4 x WAN status LEDs, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
+	HARDWARE/Physical_Interfaces/Ethernet := 5 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
+	HARDWARE/Power/Power_consumption := Idle <5 W, Max <18 W
+	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNNS
+	HARDWARE/Physical_Specification/Dimensions := 132 x 44.2 x 95.1 mm
+	HARDWARE/Physical_Specification/Weight := 519 g
 endef
 
 define Device/TEMPLATE_teltonika_rutm55
 	$(Device/teltonika_rutm_common)
-	$(Device/template_rutm)
+	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM55
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10
+	DEVICE_USB_JACK_PATH := /usb1/1-2/1-2.1/
+	DEVICE_FEATURES := gps ethernet ios mobile wifi dual_band_ssid \
+		at_sim dsa hw_nat nat_offloading multi_tag port_link \
+		soft_port_mirror gigabit_port rs232 rs485 usb xfrm-offload
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
+	DEVICE_SERIAL_CAPABILITIES := \
+		"rs232"                                                            \
+			"300 600 1200 2400 4800 9600 19200 38400 57600 115200 230400"  \
+			"7 8"                                                          \
+			"rts/cts xon/xoff none"                                        \
+			"1 2"                                                          \
+			"even odd mark space none"                                     \
+			"none"                                                         \
+			"/tty/ttyS1",                                                  \
+		"rs485"                                                            \
+			"300 600 1200 2400 4800 9600 19200 38400 57600 115200          \
+			230400 460800 921600 3000000"                                  \
+			"5 6 7 8"                                                      \
+			"none"                                                         \
+			"1 2"                                                          \
+			"even odd mark space none"                                     \
+			"half"                                                         \
+			"/usb1/1-1/1-1\:1.0/"
 
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/LAN/Port := 3 $(HW_ETH_LAN_PORTS)
 	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 8 x Ethernet port status LEDs, 1 x Power LED
-	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNNS
 	HARDWARE/Physical_Interfaces/Ethernet := 4 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
 	HARDWARE/Power/Power_consumption := Idle <5 W, Max <18 W
 	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNNS
 	HARDWARE/Physical_Specification/Dimensions := 132 x 44.2 x 95.1 mm (TODO)
 	HARDWARE/Physical_Specification/Weight := 519 g (TODO)
+endef
 
+define Device/TEMPLATE_teltonika_rutm56
+	$(Device/teltonika_rutm_common)
+	$(Device/template_rutm_common)
+	DEVICE_MODEL := RUTM56
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.11
+	DEVICE_FEATURES := gps ethernet ios mobile wifi dual_band_ssid \
+		at_sim dsa hw_nat nat_offloading multi_tag soft_port_mirror \
+		port_link gigabit_port dual_modem custom_usbcfg xfrm-offload
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_USB_JACK_PATH :=
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
+
+	HARDWARE/Mobile/Module := 1 x 5G Sub-6Ghz SA/NSA 2.4/3.4Gbps DL (4x4 MIMO), 900/550 Mbps UL (2x2); 4G (LTE) – LTE Cat 20 2.0Gbps DL, 210Mbps UL; 3G – 42 Mbps DL, 5.76Mbps UL, \
+	1 x 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
+	HARDWARE/Mobile/3GPP_Release := Release 16, Release 9
+	HARDWARE/Physical_Interfaces/USB :=
+	HARDWARE/USB/Data_rate :=
+	HARDWARE/USB/Applications :=
+	HARDWARE/USB/External_devices :=
+	HARDWARE/USB/Storage_formats :=
+	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
+	HARDWARE/Physical_Interfaces/Status_leds := 4 x connection status LEDs, 6 x connection strength LEDs, 10 x Ethernet port status LEDs, 4 x WAN status LEDs, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
+	HARDWARE/Physical_Interfaces/Ethernet := 5 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
+	HARDWARE/Power/Power_consumption := Idle <5 W, Max <18 W
+	HARDWARE/Physical_Interfaces/Antennas := 6 x SMA for Mobile, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNNS
+	HARDWARE/Physical_Specification/Dimensions := 132 x 44.2 x 95.1 mm
+	HARDWARE/Physical_Specification/Weight := 519 g
 endef
 
 define Device/TEMPLATE_teltonika_rutm59
 	$(Device/teltonika_rutm_common)
-	$(Device/template_rutm)
+	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM59
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.9.3
+	DEVICE_FEATURES := usb ethernet ios mobile dual_sim \
+		at_sim dsa hw_nat nat_offloading multi_tag port_link \
+		soft_port_mirror gigabit_port gps xfrm-offload
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
+	DEVICE_WAN_OPTION := wan
+	DEVICE_USB_JACK_PATH := /usb1/1-2/
+	DEVICE_WLAN_BSSID_LIMIT :=
+	DEVICE_CHECK_PATH :=
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Wireless/Wireless_mode :=
 	HARDWARE/Wireless/WIFI_users :=
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
-	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 10 x Ethernet port status LEDs, 4 x WAN status LEDs, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
+	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 10 x Ethernet port status LEDs, 3 x WAN status LEDs, 1 x Power LED
 	HARDWARE/Physical_Interfaces/Ethernet := 5 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
 	HARDWARE/Power/Power_consumption := Idle <5 W, Max <18 W
 	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 1 x SMA for GNNS
 	HARDWARE/Physical_Specification/Dimensions := 132 x 44.2 x 95.1 mm
 	HARDWARE/Physical_Specification/Weight := 519 g
-
 endef

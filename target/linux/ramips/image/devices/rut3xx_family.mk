@@ -1,5 +1,27 @@
-define Device/tlt-desc-rut301
+define Device/TEMPLATE_teltonika_rut301
 	$(Device/tlt-mt7628-hw-common)
+	$(Device/teltonika_rut301)
+
+	DEVICE_SWITCH_CONF := switch0 0:lan:1 1:lan:2 \
+		2:lan:3 3:lan:4 4:wan 6@eth0
+
+	DEVICE_NET_CONF :=       \
+		vlans          16,   \
+		max_mtu        1500, \
+		readonly_vlans 2,    \
+		vlan0          true
+
+	DEVICE_INTERFACE_CONF := \
+		lan default_ip 192.168.1.1
+
+	DEVICE_USB_JACK_PATH := /usb2/2-1/
+
+	DEVICE_FEATURES := usb ethernet ios nat_offloading port_link xfrm-offload
+
+	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
+
+	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 12
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M) $(HW_FLASH_TYPE_NOR_SERIAL)
 	HARDWARE/Wireless/Wireless_mode :=
 	HARDWARE/Wireless/WIFI_users :=
@@ -29,10 +51,33 @@ define Device/tlt-desc-rut301
 	HARDWARE/Physical_Interfaces/Status_leds := 1 x WAN type LED, 4 x LAN status LEDs, 1 x Power LED
 endef
 
-define Device/tlt-desc-rut361
+define Device/TEMPLATE_teltonika_rut361
 	$(Device/tlt-mt7628-hw-common)
+	$(Device/teltonika_rut361)
+
+	DEVICE_SWITCH_CONF := switch0 1:lan 0:wan:2 6@eth0
+
+	DEVICE_WLAN_BSSID_LIMIT := wlan0 4
+
+	DEVICE_CHECK_PATH := usb_check /sys/bus/usb/drivers/usb/1-1 reboot
+
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
+
+	DEVICE_NET_CONF :=       \
+		vlans          16,   \
+		max_mtu        1500, \
+		readonly_vlans 2,    \
+		vlan0          true
+
+	DEVICE_INTERFACE_CONF := \
+		lan default_ip 192.168.1.1
+
+	DEVICE_FEATURES := mobile wifi ethernet nat_offloading port_link xfrm-offload
+
+	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
+
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M) $(HW_FLASH_TYPE_NOR_SERIAL)
-	HARDWARE/Wireless/Wireless_mode := 802.11 b/g/n, 2x2 MIMO, Access Point (AP), Station (STA)
+	HARDWARE/Wireless/Wireless_mode := 802.11 b/g/n, 2x2 MIMO
 	HARDWARE/Wireless/WIFI_users := $(HW_WIFI_50_USERS)
 	HARDWARE/WAN/Port := 1 $(HW_ETH_WAN_PORT)
 	HARDWARE/WAN/Speed := $(HW_ETH_SPEED_100)

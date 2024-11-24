@@ -536,7 +536,7 @@
 	};
 
 	tpm@2e {
-		compatible = "infineon,slb9673";
+		compatible = "infineon,slb9673", "st,st33htpm-i2c";
 		reg = <0x2e>;
 		status = "okay";
 	};

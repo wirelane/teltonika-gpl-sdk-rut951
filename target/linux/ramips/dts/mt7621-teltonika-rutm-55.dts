@@ -458,8 +458,8 @@
 		reg = <0x48>;
 	};
 
-	tpm: tpm@2e {
-		compatible = "infineon,slb9673";
+	tpm: tpm@0x2e {
+		compatible = "tpm_tis_i2c";
 		reg = <0x2e>;
 		status = "okay";
 	};

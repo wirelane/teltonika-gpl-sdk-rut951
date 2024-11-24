@@ -1,5 +1,29 @@
-define Device/tlt-desc-otd140
+define Device/TEMPLATE_teltonika_otd140
 	$(Device/tlt-mt7628-hw-common)
+	$(Device/teltonika_otd140)
+
+	DEVICE_SWITCH_CONF := switch0 4:lan:1 1:lan:2 6@eth0
+
+	DEVICE_NET_CONF :=       \
+		vlans          16,   \
+		max_mtu        1500, \
+		readonly_vlans 1,    \
+		vlan0          true
+
+	DEVICE_INTERFACE_CONF := \
+		lan default_ip 192.168.1.1
+
+	DEVICE_POE_CONF := i2c-0 2 15400 1 _lan1 3 15400
+
+	DEVICE_POE_CHIP := 0X77 0:_lan1, 0X2F 1:_lan1
+
+	DEVICE_FEATURES := dual_sim mobile ethernet nat_offloading poe \
+		port_link xfrm-offload
+
+	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
+
+	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 9
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M) $(HW_FLASH_TYPE_NOR_SERIAL)
 	HARDWARE/Wireless/Wireless_mode :=
 	HARDWARE/Wireless/WIFI_users :=

@@ -31,7 +31,7 @@
  #define __LINK_MODE_NAME(speed, type, duplex) \
 --- a/net/ethtool/ioctl.c
 +++ b/net/ethtool/ioctl.c
-@@ -2577,6 +2577,11 @@ static int ethtool_phy_tunable_valid(con
+@@ -2580,6 +2580,11 @@ static int ethtool_phy_tunable_valid(con
  		    tuna->type_id != ETHTOOL_TUNABLE_U16)
  			return -EINVAL;
  		break;

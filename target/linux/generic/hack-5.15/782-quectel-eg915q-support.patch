@@ -8,7 +8,7 @@
  #define QUECTEL_PRODUCT_EM061K_LWW		0x6008
  #define QUECTEL_PRODUCT_EM061K_LCN		0x6009
  #define QUECTEL_PRODUCT_EC200T			0x6026
-@@ -1199,6 +1200,9 @@ static const struct usb_device_id option
+@@ -1201,6 +1202,9 @@ static const struct usb_device_id option
  	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EC25, 0xff, 0xff, 0xff),
  	  .driver_info = NUMEP2 },
  	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EC25, 0xff, 0, 0) },

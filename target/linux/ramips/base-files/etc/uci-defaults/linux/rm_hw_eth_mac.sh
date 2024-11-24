@@ -4,7 +4,6 @@
 
 . /lib/functions.sh
 . /usr/share/libubox/jshn.sh
-. /lib/functions/teltonika-functions.sh
 
 ifaces() {
 	local section="$1" mac ifname bjson_mac
@@ -21,7 +20,8 @@ ifaces() {
 }
 
 json_load_file /etc/board.json
-json_select 'network-device' || exit 0
+json_is_a 'network-device' object || exit 0
+json_select 'network-device'
 
 config_load "network" || exit 0
 IFVAR=ifname

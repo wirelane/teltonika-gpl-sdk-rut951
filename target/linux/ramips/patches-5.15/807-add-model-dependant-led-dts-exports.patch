@@ -1,7 +1,7 @@
-Index: linux-5.15.165/drivers/leds/leds-gpio.c
+Index: linux-5.15.167/drivers/leds/leds-gpio.c
 ===================================================================
---- linux-5.15.165.orig/drivers/leds/leds-gpio.c
-+++ linux-5.15.165/drivers/leds/leds-gpio.c
+--- linux-5.15.167.orig/drivers/leds/leds-gpio.c
++++ linux-5.15.167/drivers/leds/leds-gpio.c
 @@ -16,8 +16,12 @@
  #include <linux/platform_device.h>
  #include <linux/property.h>

@@ -27,8 +27,48 @@ define Device/teltonika_trb2m_common
 	HARDWARE/Physical_Specification/Mounting_options := $(HW_PHYSICAL_MOUNTING)
 endef
 
+define Device/template_trb2m
+	$(Device/teltonika_trb2m)
+
+	DEVICE_CHECK_PATH := usb_check /sys/bus/usb/drivers/usb/1-1/1-1.4 reboot
+
+	DEVICE_NET_CONF :=       \
+		vlans          16,   \
+		max_mtu        1500, \
+		vlan0          true
+
+	DEVICE_INTERFACE_CONF := \
+		lan device eth0 default_ip 192.168.1.1
+
+	DEVICE_FEATURES := dual_sim mobile gps ethernet ios rs232 rs485 \
+		sw_rst_on_init xfrm-offload nat_offloading
+
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false single_port
+
+	DEVICE_SERIAL_CAPABILITIES := \
+		"rs232"                                                           \
+			"300 600 1200 2400 4800 9600 19200 38400 57600 115200"        \
+			"7 8"                                                         \
+			"rts/cts xon/xoff none"                                       \
+			"1 2"                                                         \
+			"even odd mark space none"                                    \
+			"none"                                                        \
+			"/usb1/1-1/1-1.3/",                                           \
+		"rs485"                                                           \
+			"300 600 1200 2400 4800 9600 19200 38400 57600 115200 230400" \
+			"5 6 7 8"                                                     \
+			"xon/xoff none"                                               \
+			"1 2"                                                         \
+			"even odd mark space none"                                    \
+			"half full"                                                   \
+			"/tty/ttyS1"
+
+	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
+endef
+
 define Device/TEMPLATE_teltonika_trb246
 	$(Device/teltonika_trb2m_common)
+	$(Device/template_trb2m)
 	DEVICE_MODEL := TRB246
 	HARDWARE/Power/Power_consumption := Idle:< 1.5 W, Max:< 3.5 W
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, CB, EAC, UCRF, WEEE
@@ -44,6 +84,7 @@ endef
 
 define Device/TEMPLATE_teltonika_trb256
 	$(Device/teltonika_trb2m_common)
+	$(Device/template_trb2m)
 	DEVICE_MODEL := TRB256
 	HARDWARE/Power/Power_consumption := Idle:< 2 W, Max:< 35 W
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, EAC, CB

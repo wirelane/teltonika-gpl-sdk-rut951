@@ -4,6 +4,11 @@ local util = require "vuci.util"
 local board = require("vuci.board")
 local single_port = not board:has_dsa() and not board:has_switch()
 local uci = require("uci")
+local fs = require "nixio.fs"
+local port_block_script = "/usr/sbin/dot1x_port_blocker"
+local eap_sender_app = "/usr/sbin/eap_sender"
+if not fs.access(port_block_script) then port_block_script = "/usr/local"..port_block_script end
+if not fs.access(eap_sender_app) then eap_sender_app = "/usr/local"..eap_sender_app end
 require "ubus"
 require "uloop"
 
@@ -21,16 +26,30 @@ local ubus_handler = function(msg, name)
 	local settings = port_settings[msg.iface]
 
 	local authorized = msg.authorized or (settings.use_vlans and settings.reject_vlan ~= "disabled")
-	util.exec(string.format("/usr/sbin/dot1x_port_blocker toggle_controlled_port %s %s %s", msg.iface, tostring(not authorized), msg.address or ""))
+	conn:call("file", "exec", {
+		command = port_block_script,
+		params = { "toggle_controlled_port", msg.iface, tostring(not authorized), msg.address or "" }
+	})
 
 	if not settings.use_vlans then return end
 	if msg.authorized then
-		util.exec(string.format("/usr/sbin/dot1x_port_blocker assign_vlan %s %s", msg.iface,
-			settings.accept_vlan ~= "radius_assigned" and settings.accept_vlan or msg.vid))
+		conn:call("file", "exec", {
+			command = port_block_script,
+			params = {
+				"assign_vlan", msg.iface,
+				tostring(settings.accept_vlan ~= "radius_assigned" and settings.accept_vlan or msg.vid)
+			}
+		})
 	elseif settings.reject_vlan ~= "disabled" then
-		util.exec(string.format("/usr/sbin/dot1x_port_blocker assign_vlan %s %s", msg.iface, settings.reject_vlan))
+		conn:call("file", "exec", {
+			command = port_block_script,
+			params = { "assign_vlan", msg.iface, settings.reject_vlan }
+		})
 	end
-	util.exec("/usr/sbin/dot1x_port_blocker sync")
+	conn:call("file", "exec", {
+		command = port_block_script,
+		params = { "sync" }
+	})
 end
 
 local dot1x_reader = { notify = ubus_handler }
@@ -76,8 +95,14 @@ local function port_events(msg, name)
 	if single_port and port == "lan1" then port = "eth0" end
 	local settings = port_settings[port] or port_settings["1x_"..port]
 	if not settings or not settings.enabled then return end
-	util.exec(string.format("/usr/sbin/dot1x_port_blocker toggle_controlled_port %s true", settings.port))
-	util.exec("/usr/sbin/dot1x_port_blocker sync")
+	conn:call("file", "exec", {
+		command = port_block_script,
+		params = { "toggle_controlled_port", settings.port, "true" }
+	})
+	conn:call("file", "exec", {
+		command = port_block_script,
+		params = { "sync" }
+	})
 	conn:call("hostapd."..settings.port, "reload", {})
 end
 local port_events_table = {notify = port_events}
@@ -89,7 +114,11 @@ local methods = {
 			function(req, _)
 				local port_status = {}
 				uci.cursor():foreach("dot1x", "port", function(s)
-					local state = string.gsub(util.exec("/usr/sbin/dot1x_port_blocker get_port_state "..s.iface), "%s+", "")
+					local state_cmd = conn:call("file", "exec", {
+						command = port_block_script,
+						params = { "get_port_state", s.iface }
+					})
+					local state = string.gsub(state_cmd.stdout or "", "%s+", "")
 					port_status[s[".name"]] = {state = state}
 				end)
 				conn:reply(req, port_status)
@@ -108,9 +137,16 @@ local function request_identity()
 	identity_timer:set(IDENTITY_REQUEST_TIMEOUT)
 	uci.cursor():foreach("dot1x", "port", function(s)
 		if s.enabled ~= "1" or s.role ~= "server" then return end
-		local state = string.gsub(util.exec("/usr/sbin/dot1x_port_blocker get_port_state "..s.iface), "%s+", "")
+		local state_cmd = conn:call("file", "exec", {
+			command = port_block_script,
+			params = { "get_port_state", s.iface }
+		})
+		local state = string.gsub(state_cmd.stdout or "", "%s+", "")
 		if state == "AUTHORIZED" then return end
-		util.exec("/usr/sbin/eap_sender "..s.iface)
+		conn:call("file", "exec", {
+			command = eap_sender_app,
+			params = { s.iface }
+		})
 	end)
 end
 identity_timer = uloop.timer(request_identity)

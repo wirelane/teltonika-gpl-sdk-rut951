@@ -120,7 +120,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static void
  wed_m32(struct mtk_wed_device *dev, u32 reg, u32 mask, u32 val)
  {
-@@ -1760,6 +1767,99 @@ out:
+@@ -1760,6 +1767,101 @@ out:
  	mutex_unlock(&hw_lock);
  }
  
@@ -129,14 +129,15 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +{
 +	struct mtk_wed_flow_block_priv *priv = cb_priv;
 +	struct flow_cls_offload *cls = type_data;
-+	struct mtk_wed_hw *hw = priv->hw;
++	struct mtk_wed_hw *hw = NULL;
 +
-+	if (!tc_can_offload(priv->dev))
++	if (!priv || !tc_can_offload(priv->dev))
 +		return -EOPNOTSUPP;
 +
 +	if (type != TC_SETUP_CLSFLOWER)
 +		return -EOPNOTSUPP;
 +
++	hw = priv->hw;
 +	return mtk_flow_offload_cmd(hw->eth, cls, hw->index);
 +}
 +
@@ -192,6 +193,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +			flow_block_cb_remove(block_cb, f);
 +			list_del(&block_cb->driver_list);
 +			kfree(block_cb->cb_priv);
++			block_cb->cb_priv = NULL;
 +		}
 +		return 0;
 +	default:
@@ -220,7 +222,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  void mtk_wed_add_hw(struct device_node *np, struct mtk_eth *eth,
  		    void __iomem *wdma, phys_addr_t wdma_phy,
  		    int index)
-@@ -1779,6 +1879,7 @@ void mtk_wed_add_hw(struct device_node *
+@@ -1779,6 +1881,7 @@ void mtk_wed_add_hw(struct device_node *
  		.irq_set_mask = mtk_wed_irq_set_mask,
  		.detach = mtk_wed_detach,
  		.ppe_check = mtk_wed_ppe_check,

@@ -2,7 +2,7 @@
 
 START=99
 STOP=01
-SCRIPT_FILE="/usr/sbin/port_mirroring.sh"
+SCRIPT_FILE="port_mirroring.sh"
 USE_PROCD=1
 
 start_service() {

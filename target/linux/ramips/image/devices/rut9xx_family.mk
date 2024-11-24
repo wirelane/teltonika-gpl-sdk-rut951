@@ -1,5 +1,6 @@
 define Device/teltonika_rut9m_common
 	$(Device/tlt-mt7628-hw-common)
+	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
 	HARDWARE/WAN/Port := 1 $(HW_ETH_WAN_PORT)
 	HARDWARE/WAN/Speed := $(HW_ETH_SPEED_100)
 	HARDWARE/WAN/Standard := $(HW_ETH_WAN_STANDARD)
@@ -23,7 +24,7 @@ define Device/template_rut9m
 
 	DEVICE_WLAN_BSSID_LIMIT := wlan0 4
 
-	DEVICE_USB_CHECK_PATH := /sys/bus/usb/drivers/usb/1-1
+	DEVICE_CHECK_PATH := usb_check /sys/bus/usb/drivers/usb/1-1 reboot
 
 	DEVICE_NET_CONF :=       \
 		vlans          16,   \
@@ -34,10 +35,10 @@ define Device/template_rut9m
 	DEVICE_INTERFACE_CONF := \
 		lan default_ip 192.168.1.1
 
-	DEVICE_FEATURES := usb-port serial modbus wifi dualsim \
-			rndis ncm bacnet ntrip mobile dual_sim ethernet \
-			nat_offloading port_link portlink
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
+
+	DEVICE_FEATURES := dual_sim mobile nat_offloading port_link \
+		wifi ethernet xfrm-offload
 endef
 
 define Device/template_rut9m_io
@@ -70,6 +71,7 @@ define Device/TEMPLATE_teltonika_rut901
 	DEVICE_MODEL := RUT901
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.3.1
 
+	HARDWARE/Mobile/3GPP_Release := Release 9
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi antenna connectors
 	HARDWARE/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
 	HARDWARE/Input_Output/Output := 1 $(HW_OUTPUT_DO_30V)
@@ -97,6 +99,7 @@ define Device/TEMPLATE_teltonika_rut906
 	DEVICE_MODEL := RUT906
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.2
 
+	HARDWARE/Mobile/3GPP_Release := Release 9
 	HARDWARE/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN)
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS
 	HARDWARE/Physical_Interfaces/Input_output := 1 x 10-pin industrial socket for inputs/outputs
@@ -136,6 +139,8 @@ define Device/TEMPLATE_teltonika_rut951
 	$(Device/teltonika_rut9m_common)
 	$(Device/template_rut9m)
 	DEVICE_MODEL := RUT951
+
+	HARDWARE/Mobile/3GPP_Release := Release 10/11 depending on the hardware version
 	HARDWARE/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
 	HARDWARE/Input_Output/Output := 1 $(HW_OUTPUT_DO_30V)
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi antenna connectors
@@ -167,6 +172,8 @@ define Device/TEMPLATE_teltonika_rut956
 	$(Device/teltonika_rut9m_common)
 	$(Device/template_rut9m_io)
 	DEVICE_MODEL := RUT956
+
+	HARDWARE/Mobile/3GPP_Release := Release 11
 	HARDWARE/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN) (available from HW revision 1600)
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS
 	HARDWARE/Physical_Interfaces/USB := 1 $(HW_INTERFACE_USB)
@@ -212,6 +219,8 @@ define Device/TEMPLATE_teltonika_rut971
 	DEVICE_MODEL := RUT971
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10.2
 
+	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 17
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi antenna connectors
 	HARDWARE/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
 	HARDWARE/Input_Output/Output := 1 $(HW_OUTPUT_DO_30V)
@@ -239,6 +248,8 @@ define Device/TEMPLATE_teltonika_rut976
 	DEVICE_MODEL := RUT976
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10.2
 
+	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 17
 	HARDWARE/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN)
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS
 	HARDWARE/Physical_Interfaces/USB := 1 $(HW_INTERFACE_USB)

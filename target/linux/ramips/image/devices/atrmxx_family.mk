@@ -1,6 +1,35 @@
-define Device/tlt-desc-atrm50
-	$(Device/teltonika_rutm_common)
+define Device/TEMPLATE_teltonika_atrm50
+	$(Device/tlt-mt7621-hw-common)
+	$(Device/teltonika_atrm50)
 
+	DEVICE_WLAN_BSSID_LIMIT := wlan0 16, wlan1 16
+
+	DEVICE_USB_JACK_PATH := /usb1/1-2/
+
+	DEVICE_NET_CONF :=       \
+		vlans          4094, \
+		max_mtu        2030, \
+		readonly_vlans 1
+
+	DEVICE_LAN_OPTION := "lan1 lan2 lan3"
+
+	DEVICE_INTERFACE_CONF := \
+		lan default_ip 192.168.1.1
+
+	DEVICE_CHECK_PATH := pcie_check /sys/class/pci_bus/0000:00 reboot
+
+	DEVICE_FEATURES := usb ethernet power_ios gps mobile wifi dual_band_ssid \
+		dual_sim at_sim dsa hw_nat nat_offloading multi_tag \
+		port_link soft_port_mirror gigabit_port sd_card xfrm-offload
+
+	DEVICE_WAN_OPTION := wan
+
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
+
+	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
+
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/SD_card/Physical_size := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);

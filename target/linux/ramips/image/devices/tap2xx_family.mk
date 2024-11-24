@@ -1,6 +1,27 @@
-define Device/tlt-desc-tap200
-
+define Device/TEMPLATE_teltonika_tap200
 	$(Device/tlt-mt7621-hw-common)
+	$(Device/teltonika_tap200)
+
+	DEVICE_NET_CONF :=       \
+		ula           false, \
+		disable_vlan  true,  \
+		ip6assign     false, \
+		vlans         16,    \
+		no_metric     true,  \
+		max_mtu       2030
+
+	DEVICE_WLAN_BSSID_LIMIT := wlan0 16, wlan1 16
+
+	DEVICE_INTERFACE_CONF := \
+		lan default_ip 192.168.1.3 device eth1 ipv6 0 fallback 1 proto dhcp, \
+		dhcp6 device br-lan proto dhcpv6
+
+	DEVICE_CHECK_PATH := pcie_check /sys/class/pci_bus/0000:00 reboot
+
+	DEVICE_FEATURES := wifi ethernet sw_rst_on_init dual_band_ssid
+
+	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
+
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M) $(HW_FLASH_TYPE_NOR_SERIAL), $(HW_FLASH_SIZE_128M) $(HW_FLASH_TYPE_NAND_SERIAL)
 	HARDWARE/Ethernet/Port :=1 $(HW_ETH_RJ45_PORT)
 	HARDWARE/Ethernet/Speed := $(HW_ETH_SPEED_1000)

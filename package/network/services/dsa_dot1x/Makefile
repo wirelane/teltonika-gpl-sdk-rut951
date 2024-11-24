@@ -5,8 +5,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dsa-dot1x-server
-PKG_RELEASE:=1
-PKG_VERSION:=2024-10-02
+PKG_RELEASE:=3
+PKG_VERSION:=2024-10-25
 PKG_LICENSE:=Teltonika-closed
 
 include $(INCLUDE_DIR)/package.mk
@@ -22,6 +22,15 @@ define Package/dsa-dot1x-server
 		+!(HAS_SINGLE_ETH_PORT||DSA_SUPPORT):kmod-dummy +wpad-openssl
 endef
 
+
+ifeq ($(CONFIG_PACKAGE_dsa-dot1x-server),m)
+define Package/dsa-dot1x-server/postinst
+	#!/bin/sh
+	[ -z "$${IPKG_INSTROOT}" ] || exit 0
+	config_generate
+	exit 0
+endef
+endif
 
 define Package/dsa-dot1x-server/prerm
 	#!/bin/sh
@@ -45,13 +54,14 @@ define Package/dsa-dot1x-server/description
 endef
 
 define Package/dsa-dot1x-server/install
-	$(INSTALL_DIR) $(1)/usr/sbin/ $(1)/usr/lib/ $(1)/etc/init.d/ $(1)/etc/uci-defaults/ $(1)/etc/config/
+	$(INSTALL_DIR) $(1)/usr/sbin/ $(1)/usr/lib/ $(1)/etc/init.d/ $(1)/lib/config.d/ $(1)/etc/config/
 	$(if $(CONFIG_HAS_SINGLE_ETH_PORT),\
-		$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/dot1x_single_port.config $(1)/etc/config/dot1x,\
+		$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/dot1x_single_port.config $(1)/etc/config/dot1x
+		$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/dot1x_port_blocker $(1)/usr/sbin/dot1x_port_blocker,\
 		$(if $(CONFIG_TARGET_ramips_mt76x8),
-			$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/99_dot1x_server_mt76x8 $(1)/etc/uci-defaults/
+			$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/config.d/generate-dot1x-server-mt76x8 $(1)/lib/config.d/799-generate-dot1x-server
 			$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/dot1x_port_blocker_mt76x8.lua $(1)/usr/sbin/dot1x_port_blocker,\
-			$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/99_dot1x_server_update $(1)/etc/uci-defaults/
+			$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/config.d/generate-dot1x-server $(1)/lib/config.d/799-generate-dot1x-server
 			$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/dot1x_port_blocker $(1)/usr/sbin/dot1x_port_blocker
 		)
 	)

@@ -51,7 +51,7 @@
  
  /*
   * devprop_gpiochip_set_names - Set GPIO line names using device properties
-@@ -369,66 +369,128 @@ static int gpiochip_set_desc_names(struc
+@@ -369,66 +369,147 @@ static int gpiochip_set_desc_names(struc
   * names belong to the underlying firmware node and should not be released
   * by the caller.
   */
@@ -180,13 +180,13 @@
 +	return 0;
 +}
 +EXPORT_SYMBOL_GPL(tlt_gpio_set_line_name);
- 
--	for (i = 0; i < count; i++)
--		gdev->descs[i].name = names[chip->offset + i];
++
 +int tlt_gpio_set_active_low(struct gpio_chip *chip, int index)
 +{
 +	struct gpio_device *gdev;
-+
+ 
+-	for (i = 0; i < count; i++)
+-		gdev->descs[i].name = names[chip->offset + i];
 +	if (!chip) {
 +		return 1;
 +	}
@@ -224,10 +224,29 @@
 +EXPORT_SYMBOL_GPL(gpiochip_find_by_id);
 +
 +
++int tlt_gpio_get_line_by_name(struct gpio_chip *chip, const char *line_name)
++{
++	struct gpio_device *gdev;
++	int i;
++
++	if (!chip || !line_name) {
++		return -1;
++	}
++
++	gdev = chip->gpiodev;
++	for (i = 0; i < gdev->ngpio; i++) {
++		if (gdev->descs[i].name && !strcmp(gdev->descs[i].name, line_name)) {
++			return i;
++		}
++	}
++	return -1;
++}
++EXPORT_SYMBOL_GPL(tlt_gpio_get_line_by_name);
++
  static unsigned long *gpiochip_allocate_mask(struct gpio_chip *gc)
  {
  	unsigned long *p;
-@@ -733,12 +795,13 @@ int gpiochip_add_data_with_key(struct gp
+@@ -733,12 +814,13 @@ int gpiochip_add_data_with_key(struct gp
  	INIT_LIST_HEAD(&gdev->pin_ranges);
  #endif
  
@@ -249,12 +268,13 @@
  	if (ret)
 --- a/include/linux/gpio/driver.h
 +++ b/include/linux/gpio/driver.h
-@@ -766,4 +766,8 @@ static inline void gpiochip_unlock_as_ir
+@@ -766,4 +766,9 @@ static inline void gpiochip_unlock_as_ir
  }
  #endif /* CONFIG_GPIOLIB */
  
 +int tlt_gpio_set_line_name(struct gpio_chip *chip, const char *line_name, int index);
 +int tlt_gpio_set_active_low(struct gpio_chip *chip, int index);
 +struct gpio_chip *gpiochip_find_by_id(int id);
++int tlt_gpio_get_line_by_name(struct gpio_chip *chip, const char *line_name);
 +
  #endif /* __LINUX_GPIO_DRIVER_H */

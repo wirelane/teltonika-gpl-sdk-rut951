@@ -1,5 +1,31 @@
-define Device/tlt-desc-otd500
+define Device/TEMPLATE_teltonika_otd500
 	$(Device/tlt-mt7621-hw-common)
+	$(Device/teltonika_otd500)
+
+	DEVICE_NET_CONF :=       \
+		vlans          16,   \
+		max_mtu        2030, \
+		readonly_vlans 1,    \
+		vlans          4094
+
+	DEVICE_LAN_OPTION := "lan1 lan2"
+
+	DEVICE_INTERFACE_CONF := \
+		lan default_ip 192.168.1.1
+
+	DEVICE_POE_CONF := i2c-0 2 15400 1 _lan2 3 15400
+
+	DEVICE_POE_CHIP := 0X77 0:_lan2, 0X2F 1:_lan2
+
+	DEVICE_FEATURES := ethernet mobile dual_sim at_sim dsa hw_nat \
+		nat_offloading multi_tag port_link gigabit_port poe xfrm-offload
+
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
+
+	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
+
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Wireless/Wireless_mode :=
 	HARDWARE/Wireless/WIFI_users :=
 	HARDWARE/Ethernet/Port := 2 $(HW_ETH_ETH_PORTS)

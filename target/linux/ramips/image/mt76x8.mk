@@ -47,7 +47,6 @@ define Device/tlt-mt7628-common
 			append-version | \
 			check-size $$$$(MASTER_IMAGE_SIZE) | \
 			finalize-tlt-master-stendui
-
 endef
 
 define Device/teltonika_trb2m
@@ -62,8 +61,10 @@ define Device/teltonika_trb2m
 			finalize-tlt-master-stendui
 	DEVICE_MODEL := TRB2M
 	DEVICE_BOOT_NAME := tlt-trb2m
+	DEVICE_DTS := mt7628an_teltonika_trb2m
 	DEVICE_FEATURES += gateway pppmobile gps serial serial-reset-quirk \
-			modbus io single-port dualsim bacnet ntrip mobile ncm
+			modbus io single-port dualsim bacnet ntrip mobile ncm dot1x-server \
+	                xfrm-offload
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.5
 	GPL_PREFIX := GPL
@@ -76,13 +77,18 @@ define Device/teltonika_trb2m
 	DEVICE_PACKAGES += kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport \
 			kmod-usb-serial-pl2303 kmod-cypress-serial
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	INCLUDED_DEVICES := \
+		TEMPLATE_teltonika_trb246 \
+		TEMPLATE_teltonika_trb256 \
+		TEMPLATE_teltonika_trb247
 endef
 
 define Device/teltonika_tap100
 	$(Device/tlt-mt7628-common)
-	$(Device/tlt-desc-tap100)
 	DEVICE_MODEL := TAP100
 	DEVICE_BOOT_NAME := tlt-tap100
+	DEVICE_DTS := mt7628an_teltonika_tap100
 	DEVICE_FEATURES := small_flash access-point single-port wifi ledman-lite dot1x-client
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4
 	GPL_PREFIX := GPL
@@ -92,11 +98,12 @@ define Device/teltonika_tap100
 	# Wireless related:
 	DEVICE_PACKAGES += kmod-mt76_515 kmod-mt7603_515
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	INCLUDED_DEVICES := TEMPLATE_teltonika_tap100
 endef
 
 define Device/teltonika_otd140
 	$(Device/tlt-mt7628-common)
-	$(Device/tlt-desc-otd140)
 	IMAGE/master_fw.bin = \
 			append-tlt-uboot | pad-to $$$$(UBOOT_SIZE) | \
 			append-tlt-config | pad-to $$$$(CONFIG_SIZE) | \
@@ -106,7 +113,8 @@ define Device/teltonika_otd140
 			finalize-tlt-master-stendui
 	DEVICE_MODEL := OTD140
 	DEVICE_BOOT_NAME := tlt-otd140
-	DEVICE_FEATURES += ncm rndis poe mobile dualsim portlink dot1x-server
+	DEVICE_DTS := mt7628an_teltonika_otd140
+	DEVICE_FEATURES += ncm rndis poe mobile dualsim portlink dot1x-server xfrm-offload
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.4
 	GPL_PREFIX := GPL
@@ -115,13 +123,17 @@ define Device/teltonika_otd140
 	# USB related:
 	DEVICE_PACKAGES += kmod-usb2 kmod-usb-ohci kmod-i2c-mt7628
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	INCLUDED_DEVICES := TEMPLATE_teltonika_otd140
 endef
 
 define Device/teltonika_rut14x
 	$(Device/tlt-mt7628-common)
 	DEVICE_MODEL := RUT14X
 	DEVICE_BOOT_NAME := tlt-rut14x
-	DEVICE_FEATURES := small_flash serial modbus ntrip wifi ledman-lite sw-offload portlink dot1x-server
+	DEVICE_DTS := mt7628an_teltonika_rut14x
+	DEVICE_FEATURES += small_flash serial modbus ntrip wifi ledman-lite sw-offload portlink dot1x-server \
+	                   xfrm-offload
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.6
 	GPL_PREFIX := GPL
 	# Default common packages for RUT14X series
@@ -131,6 +143,10 @@ define Device/teltonika_rut14x
 	# Wireless related:
 	DEVICE_PACKAGES += kmod-mt76_515 kmod-mt7603_515
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	INCLUDED_DEVICES := \
+		TEMPLATE_teltonika_rut140 \
+		TEMPLATE_teltonika_rut142
 endef
 
 define Device/teltonika_dap14x
@@ -138,7 +154,8 @@ define Device/teltonika_dap14x
 	DEVICE_MODEL := DAP14X
 	DEVICE_BOOT_NAME := tlt-dap14x
 	DEVICE_DTS := mt7628an_teltonika_dap14x
-	DEVICE_FEATURES += small_flash serial modbus ntrip wifi ledman-lite sw-offload portlink industrial-access-point
+	DEVICE_FEATURES += small_flash serial modbus ntrip wifi ledman-lite sw-offload portlink \
+	                   xfrm-offload industrial-access-point
 	# Default common packages for DAP14X series
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	DEVICE_PACKAGES += kmod-usb-ohci kmod-usb-serial-pl2303
@@ -147,13 +164,17 @@ define Device/teltonika_dap14x
 	DEVICE_PACKAGES += kmod-mt76_515 kmod-mt7603_515
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+	INCLUDED_DEVICES := \
+		TEMPLATE_teltonika_dap140 \
+		TEMPLATE_teltonika_dap142
 endef
 
 define Device/teltonika_rut2m
 	$(Device/tlt-mt7628-common)
 	DEVICE_MODEL := RUT2M
 	DEVICE_BOOT_NAME := tlt-rut2m
-	DEVICE_FEATURES += io wifi rndis mobile portlink dualsim dot1x-server
+	DEVICE_DTS := mt7628an_teltonika_rut2m
+	DEVICE_FEATURES += io wifi rndis mobile portlink dualsim dot1x-server xfrm-offload
 	GPL_PREFIX := GPL
 	# Default common packages for RUT241, RUT200 series
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -166,15 +187,22 @@ define Device/teltonika_rut2m
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	HW_MODS := mod1%260v3 mod2%241v5 mod3%200v5
+
+	INCLUDED_DEVICES := \
+		TEMPLATE_teltonika_rut200 \
+		TEMPLATE_teltonika_rut241 \
+		TEMPLATE_teltonika_rut260 \
+		TEMPLATE_teltonika_rut271
 endef
 
 define Device/teltonika_rut206
 	$(Device/tlt-mt7628-common)
-	$(Device/tlt-desc-rut206)
 	DEVICE_MODEL := RUT206
 	DEVICE_BOOT_NAME := tlt-rut206
+	DEVICE_DTS := mt7628an_teltonika_rut206
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.8
-	DEVICE_FEATURES += wifi rndis mobile dualsim usb-port serial bacnet ntrip portlink dot1x-server
+	DEVICE_FEATURES += wifi rndis mobile dualsim usb-port serial bacnet ntrip portlink dot1x-server \
+	                   xfrm-offload
 	# Default common packages for RUT206 series
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	# USB related:
@@ -184,11 +212,12 @@ define Device/teltonika_rut206
 	# Wireless related:
 	DEVICE_PACKAGES += kmod-mt76_515 kmod-mt7603_515
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	INCLUDED_DEVICES := TEMPLATE_teltonika_rut206
 endef
 
 define Device/teltonika_rut301
 	$(Device/tlt-mt7628-common)
-	$(Device/tlt-desc-rut301)
 	IMAGE/master_fw.bin = \
 			append-tlt-uboot | pad-to $$$$(UBOOT_SIZE) | \
 			append-tlt-config | pad-to $$$$(CONFIG_SIZE) | \
@@ -199,7 +228,9 @@ define Device/teltonika_rut301
 			finalize-tlt-master-stendui
 	DEVICE_MODEL := RUT301
 	DEVICE_BOOT_NAME := tlt-rut301
-	DEVICE_FEATURES += usb-port serial io basic-router ledman-lite portlink dot1x-server
+	DEVICE_DTS := mt7628an_teltonika_rut301
+	DEVICE_FEATURES += usb-port serial io basic-router ledman-lite portlink dot1x-server \
+	                   xfrm-offload ntrip
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.1
 	GPL_PREFIX := GPL
@@ -208,14 +239,16 @@ define Device/teltonika_rut301
 	# USB related:
 	DEVICE_PACKAGES += kmod-usb2 kmod-usb-ohci
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	INCLUDED_DEVICES := TEMPLATE_teltonika_rut301
 endef
 
 define Device/teltonika_rut361
 	$(Device/tlt-mt7628-common)
-	$(Device/tlt-desc-rut361)
 	DEVICE_MODEL := RUT361
 	DEVICE_BOOT_NAME := tlt-rut361
-	DEVICE_FEATURES += io wifi rndis mobile portlink dot1x-server
+	DEVICE_DTS := mt7628an_teltonika_rut361
+	DEVICE_FEATURES += io wifi rndis mobile portlink dot1x-server xfrm-offload
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.1
 	GPL_PREFIX := GPL
 	# Default common packages for RUT361
@@ -226,15 +259,17 @@ define Device/teltonika_rut361
 	# Wireless related:
 	DEVICE_PACKAGES += kmod-mt76_515 kmod-mt7603_515
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	INCLUDED_DEVICES := TEMPLATE_teltonika_rut361
 endef
 
 define Device/teltonika_rut9m
 	$(Device/tlt-mt7628-common)
 	DEVICE_MODEL := RUT9M
 	DEVICE_BOOT_NAME := tlt-rut9m
-	DEVICE-DOT1X_SERVER_CAPABILITIES := false false vlan
 	DEVICE_FEATURES += gps usb-port serial modbus io wifi dualsim \
-			rndis ncm bacnet ntrip mobile portlink rs232 rs485 dot1x-server port-mirror
+			rndis ncm bacnet ntrip mobile portlink rs232 rs485 dot1x-server port-mirror \
+	                xfrm-offload
 	DEVICE_DTS := mt7628an_teltonika_rut9m
 	GPL_PREFIX := GPL
 	# Default common packages for RUT9M series

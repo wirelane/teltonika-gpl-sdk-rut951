@@ -20,22 +20,20 @@ endef
 define Device/template_dap14x
 	$(Device/teltonika_dap14x)
 
-	DEVICE_SWITCH_CONF := switch0 1:lan 0:wan:2 6@eth0
+	DEVICE_SWITCH_CONF := switch0 1:lan:1 0:lan:2 6@eth0
 
 	DEVICE_WLAN_BSSID_LIMIT := wlan0 4
 
 	DEVICE_NET_CONF :=       \
 		vlans          16,   \
 		max_mtu        1500, \
-		readonly_vlans 2,    \
+		readonly_vlans 1,    \
 		vlan0          true
 
 	DEVICE_INTERFACE_CONF := \
-		lan default_ip 192.168.1.1
+		lan default_ip 192.168.1.3, dhcp device br-lan proto dhcp
 
-	DEVICE_FEATURES := small_flash serial modbus ntrip \
-			ledman-lite sw-offload portlink wifi \
-			nat_offloading ethernet port_link industrial-access-point
+	DEVICE_FEATURES := wifi nat_offloading ethernet port_link xfrm-offload
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 endef

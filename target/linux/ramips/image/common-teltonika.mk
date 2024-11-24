@@ -14,7 +14,7 @@ endef
 define Build/append-tlt-art
 	if [ $(NO_ART) == 1 ]; then \
 		dd if=/dev/zero bs=$(ART_SIZE) count=1 >> $@; \
-	elif [ "$(DEVICE_MODEL)" == "RUT14X" ]; then \
+	elif [ "$(DEVICE_MODEL)" == "RUT14X" ] || [ "$(DEVICE_MODEL)" == "DAP14X" ]; then \
 		dd if=$(TOPDIR)/target/linux/ramips/image/bin/tlt-factory-art-RUT14X.bin >> $@; \
 	elif [ "$(DEVICE_MODEL)" == "RUT2M" ] || [ "$(DEVICE_MODEL)" == "RUT206" ]; then \
 		dd if=$(TOPDIR)/target/linux/ramips/image/bin/tlt-factory-art-RUT2M.bin >> $@; \

@@ -4,6 +4,11 @@ START=23 # start after port_events due to it being required for dot1xd
 STOP=20
 USE_PROCD=1
 
+PORT_BLOCKER="/usr/sbin/dot1x_port_blocker"
+[ -x "$PORT_BLOCKER" ] || PORT_BLOCKER="/usr/local$PORT_BLOCKER"
+DOT1XD="/usr/sbin/dot1xd"
+[ -x "$DOT1XD" ] || DOT1XD="/usr/local$DOT1XD"
+
 root_dir="/tmp/port_security/hostapd"
 
 add_config_line() {
@@ -55,7 +60,7 @@ parse_port_section() {
 	if [ "$enabled" != "1" ] || [ "$role" != "server" ] ; then
 		rm -f "$root_dir/$file"
 		ubus call hostapd config_remove "{\"iface\": \"$iface\"}" 2> /dev/null
-		/usr/sbin/dot1x_port_blocker teardown_port "$iface" > /dev/null 2>&1
+		$PORT_BLOCKER teardown_port "$iface" > /dev/null 2>&1
 		return
 	fi
 	active_instances=true
@@ -82,7 +87,7 @@ parse_port_section() {
 		add_config_line "vlan_no_bridge" "1" "$file"
 		add_config_line "dynamic_vlan" "2" "$file"
 		add_config_line "vlan_file" "$root_dir/vlans" "$file"
-		#add_config_line "wired_vlans" "1" "$file"
+		add_config_line "external_vlan_management" "1" "$file"
 	}
 
 	# check if config has changed. always reload if vlans are used and the vlans file was updated
@@ -101,8 +106,8 @@ parse_port_section() {
 		tc qdisc add dev "$iface" clsact
 		tc filter add dev "$iface" ingress matchall skip_hw action vlan pop
 	}
-	/usr/sbin/dot1x_port_blocker toggle_controlled_port "$iface" true > /dev/null 2>&1
-	[ "$no_vlans" != "1" ] && /usr/sbin/dot1x_port_blocker assign_vlan "$iface" 1
+	$PORT_BLOCKER toggle_controlled_port "$iface" true > /dev/null 2>&1
+	[ "$no_vlans" != "1" ] && $PORT_BLOCKER assign_vlan "$iface" 1
 	# todo: replace this with getting board json and checking isolation method
 	ubus call hostapd config_add "{\"iface\": \"$iface\", \"config\": \"$root_dir/$file\"}"
 }
@@ -145,14 +150,14 @@ stop_port_section() {
 	local iface
 	config_get iface "$port" "iface"
 	ubus call hostapd config_remove "{\"iface\": \"$iface\"}" 2> /dev/null
-	/usr/sbin/dot1x_port_blocker teardown_port "$iface" > /dev/null 2>&1
+	$PORT_BLOCKER teardown_port "$iface" > /dev/null 2>&1
 	return
 }
 
 stop_service() {
 	config_load dot1x
 	config_foreach stop_port_section port
-	/usr/sbin/dot1x_port_blocker sync
+	$PORT_BLOCKER sync
 	rm -fr "$root_dir"
 }
 
@@ -163,15 +168,16 @@ start_service() {
 	config_load dot1x
 	config_foreach validate_vlans_usage port
 	uci commit dot1x
+	config_load dot1x
 	ubus wait_for hostapd
 	config_foreach parse_port_section port $vlans_updated
-	/usr/sbin/dot1x_port_blocker sync
+	$PORT_BLOCKER sync
 
 	$active_instances || return
 
 	ubus wait_for port_events
 	procd_open_instance
-	procd_set_param command /usr/sbin/dot1xd
+	procd_set_param command $DOT1XD
 	procd_close_instance
 }
 

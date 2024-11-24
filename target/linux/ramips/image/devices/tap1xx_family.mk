@@ -1,5 +1,25 @@
-define Device/tlt-desc-tap100
+define Device/TEMPLATE_teltonika_tap100
 	$(Device/tlt-mt7628-hw-common)
+	$(Device/teltonika_tap100)
+
+	DEVICE_NET_CONF :=       \
+		ula           false, \
+		disable_vlan  true,  \
+		ip6assign     false, \
+		vlans         16,    \
+		no_metric     true,  \
+		max_mtu       1500
+
+	DEVICE_WLAN_BSSID_LIMIT := wlan0 4
+
+	DEVICE_INTERFACE_CONF := \
+		lan default_ip 192.168.1.3 device eth0 ipv6 0 fallback 1 proto dhcp, \
+		dhcp6 device br-lan proto dhcpv6
+
+	DEVICE_FEATURES := wifi ethernet sw_rst_on_init
+
+	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
+
 	HARDWARE/System_Characteristics/RAM := $(HW_RAM_SIZE_64M) $(HW_RAM_TYPE_DDR2)
 	HARDWARE/Ethernet/Port :=1 $(HW_ETH_RJ45_PORT)
 	HARDWARE/Ethernet/Speed := $(HW_ETH_SPEED_100)
