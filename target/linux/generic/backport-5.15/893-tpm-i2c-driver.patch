@@ -2094,7 +2094,7 @@
  struct tpm_chip *tpm_find_get_ops(struct tpm_chip *chip);
 --- a/drivers/char/tpm/tpm-dev-common.c
 +++ b/drivers/char/tpm/tpm-dev-common.c
-@@ -155,7 +155,7 @@ ssize_t tpm_common_read(struct file *fil
+@@ -157,7 +157,7 @@ ssize_t tpm_common_read(struct file *fil
  out:
  	if (!priv->response_length) {
  		*off = 0;
@@ -2103,7 +2103,7 @@
  		flush_work(&priv->timeout_work);
  	}
  	mutex_unlock(&priv->buffer_mutex);
-@@ -262,7 +262,7 @@ __poll_t tpm_common_poll(struct file *fi
+@@ -264,7 +264,7 @@ __poll_t tpm_common_poll(struct file *fi
  void tpm_common_release(struct file *file, struct file_priv *priv)
  {
  	flush_work(&priv->async_work);
@@ -2201,7 +2201,7 @@
  	else
 --- a/drivers/char/tpm/tpm2-space.c
 +++ b/drivers/char/tpm/tpm2-space.c
-@@ -606,7 +606,7 @@ int tpm_devs_add(struct tpm_chip *chip)
+@@ -609,7 +609,7 @@ int tpm_devs_add(struct tpm_chip *chip)
  
  	device_initialize(&chip->devs);
  	chip->devs.parent = chip->dev.parent;

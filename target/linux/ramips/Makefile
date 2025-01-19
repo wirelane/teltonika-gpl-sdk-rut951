@@ -26,6 +26,6 @@ endef
 include $(INCLUDE_DIR)/target.mk
 
 
-DEFAULT_PACKAGES += kmod-leds-gpio tc-tiny
+DEFAULT_PACKAGES += kmod-leds-gpio
 
 $(eval $(call BuildTarget))

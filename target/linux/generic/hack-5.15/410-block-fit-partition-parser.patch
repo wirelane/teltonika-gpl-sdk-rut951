@@ -19,7 +19,7 @@ Subject: [PATCH] kernel: add block fit partition parser
 
 --- a/block/blk.h
 +++ b/block/blk.h
-@@ -354,6 +354,8 @@ void blk_free_ext_minor(unsigned int min
+@@ -346,6 +346,8 @@ void blk_free_ext_minor(unsigned int min
  #define ADDPART_FLAG_NONE	0
  #define ADDPART_FLAG_RAID	1
  #define ADDPART_FLAG_WHOLEDISK	2
@@ -72,18 +72,17 @@ Subject: [PATCH] kernel: add block fit partition parser
 +int parse_fit_partitions(struct parsed_partitions *state, u64 start_sector, u64 nr_sectors, int *slot, int add_remain);
 --- a/block/partitions/core.c
 +++ b/block/partitions/core.c
-@@ -12,6 +12,10 @@
+@@ -12,6 +12,9 @@
  #include <linux/vmalloc.h>
  #include <linux/blktrace_api.h>
  #include <linux/raid/detect.h>
 +#ifdef CONFIG_FIT_PARTITION
 +#include <linux/root_dev.h>
 +#endif
-+
- #include "check.h"
+ #include <linux/property.h>
  
- static int (*check_part[])(struct parsed_partitions *) = {
-@@ -48,6 +52,9 @@ static int (*check_part[])(struct parsed
+ #include "check.h"
+@@ -50,6 +53,9 @@ static int (*check_part[])(struct parsed
  #ifdef CONFIG_EFI_PARTITION
  	efi_partition,		/* this must come before msdos */
  #endif
@@ -93,7 +92,7 @@ Subject: [PATCH] kernel: add block fit partition parser
  #ifdef CONFIG_SGI_PARTITION
  	sgi_partition,
  #endif
-@@ -408,6 +415,11 @@ static struct block_device *add_partitio
+@@ -449,6 +455,11 @@ static struct block_device *add_partitio
  			goto out_del;
  	}
  
@@ -105,7 +104,7 @@ Subject: [PATCH] kernel: add block fit partition parser
  	/* everything is up and running, commence */
  	err = xa_insert(&disk->part_tbl, partno, bdev, GFP_KERNEL);
  	if (err)
-@@ -600,6 +612,11 @@ static bool blk_add_partition(struct gen
+@@ -643,6 +654,11 @@ static bool blk_add_partition(struct gen
  	    (state->parts[p].flags & ADDPART_FLAG_RAID))
  		md_autodetect_dev(part->bd_dev);
  

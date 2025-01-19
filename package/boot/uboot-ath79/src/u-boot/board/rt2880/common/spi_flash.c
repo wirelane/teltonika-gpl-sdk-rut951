@@ -60,6 +60,9 @@ static int bbu_mb_spic_trans(const u8 code, const u32 addr, u8 *buf,
 			     const size_t n_tx, const size_t n_rx, int flag)
 {
 	u32 reg;
+#ifdef NOR_4B_MODE
+	flash_info_t *info = &flash_info[0];
+#endif
 	int i, q, r;
 	int rc = -1;
 
@@ -74,11 +77,25 @@ static int bbu_mb_spic_trans(const u8 code, const u32 addr, u8 *buf,
 	bbu_spic_busy_wait();
 
 	/* step 1. set opcode & address, and fix cmd bit count to 32 (or 40) */
-	ra_outl(SPI_REG_OPCODE, (code << 24) & 0xff000000);
-	ra_or(SPI_REG_OPCODE, (addr & 0xffffff));
-
+#ifdef NOR_4B_MODE
+	if (info->addr4b) {
+		ra_and(SPI_REG_CTL, ~SPI_CTL_ADDREXT_MASK);
+		ra_or(SPI_REG_CTL, (code << 24) & SPI_CTL_ADDREXT_MASK);
+		ra_outl(SPI_REG_OPCODE, addr);
+	}
+	else
+#endif
+	{
+		ra_outl(SPI_REG_OPCODE, (code << 24) & 0xff000000);
+		ra_or(SPI_REG_OPCODE, (addr & 0xffffff));
+	}
 	ra_and(SPI_REG_MOREBUF, ~SPI_MBCTL_CMD_MASK);
-	ra_or(SPI_REG_MOREBUF, (32 << 24));
+#ifdef NOR_4B_MODE
+	if (info->addr4b)
+		ra_or(SPI_REG_MOREBUF, (40 << 24));
+	else
+#endif
+		ra_or(SPI_REG_MOREBUF, (32 << 24));
 
 	/* step 2. write DI/DO data #0 ~ #7 */
 	if (flag & SPIC_WRITE_BYTES) {
@@ -135,9 +152,17 @@ static int bbu_spic_trans(const u8 code, const u32 addr, u8 *buf,
 			  const size_t n_tx, const size_t n_rx, int flag)
 {
 	u32 reg;
+#ifdef NOR_4B_MODE
+	flash_info_t *info = &flash_info[0];
+#endif
 
 	bbu_spic_busy_wait();
-
+#ifdef NOR_4B_MODE
+	if (info->addr4b) {
+		ra_and(SPI_REG_CTL, ~SPI_CTL_ADDREXT_MASK);
+		ra_or(SPI_REG_CTL, addr & SPI_CTL_ADDREXT_MASK);
+	}
+#endif
 	/* step 1. set opcode & address */
 	ra_outl(SPI_REG_OPCODE, ((addr & 0xffffff) << 8));
 	ra_or(SPI_REG_OPCODE, code);
@@ -170,7 +195,12 @@ static int bbu_spic_trans(const u8 code, const u32 addr, u8 *buf,
 	/* step 3. set mosi_byte_cnt */
 	ra_and(SPI_REG_CTL, ~SPI_CTL_TX_RX_CNT_MASK);
 	ra_or(SPI_REG_CTL, (n_rx << 4));
-	ra_or(SPI_REG_CTL, n_tx);
+#ifdef NOR_4B_MODE
+	if (info->addr4b && n_tx >= 4)
+		ra_or(SPI_REG_CTL, (n_tx + 1));
+	else
+#endif
+		ra_or(SPI_REG_CTL, n_tx);
 
 	/* step 4. kick */
 	ra_or(SPI_REG_CTL, SPI_CTL_START);
@@ -218,7 +248,7 @@ static int raspi_write_sr(u8 *val)
 	return raspi_write_rg(OPCODE_WRSR, val);
 }
 
-u32 mtk_sf_jedec_id(u32 bank)
+u32 mtk_sf_jedec_id()
 {
 	u32 n_rx = 3;
 	u32 n_tx = 1;
@@ -270,6 +300,32 @@ static int raspi_write_rg(u8 code, u8 *val)
 	retval = bbu_spic_trans(code, address, val, 2, 0, SPIC_WRITE_BYTES);
 	return retval;
 }
+
+#ifdef NOR_4B_MODE
+static int raspi_4byte_mode(int enable)
+{
+	ssize_t retval;
+	u8 code;
+	code = enable? 0xB7 : 0xE9; /* B7: enter 4B, E9: exit 4B */
+	if (enable) {
+		ra_or(SPI_REG_CTL, 0x3 << 19);
+		ra_or(SPI_REG_Q_CTL, 0x3 << 8);
+	}
+	else {
+		ra_and(SPI_REG_CTL, ~SPI_CTL_SIZE_MASK);
+		ra_or(SPI_REG_CTL, 0x2 << 19);
+		ra_and(SPI_REG_Q_CTL, ~(0x3 << 8));
+		ra_or(SPI_REG_Q_CTL, 0x2 << 8);
+	}
+	retval = bbu_spic_trans(code, 0, NULL, 1, 0, 0);
+
+	if (retval != 0) {
+		printf("%s: ret: %x\n", __func__, retval);
+		return -1;
+	}
+	return 0;
+}
+#endif
 
 /*
  * Set write enable latch with Write Enable command.
@@ -345,6 +401,9 @@ static int raspi_wait_ready(int sleep_ms)
  */
 static int raspi_erase_sector(u32 offset)
 {
+#ifdef NOR_4B_MODE
+	flash_info_t *info = &flash_info[0];
+#endif
 	/* Wait until finished previous write command. */
 	if (raspi_wait_ready(950))
 		return -1;
@@ -352,11 +411,18 @@ static int raspi_erase_sector(u32 offset)
 	/* Send write enable, then erase commands. */
 	raspi_write_enable();
 	raspi_unprotect();
-
+#ifdef NOR_4B_MODE
+	if (info->addr4b)
+		raspi_4byte_mode(1);
+#endif
 	bbu_spic_trans(STM_OP_SECTOR_ERASE, offset, NULL, 4, 0, 0);
 	raspi_wait_ready(950);
 
 	raspi_write_disable();
+#ifdef NOR_4B_MODE
+	if (info->addr4b)
+		raspi_4byte_mode(0);
+#endif
 
 	return 0;
 }
@@ -381,12 +447,12 @@ static u32 flash_info_find(flash_info_t *info, u32 jedec_id)
 			info->sector_size  = spi_nor_ids[i].sector_size;
 			info->page_size	   = spi_nor_ids[i].page_size;
 			info->erase_cmd	   = spi_nor_ids[i].erase_cmd;
+			info->addr4b	   = spi_nor_ids[i].addr4b;
 			info->sector_count = info->size / info->sector_size;
-
 			return 0;
 		}
 	}
-
+	printf("Unknown flash id: %x\n", jedec_id);
 	return 1;
 }
 
@@ -396,41 +462,31 @@ static u32 flash_info_find(flash_info_t *info, u32 jedec_id)
  */
 u32 flash_init(void)
 {
-	u32 bank, i, jedec_id;
-	u32 total_size = 0;
+	u32 i, jedec_id;
 	flash_info_t *info;
+	info = &flash_info[0];
 
-	for (bank = 0; bank < CFG_MAX_FLASH_BANKS; bank++) {
-		info = &flash_info[bank];
+	jedec_id = mtk_sf_jedec_id();
 
-		jedec_id = mtk_sf_jedec_id(bank);
-
-		if (jedec_id == 0) {
-			printf_err("SPI NOR FLASH chip in bank #%d\n"
-				   "   is not responding, skipping\n\n",
-				   bank + 1);
-			continue;
-		}
-
-		info->manuf_name = (char *)flash_manuf_name(jedec_id);
-		info->flash_id	 = jedec_id;
-		info->bank	 = bank;
-		if (info->flash_id != MICRON_N25Q128_ID)
-			info->can_be_locked = 0;
-		else
-			info->can_be_locked = 1;
-
-		flash_info_find(info, jedec_id);
-
-		for (i = 0; i < info->sector_count; i++) {
-			info->start[i] = CFG_FLASH_BASE + total_size +
-					 (i * info->sector_size);
-		}
-
-		total_size += flash_info[bank].size;
+	if (jedec_id == 0) {
+		printf_err("SPI NOR FLASH chip is not responding\n\n");
+		return 0;
 	}
 
-	return total_size;
+	info->manuf_name = (char *)flash_manuf_name(jedec_id);
+	info->flash_id	 = jedec_id;
+	info->bank	 = 0;
+	if (info->flash_id != MICRON_N25Q128_ID)
+		info->can_be_locked = 0;
+	else
+		info->can_be_locked = 1;
+	flash_info_find(info, jedec_id);
+	for (i = 0; i < info->sector_count; i++) {
+		info->start[i] = CFG_FLASH_BASE +
+					(i * info->sector_size);
+	}
+
+	return info->size;
 }
 
 /*
@@ -440,7 +496,7 @@ u32 flash_erase(flash_info_t *info, u32 s_first, u32 s_last)
 {
 	u32 i, j;
 
-	printf("Erasing: ");
+	printf("Erasing: \n    ");
 
 #ifndef LEAVE_LEDS_ALONE
 #if defined(CONFIG_CMD_LED)
@@ -465,7 +521,7 @@ u32 flash_erase(flash_info_t *info, u32 s_first, u32 s_last)
 #endif // LEAVE_LEDS_ALONE
 
 		if (j == 39) {
-			puts("\n         ");
+			puts("\n    ");
 			j = 0;
 		}
 		puts("#");
@@ -491,11 +547,11 @@ u32 write_buff(flash_info_t *info, uchar *source, ulong addr, ulong len)
 	u8 *src;
 
 #ifndef LEAVE_LEDS_ALONE
-	int i = 0;
+	int i = 0, j = 0;
 	all_led_on();
 #endif // LEAVE_LEDS_ALONE
 
-	printf("Writing at address: 0x%08lX\n", addr);
+	printf("Writing at address: 0x%08lX\n    ", addr);
 	addr = addr - CFG_FLASH_BASE;
 
 	while (total < len) {
@@ -516,8 +572,14 @@ u32 write_buff(flash_info_t *info, uchar *source, ulong addr, ulong len)
 #if defined(CONFIG_SHIFT_REG)
 			sr_led_animation(1);
 #endif
+			if (j++ == 39) {
+				puts("\n    ");
+				j = 0;
+			}
+			puts("#");
 			i = 0;
 		}
+
 
 		i++;
 #endif // LEAVE_LEDS_ALONE
@@ -535,6 +597,10 @@ int raspi_write(char *buf, unsigned int to, int len)
 	int rc = 0, retlen = 0;
 	int wrto, wrlen, more;
 	u8 *wrbuf;
+#ifdef NOR_4B_MODE
+	flash_info_t *info = &flash_info[0];
+#endif
+
 
 	/* sanity checks */
 	if (len == 0)
@@ -563,6 +629,11 @@ int raspi_write(char *buf, unsigned int to, int len)
 		wrto  = to;
 		wrlen = page_size;
 		wrbuf = (u8 *)buf;
+#ifdef NOR_4B_MODE
+		if (info->addr4b)
+			raspi_4byte_mode(1);
+#endif
+
 		do {
 			more = 32;
 			if (wrlen <= more) {
@@ -590,7 +661,7 @@ int raspi_write(char *buf, unsigned int to, int len)
 			if (rc < page_size) {
 				printf("%s: rc:%x page_size:%x\n", __func__, rc,
 				       page_size);
-				return retlen;
+				goto end;
 			}
 		}
 
@@ -601,6 +672,12 @@ int raspi_write(char *buf, unsigned int to, int len)
 
 	raspi_wait_ready(100);
 	raspi_write_disable();
+
+end:
+#ifdef NOR_4B_MODE
+	if (info->addr4b)
+		raspi_4byte_mode(0);
+#endif
 
 	return retlen;
 }

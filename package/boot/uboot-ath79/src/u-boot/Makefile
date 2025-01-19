@@ -730,7 +730,7 @@ tlt-rut2m: rt2880_common
 	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
 
 tlt-rut206: rt2880_common
-	@$(call config_init,Teltonika RUT206,tlt-rut206,16,44,1,MTK_MT7628_SOC)
+	@$(call config_init,Teltonika RUT206,tlt-rut206,32,44,1,MTK_MT7628_SOC)
 	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT206,1)
 	@$(call define_add,CONFIG_SHIFT_REG,1)
 	@$(call define_add,CONFIG_CMD_PHY_POWER,1)

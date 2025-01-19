@@ -34,6 +34,7 @@ typedef struct {
 	u8  erase_cmd;
 	u32 start[CFG_MAX_FLASH_SECT];
 	u8 can_be_locked;
+	u8 addr4b;
 } flash_info_t;
 
 extern flash_info_t flash_info[];
@@ -54,6 +55,7 @@ typedef struct {
 	u32 sector_size;
 	u16 page_size;
 	u8  erase_cmd;
+	u8  addr4b;
 } spi_nor_ids_info_t;
 
 extern const spi_nor_ids_info_t spi_nor_ids[];

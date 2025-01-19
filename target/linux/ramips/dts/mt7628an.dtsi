@@ -97,6 +97,12 @@
 			log;
 		};
 
+		profiles {
+			reg = <&config 0x130 0x80>;
+			type = "ascii";
+			default = "";
+		};
+
 		blver {
 			reg = <&boot 0x1fff6 0xa>;
 			strip-whitespaces;

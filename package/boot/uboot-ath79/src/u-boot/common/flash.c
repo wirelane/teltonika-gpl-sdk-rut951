@@ -25,37 +25,43 @@ static char VENDOR_XTX[]        = "XTX";
 
 const spi_nor_ids_info_t spi_nor_ids[] = {
 	/* 4 MiB */
-	{ "AT25DF321", 0x1F4700, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "EN25Q32",   0x1C3016, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "EN25F32",   0x1C3116, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "GD25Q32",   0xC84016, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "MX25L320",  0xC22016, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "M25P32",    0x202016, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "S25FL032P", 0x010215, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "W25Q32",    0xEF4016, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
+	{ "AT25DF321", 0x1F4700, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0},
+	{ "EN25Q32",   0x1C3016, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "EN25F32",   0x1C3116, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "GD25Q32",   0xC84016, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "MX25L320",  0xC22016, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "M25P32",    0x202016, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "S25FL032P", 0x010215, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "W25Q32",    0xEF4016, SIZE_4MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
 
 	/* 8 MiB */
-	{ "AT25DF641", 0x1F4800, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "EN25Q64",   0x1C3017, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "GD25Q64",   0xC84017, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "MX25L64",   0xC22017, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "MX25L64",   0xC22617, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "M25P64",    0x202017, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "S25FL064P", 0x010216, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "W25Q64",    0xEF4017, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
+	{ "AT25DF641", 0x1F4800, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "EN25Q64",   0x1C3017, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "GD25Q64",   0xC84017, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "MX25L64",   0xC22017, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "MX25L64",   0xC22617, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "M25P64",    0x202017, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "S25FL064P", 0x010216, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "W25Q64",    0xEF4017, SIZE_8MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
 
 	/* 16 MiB */
-	{ "GD25Q128",  0xC84018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "MX25L128",  0xC22018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "MX25L128",  0xC22618, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "N25Q128",   0x20BA18, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "S25FL127S", 0x012018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "W25Q128",   0xEF4018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "W25Q128FW", 0xEF6018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "ZB25VQ128", 0xC84018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "EN25QH128A", 0x1C7018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "XT25F128A", 0x207018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
-	{ "XT25F128B", 0x0B4018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB },
+	{ "GD25Q128",  0xC84018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "MX25L128",  0xC22018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "MX25L128",  0xC22618, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "N25Q128",   0x20BA18, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "S25FL127S", 0x012018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "W25Q128",   0xEF4018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "W25Q128FW", 0xEF6018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "ZB25VQ128", 0xC84018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "EN25QH128A", 0x1C7018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "XT25F128A", 0x207018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	{ "XT25F128B", 0x0B4018, SIZE_16MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 0 },
+	/* 32 MiB */
+	{ "XT25F256B", 0x0B4019, SIZE_32MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 1 },
+	{ "W25Q256JV", 0xEF4019, SIZE_32MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 1 },
+	/* 64 MiB */
+	{ "W25Q512JV", 0xEF4020, SIZE_64MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 1 },
+	{ "XT25W512B", 0x0B651A, SIZE_64MiB, SIZE_64KiB, 256, SPI_FLASH_CMD_ES_64KB, 1 },
 };
 
 const u32 spi_nor_ids_count = sizeof(spi_nor_ids) / sizeof(spi_nor_ids_info_t);
@@ -95,24 +101,7 @@ const char *flash_manuf_name(u32 jedec_id)
 
 flash_info_t *addr2info(ulong addr)
 {
-	flash_info_t *info;
-	int i;
-
-	for (i = 0, info = &flash_info[0]; i < CFG_MAX_FLASH_BANKS; ++i, ++info) {
-		/*
-		 * WARNING - The '- 1' is needed if the flash
-		 * is at the end of the address space, since
-		 * info->start[0] + info->size wraps back to 0.
-		 * Please don't change this unless you understand this.
-		 */
-		if (info->flash_id != FLASH_UNKNOWN
-			&& addr >= info->start[0]
-			&& addr <= info->start[0] + info->size - 1) {
-			return info;
-		}
-	}
-
-	return NULL;
+	return &flash_info[0];
 }
 
 /*
@@ -131,31 +120,8 @@ flash_info_t *addr2info(ulong addr)
 int flash_write(char *src, ulong addr, ulong cnt)
 {
 	int i;
-	ulong end = addr + cnt - 1;
-	flash_info_t *info_first = addr2info(addr);
-	flash_info_t *info_last = addr2info(end);
-	flash_info_t *info;
-
-	if (cnt == 0)
-		return ERR_OK;
-
-	if (!info_first || !info_last)
-		return ERR_INVAL;
-
-	/* Finally write data to flash */
-	for (info = info_first; info <= info_last && cnt > 0; ++info) {
-		ulong len = info->start[0] + info->size - addr;
-
-		if (len > cnt)
-			len = cnt;
-
-		if ((i = write_buff(info, (uchar *)src, addr, len)) != 0)
-			return i;
-
-		cnt  -= len;
-		addr += len;
-		src  += len;
-	}
+	if ((i = write_buff(flash_info, (uchar *)src, addr, cnt)) != 0)
+		return i;
 
 	return ERR_OK;
 }

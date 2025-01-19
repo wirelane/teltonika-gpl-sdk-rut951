@@ -205,6 +205,13 @@
 			};
 		};
 	};
+
+	poeman {
+		bus = "/dev/i2c-0";
+		budget@0 {
+			budget = <15400>;
+		};
+	};
 };
 
 &state_default {

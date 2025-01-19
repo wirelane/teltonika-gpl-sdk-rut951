@@ -56,7 +56,7 @@ extern int mnf_flash_write_finalize(void);
 
 /* Useful helper functions for other uses */
 
-int mnf_get_field(const char *name, void *result);
+int mnf_get_field(const char *name, const void *result);
 int mnf_set_field(const char *name, const void *value);
 
 /* Functions for formating mnf values to/from user readable strings */

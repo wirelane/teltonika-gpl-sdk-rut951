@@ -16,7 +16,7 @@ operations to be done in a seperate thread, as well as allows for GRO
  	if (status != NET_RX_SUCCESS)
  		netif_dbg(dev, rx_err, dev->net,
  			  "netif_rx status %d\n", status);
-@@ -598,6 +602,44 @@ static inline int rx_process(struct usbn
+@@ -604,6 +608,44 @@ static inline int rx_process(struct usbn
  
  /*-------------------------------------------------------------------------*/
  
@@ -61,7 +61,7 @@ operations to be done in a seperate thread, as well as allows for GRO
  static void rx_complete (struct urb *urb)
  {
  	struct sk_buff		*skb = (struct sk_buff *) urb->context;
-@@ -674,7 +716,30 @@ block:
+@@ -680,7 +722,30 @@ block:
  			set_bit(EVENT_RX_KILL, &dev->flags);
  	}
  
@@ -93,7 +93,7 @@ operations to be done in a seperate thread, as well as allows for GRO
  
  	if (urb) {
  		if (netif_running (dev->net) &&
-@@ -855,6 +920,12 @@ int usbnet_stop (struct net_device *net)
+@@ -861,6 +926,12 @@ int usbnet_stop (struct net_device *net)
  
  	usbnet_status_stop(dev);
  
@@ -106,7 +106,7 @@ operations to be done in a seperate thread, as well as allows for GRO
  	usbnet_purge_paused_rxq(dev);
  
  	mpn = !test_and_clear_bit(EVENT_NO_RUNTIME_PM, &dev->flags);
-@@ -918,6 +989,10 @@ int usbnet_open (struct net_device *net)
+@@ -933,6 +1004,10 @@ int usbnet_open (struct net_device *net)
  		goto done;
  	}
  
@@ -117,7 +117,7 @@ operations to be done in a seperate thread, as well as allows for GRO
  	/* start any status interrupt transfer */
  	if (dev->interrupt) {
  		retval = usbnet_status_start(dev, GFP_KERNEL);
-@@ -1644,6 +1719,10 @@ void usbnet_disconnect (struct usb_inter
+@@ -1663,6 +1738,10 @@ void usbnet_disconnect (struct usb_inter
  	if (dev->driver_info->unbind)
  		dev->driver_info->unbind(dev, intf);
  
@@ -128,7 +128,7 @@ operations to be done in a seperate thread, as well as allows for GRO
  	usb_kill_urb(dev->interrupt);
  	usb_free_urb(dev->interrupt);
  	kfree(dev->padding_pkt);
-@@ -1840,6 +1919,13 @@ usbnet_probe (struct usb_interface *udev
+@@ -1859,6 +1938,13 @@ usbnet_probe (struct usb_interface *udev
  		}
  	}
  
@@ -144,10 +144,10 @@ operations to be done in a seperate thread, as well as allows for GRO
  		goto out5;
 --- a/include/linux/usb/usbnet.h
 +++ b/include/linux/usb/usbnet.h
-@@ -84,6 +84,13 @@ struct usbnet {
- #		define EVENT_LINK_CHANGE	11
- #		define EVENT_SET_RX_MODE	12
- #		define EVENT_NO_IP_ALIGN	13
+@@ -89,6 +89,13 @@ struct usbnet {
+  * that must be broken
+  */
+ #		define EVENT_UNPLUG		31
 +
 +#define USBNET_RX_NAPI_QLEN 128
 +#define USBNET_RX_NAPI_WEIGHT 64
@@ -157,8 +157,8 @@ operations to be done in a seperate thread, as well as allows for GRO
 +	int                     rx_napi_budget;
  };
  
- static inline struct usb_driver *driver_of(struct usb_interface *intf)
-@@ -123,6 +130,7 @@ struct driver_info {
+ static inline bool usbnet_going_away(struct usbnet *ubn)
+@@ -138,6 +145,7 @@ struct driver_info {
  #define FLAG_RX_ASSEMBLE	0x4000	/* rx packets may span >1 frames */
  #define FLAG_NOARP		0x8000	/* device can't do ARP */
  #define FLAG_PAGE_FRAG		0x10000	/* Allocate usb transfer buffers as page fragments */
@@ -166,11 +166,11 @@ operations to be done in a seperate thread, as well as allows for GRO
  
  	/* init device ... can sleep, or cause probe() failure */
  	int	(*bind)(struct usbnet *, struct usb_interface *);
-@@ -344,4 +352,14 @@ inline struct sk_buff *usbnet_clone_zero
+@@ -359,4 +367,14 @@ inline struct sk_buff *usbnet_clone_zero
  	return nskb;
  }
  
-+inline int usbnet_napi_rx(struct usbnet *dev, struct sk_buff *skb) {
++static inline int usbnet_napi_rx(struct usbnet *dev, struct sk_buff *skb) {
 +	if (dev->rx_napi_budget > 0) {
 +		dev->rx_napi_budget--;
 +		napi_gro_receive(&dev->rx_napi, skb);

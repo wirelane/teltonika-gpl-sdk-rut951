@@ -54,7 +54,7 @@
 		gpio_sim_select {
 			gpio-export,name = "sim_sel";
 			gpio-export,output = <0>;
-			gpios = <&gpio 18 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
 		};
 
 		green_eth_port_4 {
@@ -298,6 +298,7 @@
 			};
 			GPIO_18 {
 				line_name = "GPIO_SIM_SELECT";
+				active_low;
 			};
 		};
 	};
@@ -331,6 +332,6 @@
 
 &mnfinfo {
 	sim_cfg {
-		default = "2111000_2112000";
+		default = "2112000_2111000";
 	};
 };

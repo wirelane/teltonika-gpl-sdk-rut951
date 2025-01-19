@@ -498,7 +498,6 @@ endef
 define KernelPackage/mt7603_515/install
 	$(INSTALL_DIR) $(1)/lib/firmware
 	cp $(if $(CONFIG_TARGET_ramips_mt76x8), \
-		$(PKG_BUILD_DIR)/firmware/mt7628_e1.bin \
 		$(PKG_BUILD_DIR)/firmware/mt7628_e2.bin \
 		,\
 		$(PKG_BUILD_DIR)/firmware/mt7603_e1.bin \

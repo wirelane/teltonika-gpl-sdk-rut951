@@ -154,6 +154,64 @@ define Device/TEMPLATE_teltonika_rutm12
 	HARDWARE/Physical_Specification/Dimensions := 115 x 44.2 x 95.1 mm
 endef
 
+define Device/TEMPLATE_teltonika_rutm20
+	$(Device/teltonika_rutm_common)
+	$(Device/template_rutm_common)
+	DEVICE_MODEL := RUTM20
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.12
+	DEVICE_POE_CONF := 1 1 _lan 4 15400
+	DEVICE_POE_CHIP := 0X2F 4:_lan
+	DEVICE_FEATURES := wifi ethernet mobile dual_band_ssid dual_sim \
+		at_sim dsa hw_nat nat_offloading multi_tag port_link \
+		gigabit_port m2_modem poe tpm
+	DEVICE_LAN_OPTION := "lan "
+	DEVICE_WAN_OPTION := wan
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
+
+	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
+	HARDWARE/Mobile/3GPP_Release := Release 16
+	HARDWARE/Physical_Interfaces/USB :=
+	HARDWARE/USB/Data_rate :=
+	HARDWARE/USB/Applications :=
+	HARDWARE/USB/External_devices :=
+	HARDWARE/USB/Storage_formats :=
+	HARDWARE/LAN/Port := 1 $(HW_ETH_LAN_PORTS)
+	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 2 x Ethernet port status LEDs, 2 x WAN status LEDs and 1 x Power LED
+	HARDWARE/Physical_Interfaces/Ethernet := 2 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
+	HARDWARE/Power/Power_consumption := Idle <5 W, Max <18 W
+	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi
+	HARDWARE/Physical_Specification/Dimensions := 132 x 44.2 x 95.1 mm
+	HARDWARE/Physical_Specification/Weight := 519 g
+endef
+
+define Device/TEMPLATE_teltonika_rutm30
+	$(Device/teltonika_rutm_common)
+	$(Device/template_rutm_common)
+	DEVICE_MODEL := RUTM30
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.12
+	DEVICE_FEATURES := wifi ethernet ios mobile dual_band_ssid dual_sim \
+		at_sim dsa hw_nat nat_offloading multi_tag port_link \
+		gigabit_port tpm
+	DEVICE_LAN_OPTION := "lan "
+	DEVICE_WAN_OPTION := wan
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
+
+	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
+	HARDWARE/Mobile/3GPP_Release := Release 16
+	HARDWARE/Physical_Interfaces/USB :=
+	HARDWARE/USB/Data_rate :=
+	HARDWARE/USB/Applications :=
+	HARDWARE/USB/External_devices :=
+	HARDWARE/USB/Storage_formats :=
+	HARDWARE/LAN/Port := 1 $(HW_ETH_LAN_PORTS)
+	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 2 x Ethernet port status LEDs, 2 x WAN status LEDs and 1 x Power LED
+	HARDWARE/Physical_Interfaces/Ethernet := 2 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
+	HARDWARE/Power/Power_consumption := Idle <5 W, Max <18 W
+	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi
+	HARDWARE/Physical_Specification/Dimensions := 132 x 44.2 x 95.1 mm
+	HARDWARE/Physical_Specification/Weight := 519 g
+endef
+
 define Device/TEMPLATE_teltonika_rutm50
 	$(Device/teltonika_rutm_common)
 	$(Device/template_rutm_common)
@@ -209,7 +267,7 @@ define Device/TEMPLATE_teltonika_rutm52
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10
 	DEVICE_FEATURES := gps ethernet ios mobile wifi dual_band_ssid dual_sim \
 		at_sim dsa hw_nat nat_offloading multi_tag soft_port_mirror port_link \
-		gigabit_port dual_modem custom_usbcfg sd_card xfrm-offload
+		gigabit_port dual_modem custom_usbcfg sd_card xfrm-offload tpm
 	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
 	DEVICE_WAN_OPTION := wan
 	DEVICE_USB_JACK_PATH :=
@@ -238,7 +296,7 @@ define Device/TEMPLATE_teltonika_rutm54
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.11
 	DEVICE_FEATURES := gps usb ethernet ios mobile wifi dual_band_ssid \
 		dual_sim at_sim dsa hw_nat nat_offloading multi_tag soft_port_mirror \
-		port_link gigabit_port m2_modem xfrm-offload
+		port_link gigabit_port m2_modem xfrm-offload tpm
 	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
 	DEVICE_WAN_OPTION := wan
 	DEVICE_USB_JACK_PATH := /usb1/1-2/
@@ -264,7 +322,8 @@ define Device/TEMPLATE_teltonika_rutm55
 	DEVICE_USB_JACK_PATH := /usb1/1-2/1-2.1/
 	DEVICE_FEATURES := gps ethernet ios mobile wifi dual_band_ssid \
 		at_sim dsa hw_nat nat_offloading multi_tag port_link \
-		soft_port_mirror gigabit_port rs232 rs485 usb xfrm-offload
+		soft_port_mirror gigabit_port rs232 rs485 usb xfrm-offload \
+		tpm
 	DEVICE_LAN_OPTION := "lan1 lan2 lan3"
 	DEVICE_WAN_OPTION := wan
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
@@ -305,7 +364,8 @@ define Device/TEMPLATE_teltonika_rutm56
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.11
 	DEVICE_FEATURES := gps ethernet ios mobile wifi dual_band_ssid \
 		at_sim dsa hw_nat nat_offloading multi_tag soft_port_mirror \
-		port_link gigabit_port dual_modem custom_usbcfg xfrm-offload
+		port_link gigabit_port dual_modem custom_usbcfg xfrm-offload \
+		tpm
 	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
 	DEVICE_WAN_OPTION := wan
 	DEVICE_USB_JACK_PATH :=

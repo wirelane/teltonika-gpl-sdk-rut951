@@ -583,6 +583,9 @@ int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			(u8 *)ntohl(hdr->ih_load), (size_t *)&unc_len);
 
 		if (i) {
+			for(int i=0; i<32; i++ )
+				printf("%02X",((u8 *)data)[i]);
+
 			puts("ERROR\n");
 			printf_err("LZ4 error '%d'!\n", i);
 			return 1;

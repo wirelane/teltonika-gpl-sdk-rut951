@@ -95,9 +95,6 @@ static __inline__ int abortboot(int bootdelay)
 	else
 		printf("Hit any key to stop booting: %2d", bootdelay);
 #endif
-#if defined(CONFIG_MTK_LED_ANIMATION_MASK)
-	init_led_animation_array();
-#endif
 	while ((bootdelay > 0) && (!abort)) {
 		int i;
 
@@ -195,9 +192,9 @@ void main_loop(void)
 	bootcmd = getenv("bootcmd");
 #endif
 
-#if defined(CONFIG_FOR_TELTONIKA_TRB2M)
-init_led_on_model();
-#endif
+#if defined(CONFIG_MTK_LED_ANIMATION_MASK)
+init_led_animation_array();
+#endif // CONFIG_MTK_LED_ANIMATION_MASK
 /* Recovery mode before normal boot */
 #if defined(CONFIG_BTN_RECOVERY_SCRIPT) &&\
     defined(CONFIG_GPIO_RESET_BTN)

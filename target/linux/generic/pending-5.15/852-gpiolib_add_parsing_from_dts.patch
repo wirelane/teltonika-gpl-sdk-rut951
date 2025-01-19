@@ -1,6 +1,6 @@
 --- a/drivers/gpio/gpiolib.c
 +++ b/drivers/gpio/gpiolib.c
-@@ -337,28 +337,28 @@ static struct gpio_desc *gpio_name_to_de
+@@ -338,28 +338,28 @@ static struct gpio_desc *gpio_name_to_de
   *   1. Non-unique names are still accepted,
   *   2. Name collisions within the same GPIO chip are not reported.
   */
@@ -51,7 +51,7 @@
  
  /*
   * devprop_gpiochip_set_names - Set GPIO line names using device properties
-@@ -369,66 +369,147 @@ static int gpiochip_set_desc_names(struc
+@@ -370,66 +370,147 @@ static int gpiochip_set_desc_names(struc
   * names belong to the underlying firmware node and should not be released
   * by the caller.
   */
@@ -246,7 +246,7 @@
  static unsigned long *gpiochip_allocate_mask(struct gpio_chip *gc)
  {
  	unsigned long *p;
-@@ -733,12 +814,13 @@ int gpiochip_add_data_with_key(struct gp
+@@ -734,12 +815,13 @@ int gpiochip_add_data_with_key(struct gp
  	INIT_LIST_HEAD(&gdev->pin_ranges);
  #endif
  

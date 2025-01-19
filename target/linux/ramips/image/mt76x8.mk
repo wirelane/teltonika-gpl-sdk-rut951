@@ -64,7 +64,7 @@ define Device/teltonika_trb2m
 	DEVICE_DTS := mt7628an_teltonika_trb2m
 	DEVICE_FEATURES += gateway pppmobile gps serial serial-reset-quirk \
 			modbus io single-port dualsim bacnet ntrip mobile ncm dot1x-server \
-	                xfrm-offload
+	                xfrm-offload no-wired-wan
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.5
 	GPL_PREFIX := GPL
@@ -82,6 +82,8 @@ define Device/teltonika_trb2m
 		TEMPLATE_teltonika_trb246 \
 		TEMPLATE_teltonika_trb256 \
 		TEMPLATE_teltonika_trb247
+
+	DEVICE_MODEM_VENDORS := Quectel
 endef
 
 define Device/teltonika_tap100
@@ -89,7 +91,7 @@ define Device/teltonika_tap100
 	DEVICE_MODEL := TAP100
 	DEVICE_BOOT_NAME := tlt-tap100
 	DEVICE_DTS := mt7628an_teltonika_tap100
-	DEVICE_FEATURES := small_flash access-point single-port wifi ledman-lite dot1x-client
+	DEVICE_FEATURES := small_flash access-point single-port wifi ledman-lite dot1x-client no-wired-wan
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4
 	GPL_PREFIX := GPL
 	# Default common packages for TAP100 series
@@ -114,7 +116,7 @@ define Device/teltonika_otd140
 	DEVICE_MODEL := OTD140
 	DEVICE_BOOT_NAME := tlt-otd140
 	DEVICE_DTS := mt7628an_teltonika_otd140
-	DEVICE_FEATURES += ncm rndis poe mobile dualsim portlink dot1x-server xfrm-offload
+	DEVICE_FEATURES += ncm rndis poe mobile dualsim portlink dot1x-server xfrm-offload networks-external no-wired-wan
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.4
 	GPL_PREFIX := GPL
@@ -125,6 +127,8 @@ define Device/teltonika_otd140
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	INCLUDED_DEVICES := TEMPLATE_teltonika_otd140
+
+	DEVICE_MODEM_VENDORS := Quectel
 endef
 
 define Device/teltonika_rut14x
@@ -155,7 +159,7 @@ define Device/teltonika_dap14x
 	DEVICE_BOOT_NAME := tlt-dap14x
 	DEVICE_DTS := mt7628an_teltonika_dap14x
 	DEVICE_FEATURES += small_flash serial modbus ntrip wifi ledman-lite sw-offload portlink \
-	                   xfrm-offload industrial-access-point
+	                   xfrm-offload industrial-access-point no-wired-wan dot1x-client
 	# Default common packages for DAP14X series
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	DEVICE_PACKAGES += kmod-usb-ohci kmod-usb-serial-pl2303
@@ -193,6 +197,8 @@ define Device/teltonika_rut2m
 		TEMPLATE_teltonika_rut241 \
 		TEMPLATE_teltonika_rut260 \
 		TEMPLATE_teltonika_rut271
+
+	DEVICE_MODEM_VENDORS := Quectel Meiglink
 endef
 
 define Device/teltonika_rut206
@@ -214,6 +220,8 @@ define Device/teltonika_rut206
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	INCLUDED_DEVICES := TEMPLATE_teltonika_rut206
+
+	DEVICE_MODEM_VENDORS := Quectel
 endef
 
 define Device/teltonika_rut301
@@ -261,6 +269,8 @@ define Device/teltonika_rut361
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	INCLUDED_DEVICES := TEMPLATE_teltonika_rut361
+
+	DEVICE_MODEM_VENDORS := Quectel
 endef
 
 define Device/teltonika_rut9m
@@ -294,6 +304,8 @@ define Device/teltonika_rut9m
 		TEMPLATE_teltonika_rut956 \
 		TEMPLATE_teltonika_rut971 \
 		TEMPLATE_teltonika_rut976
+
+	DEVICE_MODEM_VENDORS := Quectel Meiglink
 endef
 TARGET_DEVICES += teltonika_rut9m
 

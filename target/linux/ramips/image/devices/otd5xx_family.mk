@@ -13,12 +13,13 @@ define Device/TEMPLATE_teltonika_otd500
 	DEVICE_INTERFACE_CONF := \
 		lan default_ip 192.168.1.1
 
-	DEVICE_POE_CONF := i2c-0 2 15400 1 _lan2 3 15400
+	DEVICE_POE_CONF := 2 1 _lan2 3 15400
 
 	DEVICE_POE_CHIP := 0X77 0:_lan2, 0X2F 1:_lan2
 
 	DEVICE_FEATURES := ethernet mobile dual_sim at_sim dsa hw_nat \
-		nat_offloading multi_tag port_link gigabit_port poe xfrm-offload
+		nat_offloading multi_tag port_link gigabit_port poe xfrm-offload \
+		tpm
 
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 

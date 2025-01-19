@@ -28,20 +28,24 @@
  * ST Microelectronics Opcodes for Serial Flash
  */
 
-#define STM_OP_WR_ENABLE	0x06	/* Write Enable */
-#define STM_OP_WR_DISABLE	0x04	/* Write Disable */
-#define STM_OP_RD_STATUS	0x05	/* Read Status */
-#define STM_OP_RD_STATUS2	0x35	/* Read Status 2 */
-#define STM_OP_WR_STATUS	0x01	/* Write Status */
-#define STM_OP_RD_DATA		0x03	/* Read Data */
-#define STM_OP_FAST_RD_DATA	0x0b	/* Fast Read Data */
-#define STM_OP_PAGE_PGRM	0x02	/* Page Program */
-#define STM_OP_SECTOR_ERASE	0xd8	/* Sector Erase */
-#define STM_OP_BULK_ERASE	0xc7	/* Bulk Erase */
-#define STM_OP_DEEP_PWRDOWN	0xb9	/* Deep Power-Down Mode */
-#define STM_OP_RD_SIG		0xab	/* Read Electronic Signature */
-#define STM_OP_RD_ID		0x9f	/* Read JEDEC ID */
-#define STM_OP_HPM		0xa3	/* High Performance Mode */
+#define STM_OP_WR_ENABLE		0x06	/* Write Enable */
+#define STM_OP_WR_DISABLE		0x04	/* Write Disable */
+#define STM_OP_RD_STATUS		0x05	/* Read Status */
+#define STM_OP_RD_STATUS2		0x35	/* Read Status 2 */
+#define STM_OP_WR_STATUS		0x01	/* Write Status */
+#define STM_OP_RD_DATA			0x03	/* Read Data */
+#define STM_OP_RD_DATA_4B		0x13	/* Read Data 4B addr*/
+#define STM_OP_FAST_RD_DATA		0x0b	/* Fast Read Data */
+#define STM_OP_FAST_RD_DATA_4B		0x0c	/* Fast Read Data 4b addr*/
+#define STM_OP_PAGE_PGRM		0x02	/* Page Program */
+#define STM_OP_PAGE_PGRM_4B		0x12	/* Page Program 4b addr*/
+#define STM_OP_SECTOR_ERASE		0xd8	/* Sector Erase */
+#define STM_OP_SECTOR_ERASE_4B		0xdc	/* Sector Erase 4b addr*/
+#define STM_OP_BULK_ERASE		0xc7	/* Bulk Erase */
+#define STM_OP_DEEP_PWRDOWN		0xb9	/* Deep Power-Down Mode */
+#define STM_OP_RD_SIG			0xab	/* Read Electronic Signature */
+#define STM_OP_RD_ID			0x9f	/* Read JEDEC ID */
+#define STM_OP_HPM				0xa3	/* High Performance Mode */
 
 #define STM_STATUS_WIP		0x01	/* Write-In-Progress */
 #define STM_STATUS_WEL		0x02	/* Write Enable Latch */
@@ -92,31 +96,9 @@ struct spi_flash_info {
 #endif
 extern int spiflash_init (unsigned long rom_base);
 extern int spiflash_erase(unsigned long addr, unsigned long size);
-extern int spiflash_read(unsigned long from, unsigned long len, 
+extern int spiflash_read(unsigned long from, unsigned long len,
 	unsigned long *retlen, unsigned char *buf);
-extern int spiflash_write(unsigned long to, unsigned long len, 
+extern int spiflash_write(unsigned long to, unsigned long len,
 	unsigned long *retlen, const unsigned char *buf);
-
-/* Mapping of generic opcodes to STM serial flash opcodes */
-struct opcodes {
-	__u16 code;
-	__s8 tx_cnt;
-	__s8 rx_cnt;
-} stm_opcodes[] = {
-	{STM_OP_WR_ENABLE, 1, 0},
-	{STM_OP_WR_DISABLE, 1, 0},
-	{STM_OP_RD_STATUS, 1, 1},
-	{STM_OP_WR_STATUS, 2, 0},
-	{STM_OP_RD_DATA, 4, 4},
-	{STM_OP_FAST_RD_DATA, 1, 0},
-	{STM_OP_PAGE_PGRM, 8, 0},
-	{STM_OP_SECTOR_ERASE, 4, 0},
-	{STM_OP_BULK_ERASE, 1, 0},
-	{STM_OP_DEEP_PWRDOWN, 1, 0},
-	{STM_OP_RD_SIG, 4, 1},
-	{STM_OP_RD_ID, 1, 3},
-	{STM_OP_RD_STATUS2, 1, 1},
-	{STM_OP_HPM, 1, 0}
-};
 
 #endif

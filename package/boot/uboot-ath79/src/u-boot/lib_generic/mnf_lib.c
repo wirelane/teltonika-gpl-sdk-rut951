@@ -27,7 +27,7 @@ mnf_field_t *mnf_get_field_info_long(const char *name)
 	return NULL;
 }
 
-int mnf_get_field(const char *name, void *result)
+int mnf_get_field(const char *name, const void *result)
 {
 	mnf_field_t *field = mnf_get_field_info_long(name);
 

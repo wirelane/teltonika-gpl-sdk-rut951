@@ -60,8 +60,8 @@
 
 		yellow_eth_port_3 {
 			gpio-export,name = "yellow:eth_port_3";
-			gpio-export,output = <1>;
-			gpios = <&shift_io 8 GPIO_ACTIVE_LOW>;
+			gpio-export,output = <0>;
+			gpios = <&shift_io 8 GPIO_ACTIVE_HIGH>;
 		};
 
 		yellow_eth_port_2 {
@@ -90,8 +90,8 @@
 
 		green_eth_port_3 {
 			gpio-export,name = "green:eth_port_3";
-			gpio-export,output = <1>;
-			gpios = <&shift_io 3 GPIO_ACTIVE_LOW>;
+			gpio-export,output = <0>;
+			gpios = <&shift_io 3 GPIO_ACTIVE_HIGH>;
 		};
 
 		green_eth_port_2 {
@@ -212,7 +212,6 @@
 			};
 			GPIO_99 {
 				line_name = "LED_ETH_GREEN_4";
-				active_low;
 			};
 			GPIO_100 {
 				line_name = "LED_ETH_GREEN_5";
@@ -228,7 +227,6 @@
 			};
 			GPIO_104 {
 				line_name = "LED_ETH_YELLOW_4";
-				active_low;
 			};
 			GPIO_105 {
 				line_name = "LED_ETH_YELLOW_5";
