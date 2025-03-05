@@ -35,6 +35,13 @@
 			gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
 		};
 
+		gpio_modem_boot {
+			gpio-export,name = "modem_boot";
+			gpio-export,output = <0>;
+			gpios = <&gpio 42 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB247";
+		};
+
 		gpio_sim_select {
 			gpio-export,name = "sim_sel";
 			gpio-export,output = <0>;
@@ -77,10 +84,8 @@
 
 		led_gen_2 {
 			label = "mob_gen_2";
-			gpios = <&gpio 11 GPIO_ACTIVE_HIGH>,
-					<&gpio 15 GPIO_ACTIVE_HIGH>;
-			compatible_models = "TRB246 TRB256",
-								"TRB247";
+			gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
+			compatible_models = "TRB246 TRB256";
 		};
 
 		led_gen_3 {
@@ -91,28 +96,36 @@
 
 		led_gen_4 {
 			label = "mob_gen_4";
-			gpios = <&gpio 42 GPIO_ACTIVE_LOW>;
-			compatible_models = "TRB246 TRB256";
+			gpios = <&gpio 42 GPIO_ACTIVE_LOW>,
+				<&gpio 14 GPIO_ACTIVE_HIGH>; //NB1 LED for EG915Q modem
+			compatible_models = "TRB246 TRB256",
+					    "TRB247";
 		};
 
-		led_gen_nb1 {
-			label = "mob_gen_nb1";
-			gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
-			compatible_models = "TRB247";
-		};
+		// led_gen_2 {
+		// 	label = "mob_gen_2";
+		// 	gpios = <&gpio 15 GPIO_ACTIVE_HIGH>;
+		// 	compatible_models = "TRB247";
+		// };
 
-		led_gen_m1 {
-			label = "mob_gen_m1";
-			gpios = <&gpio 28 GPIO_ACTIVE_HIGH>;
-			compatible_models = "TRB247";
-		};
+		// led_gen_nb1 {
+		// 	label = "mob_gen_nb1";
+		// 	gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
+		// 	compatible_models = "TRB247";
+		// };
+
+		// led_gen_m1 {
+		// 	label = "mob_gen_m1";
+		// 	gpios = <&gpio 28 GPIO_ACTIVE_HIGH>;
+		// 	compatible_models = "TRB247";
+		// };
 
 		led_ssid_1 {
 			label = "mob_ssid_1";
 			gpios = <&gpio 39 GPIO_ACTIVE_HIGH>,
 					<&gpio 26 GPIO_ACTIVE_HIGH>;
 			compatible_models = "TRB246 TRB256",
-								"TRB247";
+					    "TRB247";
 			linux,default-trigger = "timer";
 		};
 
@@ -121,7 +134,7 @@
 			gpios = <&gpio 40 GPIO_ACTIVE_HIGH>,
 					<&gpio 27 GPIO_ACTIVE_HIGH>;
 			compatible_models = "TRB246 TRB256",
-								"TRB247";
+					    "TRB247";
 			linux,default-trigger = "timer";
 		};
 
@@ -130,7 +143,7 @@
 			gpios = <&gpio 41 GPIO_ACTIVE_HIGH>,
 					<&gpio 24 GPIO_ACTIVE_HIGH>;
 			compatible_models = "TRB246 TRB256",
-								"TRB247";
+					    "TRB247";
 			linux,default-trigger = "timer";
 		};
 	};
@@ -155,9 +168,6 @@
 				line_name_1 = "GPIO_IN_1";
 				compatible_model_1 = "TRB256";
 
-				line_name_2 = "LED_SSID_5"; // Not active low, fix (exported via sysfs)
-				compatible_model_2 = "TRB247"; // Not active low, fix (exported via sysfs)
-
 				active_low;
 			};
 			GPIO_44 {
@@ -170,9 +180,6 @@
 				line_name_1 = "GPIO_IN_2";
 				compatible_model_1 = "TRB256";
 
-				line_name_2 = "LED_SSID_3"; // Not active low, fix (exported via sysfs)
-				compatible_model_2 = "TRB247"; // Not active low, fix (exported via sysfs)
-
 				active_low;
 			};
 			GPIO_38 {
@@ -184,9 +191,6 @@
 
 				line_name_1 = "GPIO_IN_3";
 				compatible_model_1 = "TRB256";
-
-				line_name_2 = "LED_TECH_GEN_NB1";
-				compatible_model_2 = "TRB247";
 
 				active_low;
 			};
@@ -206,13 +210,13 @@
 			};
 			GPIO_11 {
 				compatible_model_0 = "TRB246";
-       			line_name_0 = "LED_TECH_GEN_2";
+				line_name_0 = "LED_TECH_GEN_2";
 
 				compatible_model_1 = "TRB256";
-       			line_name_1 = "LED_TECH_GEN_2";
+				line_name_1 = "LED_TECH_GEN_2";
 
 				compatible_model_2 = "TRB247";
-       			line_name_2 = "GPIO_RS485_R_EN";
+				line_name_2 = "GPIO_RS485_RX_EN";
 			};
 			GPIO_1 {
 				compatible_model_0 = "TRB246";
@@ -234,17 +238,17 @@
 				active_low;
 			};
 			GPIO_14 {
-				line_name = "LED_TECH_GEN_NB1";
+				line_name = "LED_TECH_GEN_4";
 				compatible_model = "TRB247";
 			};
-			GPIO_15 {
-				line_name = "LED_TECH_GEN_2";
-				compatible_model = "TRB247";
-			};
-			GPIO_28 {
-				line_name = "LED_TECH_GEN_M1";
-				compatible_model = "TRB247";
-			};
+			// GPIO_15 {
+			// 	line_name = "LED_TECH_GEN_2";
+			// 	compatible_model = "TRB247";
+			// };
+			// GPIO_28 {
+			// 	line_name = "LED_TECH_GEN_M1";
+			// 	compatible_model = "TRB247";
+			// };
 			GPIO_39 {
 				line_name_0 = "LED_SSID_1";
 				compatible_model_0 = "TRB246";
@@ -294,6 +298,17 @@
 			GPIO_0 {
 				line_name = "GPIO_SIM_SELECT";
 			};
+			GPIO_1 {
+				line_name = "GPIO_SIM_SELECT_2";
+				compatible_model = "TRB247";
+			};
+			GPIO_4 {
+				line_name_0 = "GPIO_RS485_D_EN";
+				compatible_model_0 = "TRB246";
+
+				line_name_1 = "GPIO_RS485_D_EN";
+				compatible_model_1 = "TRB256";
+			};
 			GPIO_5 {
 				line_name_0 = "GPIO_RS485_RX_EN";
 				compatible_model_0 = "TRB246";
@@ -303,6 +318,10 @@
 			};
 			GPIO_6 {
 				line_name = "GPIO_RS485_D_EN";
+				compatible_model = "TRB247";
+			};
+			GPIO_42 {
+				line_name = "GPIO_MODEM_BOOT";
 				compatible_model = "TRB247";
 			};
 		};
@@ -356,6 +375,12 @@
 					port = "0";
 					multiplier = "0.02242152463556804";
 				};
+				adc_cof@2 {
+					devices = "TRB247";
+					hwver = "5,99";
+					port = "0";
+					multiplier = "0.03462"; //value modified after testing, original val. K=3/103
+				};
 			};
 		};
 	};
@@ -379,7 +404,7 @@
 
 &state_default {
 	gpio {
-		groups = "i2s", "p4led_an", "p3led_an", "p2led_an", "p1led_an", "p0led_an", "gpio", "wled_an", "perst", "refclk", "wdt", "i2c";
+		groups = "i2s", "p4led_an", "p3led_an", "p2led_an", "p1led_an", "p0led_an", "gpio", "wled_an", "perst", "refclk", "wdt", "spi cs1", "i2c";
 		function = "gpio";
 	};
 };
@@ -441,9 +466,13 @@
 	linux,rs485-enabled-at-boot-time;
 	rs485-rts-delay = <0 0>;
 	rs485-rx-during-tx;
-	rts-gpios = <&gpio 4 GPIO_ACTIVE_HIGH>;
 };
 
 &uart2 {
+	status = "okay";
+};
+
+&i2c {
+	tlt-mnf,device = "TRB247";
 	status = "okay";
 };

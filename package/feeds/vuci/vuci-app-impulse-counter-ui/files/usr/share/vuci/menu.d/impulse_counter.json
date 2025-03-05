@@ -7,16 +7,12 @@
     "title": "Configuration",
     "index": 1,
     "view": "services/ImpulseCounter",
-    "acls": [
-      "services/io/impulse_counter"
-    ]
+    "acls": ["services/io/impulse_counter"]
   },
   "services/io/impulse_counter/statistics": {
     "title": "Statistics",
     "index": 1,
     "view": "services/ImpulseCounterStatistics",
-    "acls": [
-      "services/io/impulse_counter"
-    ]
+    "acls": ["services/io/impulse_counter"]
   }
 }

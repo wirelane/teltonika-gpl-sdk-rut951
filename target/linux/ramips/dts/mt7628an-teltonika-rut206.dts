@@ -11,7 +11,7 @@
 	model = "Teltonika RUT206";
 
 	chosen {
-		bootargs = "console=ttyS0,115200 root=/dev/mtdblock5";
+		bootargs = "console=ttyS0,115200 root=/dev/mtdblock5 is_full_hwver=1";
 	};
 
 	ext_io {
@@ -277,7 +277,7 @@
 
 			partition@f70000 {
 				label = "event-log";
-				reg = <0x1f50000 0xB0000>;
+				reg = <0x1F50000 0xB0000>;
 			};
 		};
 	};

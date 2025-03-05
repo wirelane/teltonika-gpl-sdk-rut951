@@ -218,11 +218,11 @@ endef
 TARGET_DEVICES += TEMPLATE_teltonika_rut956
 
 define Device/TEMPLATE_teltonika_rut971
-	$(Device/teltonika_rut9m)
+	$(Device/teltonika_rute)
 	$(Device/teltonika_rut9x_common)
 	$(Device/template_rut9x)
 	DEVICE_MODEL := RUT971
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10.2
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 17
@@ -230,6 +230,7 @@ define Device/TEMPLATE_teltonika_rut971
 	HARDWARE/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
 	HARDWARE/Input_Output/Output := 1 $(HW_OUTPUT_DO_30V)
 	HARDWARE/Physical_Specification/Weight := 297 g
+	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, IMDA, Anatel, RCM, E-mark, ECE R118, CB, RoHS, REACH, NCC
 	HARDWARE/EMC_Emissions_&_Immunity/Standards := $(HW_EI_STANDARDS_EN_55032) + A1:2020; $(HW_EI_STANDARDS_EN_55035); $(HW_EI_STANDARDS_EN_IEC_61000-3-2);\
 	$(HW_EI_STANDARDS_EN_61000-3-3) + A2:2021; $(HW_EI_STANDARDS_EN_301_489-1_V2.2.3); \
@@ -245,7 +246,6 @@ define Device/TEMPLATE_teltonika_rut971
 	HARDWARE/Safety/Standards := CE:$(HW_SAFETY_EN_IEC_62368-1), $(HW_SAFETY_EN_IEC_62311), $(HW_SAFETY_EN_5066); \
 	CB:$(HW_SAFETY_IEC_62368-1); RCM:$(HW_SAFETY_AS/NZS_62368);
 endef
-TARGET_DEVICES += TEMPLATE_teltonika_rut971
 
 define Device/TEMPLATE_teltonika_rut976
 	$(Device/teltonika_rute)
@@ -274,6 +274,7 @@ define Device/TEMPLATE_teltonika_rut976
 	HARDWARE/USB/Applications := $(HW_USB_APPLICATIONS)
 	HARDWARE/USB/External_devices := $(HW_USB_EXTERNAL_DEV)
 	HARDWARE/USB/Storage_formats := $(HW_USB_STORAGE_FORMATS)
+	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, ANRT, Kenya, CITC, ICASA, FCC, IC, PTCRB, Anatel, RCM, Giteki, IMDA, ECE R118, \
 	E-mark, UL/CSA Safety, CB, RoHS, REACH, NCC, C1D2
 	HARDWARE/Regulatory_&_Type_Approvals/Operator := AT&T, Verizon, T-Mobile
@@ -294,4 +295,3 @@ define Device/TEMPLATE_teltonika_rut976
 	HARDWARE/Safety_(Hazardous_Locations)/Hazardous_Environments := Class I, Division 2, Groups A, B, C, D; Class I, Zone 2, \
 	Group IIC; -40°C ≤ Ta ≤ 75°C, T4, IP30;
 endef
-TARGET_DEVICES += TEMPLATE_teltonika_rut976

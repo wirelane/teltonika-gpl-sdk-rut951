@@ -17,11 +17,11 @@ define Package/dsa-dot1x-server
 	SECTION:=net
 	CATEGORY:=Network
 	TITLE:=802.1X server
-	DEPENDS:=+radius_test +kmod-sched-flower +wpad-openssl +tc-tiny \
+	DEPENDS:=+radius_test +kmod-sched-flower +(WIFI_SUPPORT||PACKAGE_dot1x-client):wpad-openssl +tc-tiny \
 		+!(HAS_SINGLE_ETH_PORT||DSA_SUPPORT||TARGET_x86_64):kmod-sched-act-vlan \
 		+!(HAS_SINGLE_ETH_PORT||DSA_SUPPORT||TARGET_x86_64):kmod-sched-core \
-		+!(HAS_SINGLE_ETH_PORT||DSA_SUPPORT||TARGET_x86_64):kmod-dummy +wpad-openssl \
-		+TARGET_x86_64:kmod-veth
+		+!(HAS_SINGLE_ETH_PORT||DSA_SUPPORT||TARGET_x86_64):kmod-dummy \
+		+TARGET_x86_64:kmod-veth +!(WIFI_SUPPORT||PACKAGE_dot1x-client):hostapd-micro-nac-openssl
 endef
 
 
@@ -61,7 +61,7 @@ define Package/dsa-dot1x-server/install
 		$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/dot1x_single_port.config $(1)/etc/config/dot1x
 		$(INSTALL_BIN) $(PKG_BUILD_DIR)/dot1xd/platform_scripts/dsa.sh $(1)/usr/sbin/dot1x_port_blocker,\
 		$(if $(CONFIG_TARGET_ramips_mt76x8),
-			$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/config.d/generate-dot1x-server-mt76x8 $(1)/lib/config.d/799-generate-dot1x-server
+			$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/config.d/generate-dot1x-server-mt76x8 $(1)/lib/config.d/797-generate-dot1x-server
 			$(INSTALL_BIN) $(PKG_BUILD_DIR)/dot1xd/platform_scripts/mt76x8.lua $(1)/usr/sbin/dot1x_port_blocker,\
 			$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/config.d/generate-dot1x-server $(1)/lib/config.d/799-generate-dot1x-server
 			$(INSTALL_BIN) $(PKG_BUILD_DIR)/dot1xd/platform_scripts/dsa.sh $(1)/usr/sbin/dot1x_port_blocker

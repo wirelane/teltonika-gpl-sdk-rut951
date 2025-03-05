@@ -168,7 +168,6 @@ define Device/TEMPLATE_teltonika_rut206
 	DEVICE_MODEL := RUT206
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 	DEVICE_FEATURES += dual_sim sd_card rs232 rs485
-	DEVICE_DOT1X_SERVER_CAPABILITIES :=
 
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 10/11 depending on the hardware version

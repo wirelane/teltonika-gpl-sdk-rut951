@@ -17,11 +17,9 @@ BOOTLOADERS=(
 "mipsel|dap14x"
 "mipsel|rut2m"
 "mipsel|rut206"
-"mipsel|rut2e"
 "mipsel|rut301"
 "mipsel|rut361"
 "mipsel|rut9m"
-"mipsel|rut9e"
 "mipsel|tap100"
 "mipsel|otd140"
 )

@@ -318,7 +318,7 @@ define Device/TEMPLATE_teltonika_rutm55
 	$(Device/teltonika_rutm_common)
 	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM55
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13
 	DEVICE_USB_JACK_PATH := /usb1/1-2/1-2.1/
 	DEVICE_FEATURES := gps ethernet ios mobile wifi dual_band_ssid \
 		at_sim dsa hw_nat nat_offloading multi_tag port_link \

@@ -64,10 +64,10 @@
 	* DEVICE_LIST only for common target devices (single target devices not require it)
 	* HW_VERSION describes first new generation hwver in hex
 	*/
-	#define CONFIG_GPIO_MASK_DIGITAL_IN_OLD GPIO4, GPIO4, GPIO4
-	#define CONFIG_GPIO_MASK_DIGITAL_IN_NEW GPIO0, GPIO0, GPIO0
-	#define CONFIG_DEVICE_LIST		"RUT200", "RUT241", "RUT260"
-	#define CONFIG_HW_VERSIONS		0x5, 0x5, 0x3
+	#define CONFIG_GPIO_MASK_DIGITAL_IN_OLD GPIO4, GPIO4, GPIO4, GPIO4
+	#define CONFIG_GPIO_MASK_DIGITAL_IN_NEW GPIO0, GPIO0, GPIO0, GPIO0
+	#define CONFIG_DEVICE_LIST		"RUT200", "RUT241", "RUT260", "RUT271"
+	#define CONFIG_HW_VERSIONS		0x5, 0x5, 0x3, 0x5
 
 #elif defined(CONFIG_FOR_TELTONIKA_RUT206)
 
@@ -83,29 +83,6 @@
 	#define GPIO_SR_74X164_SRCLK	     GPIO3
 	#define GPIO_SR_74X164_RCLK	     GPIO2
 	#define GPIO_SR_74X164_SER	     GPIO1
-
-#elif defined(CONFIG_FOR_TELTONIKA_RUT2E)
-
-	#define CONFIG_MTK_GPIO_MASK_LED_ACT_L 	(u64)(GPIO36 | GPIO43 | GPIO42 | GPIO45)
-	#define CONFIG_MTK_GPIO_MASK_LED_ACT_H 	(u64)(GPIO11 | GPIO44 | GPIO1 |\
-						GPIO39 | GPIO40 | GPIO41)
-
-	// LED order is important!
-	#define CONFIG_MTK_LED_ANIMATION_MASK 	GPIO39, GPIO40, GPIO41, \
-						GPIO11,  GPIO44, GPIO36, \
-						GPIO1,  GPIO45
-
-	#define CONFIG_MTK_GPIO_MASK_IN 	(u64)(GPIO0 | GPIO4 | GPIO37 |\
-						GPIO38 | GPIO6)
-
-	#define CONFIG_GPIO_MASK_DIGITAL_IN 	GPIO4
-	/*
-	* GPIO order must match hwver order
-	* HW_VERSION describes first new generation hwver in hex
-	*/
-	#define CONFIG_GPIO_MASK_DIGITAL_IN_OLD GPIO4
-	#define CONFIG_GPIO_MASK_DIGITAL_IN_NEW GPIO0
-	#define CONFIG_HW_VERSIONS		0x5
 
 #elif defined(CONFIG_FOR_TELTONIKA_RUT301)
 
@@ -151,7 +128,7 @@
 	#define CONFIG_MTK_LED_ANIMATION_MASK_TRB247	GPIO14, GPIO26, GPIO27, GPIO24
 	#define CONFIG_GPIO_AIO_DIGITAL
 
-#elif defined(CONFIG_FOR_TELTONIKA_RUT9M) || defined(CONFIG_FOR_TELTONIKA_RUT9E)
+#elif defined(CONFIG_FOR_TELTONIKA_RUT9M)
 
 	#define CONFIG_MTK_GPIO_MASK_LED_ACT_L 	(u64)(GPIO39 | GPIO41 | GPIO42 | GPIO43)
 
@@ -198,12 +175,6 @@
 	#define DEVICE_MODEL_MANIFEST 	"rut206" // used for firmware validation
 	#define DEVICE_MODEL_NAME	"RUT206" // used for mnf info validation
 
-#elif defined(CONFIG_FOR_TELTONIKA_RUT2E)
-
-	#define DEVICE_MODEL 		"RUT2E" // used for u-boot validation
-	#define DEVICE_MODEL_MANIFEST 	"rut2e" // used for firmware validation
-	#define DEVICE_MODEL_NAME	"RUT2" // used for mnf info validation
-
 #elif defined(CONFIG_FOR_TELTONIKA_RUT301)
 
 	#define DEVICE_MODEL 		"RUT301"
@@ -228,12 +199,6 @@
 	#define DEVICE_MODEL_MANIFEST 	"rut9m"
 	#define DEVICE_MODEL_NAME	"RUT9"	 // used for mnf info validation
 
-#elif defined(CONFIG_FOR_TELTONIKA_RUT9E)
-
-	#define DEVICE_MODEL 		"RUT9E"
-	#define DEVICE_MODEL_MANIFEST 	"rut9e"
-	#define DEVICE_MODEL_NAME	"RUT9"	 // used for mnf info validation
-
 #elif defined(CONFIG_FOR_TELTONIKA_TAP100)
 
 	#define DEVICE_MODEL 		"TAP100"
@@ -253,7 +218,20 @@
  * Default bootargs
  * ================
  */
-#define CONFIG_BOOTARGS		"console=ttyS0,115200"
+#if defined(CONFIG_FOR_TELTONIKA_RUT2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT206) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT301) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT361) ||\
+	defined(CONFIG_FOR_TELTONIKA_TRB2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT9M) ||\
+	defined(CONFIG_FOR_TELTONIKA_TAP100) ||\
+	defined(CONFIG_FOR_TELTONIKA_OTD140) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT14X) ||\
+	defined(CONFIG_FOR_TELTONIKA_DAP14X)
+
+	#define CONFIG_BOOTARGS		"console=ttyS0,115200"
+
+#endif
 
 /*
  * =============================
@@ -273,16 +251,7 @@
 	#define	CFG_LOAD_ADDR		0xBC060000
 #endif
 
-#if defined(CONFIG_FOR_TELTONIKA_RUT206) ||\
-	defined(CONFIG_FOR_TELTONIKA_RUT9E)
-	#define CFG_UBOOT_SIZE		0x40000
-	#define CFG_ART_SIZE		0x30000
-	#define CFG_FW_LEN		0x1ED0000
-	#define	CFG_LOAD_ADDR		0xBC080000
-	#define NOR_4B_MODE
-#endif
-
-#if defined(CONFIG_FOR_TELTONIKA_RUT2E)
+#if defined(CONFIG_FOR_TELTONIKA_RUT206)
 	#define CFG_UBOOT_SIZE		0x40000
 	#define CFG_ART_SIZE		0x30000
 	#define CFG_FW_LEN		0x1ED0000
@@ -305,29 +274,65 @@
 #define CFG_FW_START		(CFG_FLASH_BASE + CFG_FW_OFFSET)
 #define CFG_FW_END		(CFG_FW_START + CFG_FW_LEN)
 
-#define OFFSET_MNF_INFO		CFG_UBOOT_SIZE
-#define OFFSET_SERIAL_NUMBER 	0x00030
-#define SERIAL_NUMBER_LENGTH 	0x0000A
-#define OFFSET_LINUX_PASSWD  	0x000A0
-#define LINUX_PASSWD_LENGTH  	0x0006A
+#if defined(CONFIG_FOR_TELTONIKA_RUT2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT206) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT301) ||\
+	defined(CONFIG_FOR_TELTONIKA_TRB2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT9M) ||\
+	defined(CONFIG_FOR_TELTONIKA_TAP100) ||\
+	defined(CONFIG_FOR_TELTONIKA_OTD140) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT361) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT14X) ||\
+	defined(CONFIG_FOR_TELTONIKA_DAP14X)
 
-#define CONFIG_BOOTCOMMAND 	"bootm " MK_STR(CFG_LOAD_ADDR)
+	#define OFFSET_MNF_INFO		CFG_UBOOT_SIZE
+	#define OFFSET_SERIAL_NUMBER 	0x00030
+	#define SERIAL_NUMBER_LENGTH 	0x0000A
+	#define OFFSET_LINUX_PASSWD  	0x000A0
+	#define LINUX_PASSWD_LENGTH  	0x0006A
+#endif
+
+#if defined(CONFIG_FOR_TELTONIKA_RUT2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT206) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT301) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT361) ||\
+	defined(CONFIG_FOR_TELTONIKA_TRB2M)	||\
+	defined(CONFIG_FOR_TELTONIKA_RUT9M)	||\
+	defined(CONFIG_FOR_TELTONIKA_TAP100) ||\
+	defined(CONFIG_FOR_TELTONIKA_OTD140) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT14X) ||\
+	defined(CONFIG_FOR_TELTONIKA_DAP14X)
+
+	#define CONFIG_BOOTCOMMAND 	"bootm " MK_STR(CFG_LOAD_ADDR)
+
+#endif
 
 /*
  * =========================
  * Environment configuration
  * =========================
  */
+#if defined(CONFIG_FOR_TELTONIKA_RUT2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT206) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT301) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT361) ||\
+	defined(CONFIG_FOR_TELTONIKA_TRB2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT9M) ||\
+	defined(CONFIG_FOR_TELTONIKA_TAP100) ||\
+	defined(CONFIG_FOR_TELTONIKA_OTD140) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT14X) ||\
+	defined(CONFIG_FOR_TELTONIKA_DAP14X)
 
-#define CFG_ENV_SIZE		0x800
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE + CFG_UBOOT_SIZE - CFG_ENV_SIZE)
-#define CFG_ENV_SECT_SIZE	0x10000
+	#define CFG_ENV_SIZE		0x800
+	#define CFG_ENV_ADDR		(CFG_FLASH_BASE + CFG_UBOOT_SIZE - CFG_ENV_SIZE)
+	#define CFG_ENV_SECT_SIZE	0x10000
 
-#if defined(CFG_MONITOR_LEN)
-	#undef CFG_MONITOR_LEN
-	#define CFG_MONITOR_LEN		((128 << 10)-CFG_ENV_SECT_SIZE)
+	#if defined(CFG_MONITOR_LEN)
+		#undef CFG_MONITOR_LEN
+		#define CFG_MONITOR_LEN		((128 << 10)-CFG_ENV_SECT_SIZE)
+	#endif
+
 #endif
-
 
 /*
  * ===========================
@@ -343,9 +348,22 @@
  * MAC address/es, model and WPS pin offsets in FLASH
  * ==================================================
  */
-#define OFFSET_MAC_DATA_BLOCK		OFFSET_MNF_INFO
-#define OFFSET_MAC_DATA_BLOCK_LENGTH	CFG_MNF_SIZE
-#define OFFSET_MAC_ADDRESS		0x000000
+#if defined(CONFIG_FOR_TELTONIKA_RUT2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT206) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT301) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT361) ||\
+	defined(CONFIG_FOR_TELTONIKA_TRB2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT9M) ||\
+ 	defined(CONFIG_FOR_TELTONIKA_TAP100) ||\
+	defined(CONFIG_FOR_TELTONIKA_OTD140) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT14X) ||\
+	defined(CONFIG_FOR_TELTONIKA_DAP14X)
+
+	#define OFFSET_MAC_DATA_BLOCK		OFFSET_MNF_INFO
+	#define OFFSET_MAC_DATA_BLOCK_LENGTH	CFG_MNF_SIZE
+	#define OFFSET_MAC_ADDRESS		0x000000
+
+#endif
 
 /*
  * ===========================
@@ -354,14 +372,53 @@
  */
 #define WEBFAILSAFE_UPLOAD_KERNEL_ADDRESS	CFG_LOAD_ADDR
 
-#define WEBFAILSAFE_UPLOAD_ART_ADDRESS	\
+#if defined(CONFIG_FOR_TELTONIKA_RUT2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT206) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT301) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT361) ||\
+	defined(CONFIG_FOR_TELTONIKA_TRB2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT9M) ||\
+	defined(CONFIG_FOR_TELTONIKA_TAP100) ||\
+	defined(CONFIG_FOR_TELTONIKA_OTD140) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT14X) ||\
+	defined(CONFIG_FOR_TELTONIKA_DAP14X)
+
+	#define WEBFAILSAFE_UPLOAD_ART_ADDRESS	\
 		(CFG_FLASH_BASE + CFG_UBOOT_SIZE + CFG_MNF_SIZE)
 
+#endif
+
 /* Firmware size limit */
-#define WEBFAILSAFE_UPLOAD_LIMITED_AREA_IN_BYTES	(384 * 1024)
+#if defined(CONFIG_FOR_TELTONIKA_RUT2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT206) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT301) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT361) ||\
+	defined(CONFIG_FOR_TELTONIKA_TRB2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT9M) ||\
+	defined(CONFIG_FOR_TELTONIKA_TAP100) ||\
+	defined(CONFIG_FOR_TELTONIKA_OTD140) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT14X) ||\
+	defined(CONFIG_FOR_TELTONIKA_DAP14X)
+
+	#define WEBFAILSAFE_UPLOAD_LIMITED_AREA_IN_BYTES	(384 * 1024)
+
+#endif
 
 /* MNFINFO command config */
-//#define CONFIG_MNFINFO_LITE
+#if defined(CONFIG_FOR_TELTONIKA_RUT2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT206) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT301) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT361) ||\
+	defined(CONFIG_FOR_TELTONIKA_TRB2M) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT9M) ||\
+	defined(CONFIG_FOR_TELTONIKA_TAP100) ||\
+	defined(CONFIG_FOR_TELTONIKA_OTD140) ||\
+	defined(CONFIG_FOR_TELTONIKA_RUT14X) ||\
+	defined(CONFIG_FOR_TELTONIKA_DAP14X)
+
+	//#define CONFIG_MNFINFO_LITE
+
+#endif
 
 #if defined(NOR_4B_MODE)
 	#undef CFG_MAX_FLASH_SECT

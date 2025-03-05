@@ -36,6 +36,8 @@ define Device/template_rut14x
 	DEVICE_INTERFACE_CONF := \
 		lan default_ip 192.168.1.1
 
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
+
 	DEVICE_FEATURES := wifi nat_offloading ethernet port_link xfrm-offload
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=

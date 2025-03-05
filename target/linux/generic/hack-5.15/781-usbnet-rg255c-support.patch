@@ -1,6 +1,6 @@
 --- a/drivers/net/usb/qmi_wwan.c
 +++ b/drivers/net/usb/qmi_wwan.c
-@@ -1517,6 +1517,12 @@ static const struct usb_device_id produc
+@@ -1518,6 +1518,12 @@ static const struct usb_device_id produc
  	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0125)},	/* Quectel EC25, EC20 R2.0  Mini PCIe */
  	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0306)},	/* Quectel EP06/EG06/EM06 */
  	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x030b)},	/* Quectel EG060K */
@@ -15,7 +15,7 @@
  	{QMI_MATCH_FF_FF_FF(0x05c6, 0xf601)},   /* MeigLink SLM750 */
 --- a/drivers/usb/serial/option.c
 +++ b/drivers/usb/serial/option.c
-@@ -281,6 +281,7 @@ static void option_instat_callback(struc
+@@ -282,6 +282,7 @@ static void option_instat_callback(struc
  #define QUECTEL_PRODUCT_EM05CN			0x0312
  #define QUECTEL_PRODUCT_EM05G_GR		0x0313
  #define QUECTEL_PRODUCT_EM05G_RS		0x0314
@@ -23,7 +23,7 @@
  #define QUECTEL_PRODUCT_EM12			0x0512
  #define QUECTEL_PRODUCT_RM500Q			0x0800
  #define QUECTEL_PRODUCT_RM520N			0x0801
-@@ -1193,6 +1194,8 @@ static const struct usb_device_id option
+@@ -1196,6 +1197,8 @@ static const struct usb_device_id option
  	{ USB_DEVICE(UBLOX_VENDOR_ID, 0x1343),		/* u-blox LARA-L6 (ECM) */
  	  .driver_info = RSVD(4) },
  	/* Quectel products using Quectel vendor ID */

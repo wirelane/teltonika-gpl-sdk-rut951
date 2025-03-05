@@ -51,19 +51,25 @@
 		gpio_modem_reset {
 			gpio-export,name = "modem_reset";
 			gpio-export,output = <0>;
-			gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
+			gpios = <&shift_io 21 GPIO_ACTIVE_HIGH>;
 		};
 
 		gpio_modem_power {
 			gpio-export,name = "modem_power";
 			gpio-export,output = <1>; // tmp
-			gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
+			gpios = <&shift_io 23 GPIO_ACTIVE_HIGH>;
 		};
 
 		gpio_modem_status {
 			gpio-export,name = "modem_status";
 			gpio-export,input = <0>;
 			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
+		};
+
+		gpio_sim_select {
+			gpio-export,name = "sim_sel";
+			gpio-export,output = <0>;
+			gpios = <&shift_io 22 GPIO_ACTIVE_HIGH>;
 		};
 
 		yellow_eth_port_4 { // WAN
@@ -113,7 +119,6 @@
 			gpio-export,output = <0>;
 			gpios = <&shift_io 6 GPIO_ACTIVE_HIGH>;
 		};
-
 	};
 
 	leds {
@@ -223,6 +228,12 @@
 				line_name = "LED_POWER";
 				active_low;
 			};
+			GPIO_6 {
+				line_name = "BAT_IGN_CLOCK";
+			};
+			GPIO_17 {
+				line_name = "BAT_IGN_MODE";
+			};
 			GPIO_102 {
 				line_name = "LED_ETH_GREEN_1";
 			};
@@ -286,10 +297,13 @@
 		};
 
 		misc {
-			GPIO_14 {
+			GPIO_117 {
 				line_name = "GPIO_MODEM_RESET_1";
 			};
-			GPIO_17 {
+			GPIO_118 {
+				line_name = "GPIO_SIM_SELECT";
+			};
+			GPIO_119 {
 				line_name = "GPIO_MODEM_POWER_1";
 			};
 		};
@@ -311,6 +325,16 @@
 				default_direction = "in";
 				block_pin = "3";
 				gpio_in = "GPIO_IN_2";
+			};
+			io@2 { // index must be before "bat_ign_mode" to work properly
+				label = "bat_ign_clock";
+				default_direction = "out";
+				gpio_out = "BAT_IGN_CLOCK";
+			};
+			io@3 {
+				label = "bat_ign_mode";
+				default_direction = "out";
+				gpio_out = "BAT_IGN_MODE";
 			};
 		};
 	};
@@ -359,8 +383,18 @@
 	};
 };
 
+&i2c {
+	status = "okay";
+
+	tpm@2e {
+		compatible = "infineon,slb9673";
+		reg = <0x2e>;
+		status = "okay";
+	};
+};
+
 &mnfinfo {
 	sim_cfg {
-		default = "1111000_1112000";
+		default = "1111100_1112000_1121200";
 	};
 };

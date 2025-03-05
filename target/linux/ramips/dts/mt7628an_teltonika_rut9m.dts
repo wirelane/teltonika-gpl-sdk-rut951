@@ -291,7 +291,7 @@
 
 	ioman {
 		layout@0 {
-			compatible = "RUT951,RUT901,RUT971";
+			compatible = "RUT951,RUT901";
 
 			io@0 { // 4pin #3
 				label = "din1";
@@ -403,16 +403,22 @@
 
 	sim_cfg@1 {
 		tlt-mnf,hwver = <500 599>;
+		reg = <&config 0x110 0x20>;
+		type = "simcfg";
 		default = "2111010_2112010";
 	};
 
 	sim_cfg@2 {
 		tlt-mnf,hwver = <600 9999>;
+		reg = <&config 0x110 0x20>;
+		type = "simcfg";
 		default = "2111110_2112010_2121210";
 	};
 
 	sim_cfg@3 {
 		tlt-mnf,device = "RUT901*1****";
+		reg = <&config 0x110 0x20>;
+		type = "simcfg";
 		default = "2121000_2112000";
 	};
 
@@ -483,11 +489,15 @@
 				compatible = "denx,uimage";
 				label = "firmware";
 				reg = <0x060000 0xf10000>;
+//				reg = <0x060000 0x1f00000>; //32M
+//				reg = <0x060000 0x3f00000>; //64M
 			};
 
 			partition@f70000 {
 				label = "event-log";
 				reg = <0xf70000 0x90000>;
+//				reg = <0x1f60000 0xA0000>; //32M
+//				reg = <0x3f60000 0xA0000>; //64M
 			};
 		};
 	};

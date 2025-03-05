@@ -3,9 +3,7 @@
 		"title": "BACnet",
 		"index": 95,
 		"view": "services/Bacnet",
-		"acls": [
-			"services/bacnet"
-		],
+		"acls": ["services/bacnet"],
 		"files": [ "/etc/config/bacnet_router" ]
 	}
 }

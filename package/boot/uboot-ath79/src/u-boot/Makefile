@@ -749,47 +749,9 @@ tlt-rut206: rt2880_common
 	@$(call define_add,CONFIG_CMD_MNFINFO,1)
 	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
 
-tlt-rut2e: rt2880_common
-	@$(call config_init,Teltonika RUT2E,tlt-rut2e,32,46,1,MTK_MT7628_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT2E,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,ON_BOARD_1024M_DRAM_COMPONENT,1)
-	@$(call define_add,ON_BOARD_DDR2,1)
-	@$(call define_add,ON_BOARD_DDR_WIDTH_16,1)
-	@$(call define_add,ON_BOARD_16BIT_DRAM_BUS,1)
-	@$(call define_add,RALINK_DDR_POWERSAVE,1)
-	@$(call define_add,CONFIG_DDR_CAL,1)
-	@$(call define_add,ASIC_BOARD,1)
-	@$(call define_add,MT7628_ASIC_BOARD,1)
-	@$(call define_add,CPU_FRAC_DIV,1)
-	@$(call define_add,CONFIG_EARLY_GPIO_INIT,1)
-	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
-	@$(call define_add,CONFIG_CMD_MNFINFO,1)
-	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
-
 tlt-rut9m: rt2880_common
 	@$(call config_init,Teltonika RUT9M,tlt-rut9m,16,38,1,MTK_MT7628_SOC)
 	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT9M,1)
-	@$(call define_add,CONFIG_SHIFT_REG,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,ON_BOARD_1024M_DRAM_COMPONENT,1)
-	@$(call define_add,ON_BOARD_DDR2,1)
-	@$(call define_add,ON_BOARD_DDR_WIDTH_16,1)
-	@$(call define_add,ON_BOARD_16BIT_DRAM_BUS,1)
-	@$(call define_add,RALINK_DDR_POWERSAVE,1)
-	@$(call define_add,CONFIG_DDR_CAL,1)
-	@$(call define_add,ASIC_BOARD,1)
-	@$(call define_add,MT7628_ASIC_BOARD,1)
-	@$(call define_add,CPU_FRAC_DIV,1)
-	@$(call define_add,CONFIG_EARLY_GPIO_INIT,1)
-	@$(call define_add,CONFIG_DO_PCIE_PERST_RESET,1)
-	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
-	@$(call define_add,CONFIG_CMD_MNFINFO,1)
-	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
-
-tlt-rut9e: rt2880_common
-	@$(call config_init,Teltonika RUT9E,tlt-rut9e,32,38,1,MTK_MT7628_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT9E,1)
 	@$(call define_add,CONFIG_SHIFT_REG,1)
 	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
 	@$(call define_add,ON_BOARD_1024M_DRAM_COMPONENT,1)

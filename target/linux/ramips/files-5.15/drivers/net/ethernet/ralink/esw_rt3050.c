@@ -195,8 +195,6 @@
 #define RT305X_ESW_PORTS_ALL						\
 		(RT305X_ESW_PORTS_NOCPU | RT305X_ESW_PORTS_CPU)
 
-#define RT305X_ESW_PORT_BIT_STATE_UP(port_index) (1 << (port_index))
-
 #define RT305X_ESW_NUM_VLANS		16
 #define RT305X_ESW_NUM_VIDS		4096
 #define RT305X_ESW_NUM_PORTS		7
@@ -238,6 +236,8 @@
 #define PRINT_ADVERTISE_10FULL	0x2
 #define PRINT_ADVERTISE_100HALF 0x4
 #define PRINT_ADVERTISE_100FULL 0x8
+
+#define RT305X_ESW_WORK_DELAY_MS 2000
 
 enum {
 	/* Global attributes. */
@@ -287,6 +287,7 @@ enum {
 
 struct rt305x_esw {
 	struct device		*dev;
+	struct fe_priv *priv;
 	void __iomem		*base;
 	int			irq;
 
@@ -300,6 +301,8 @@ struct rt305x_esw {
 	unsigned int		reg_initval_fpa2;
 	unsigned int		reg_led_polarity;
 
+	struct delayed_work work;
+
 	struct switch_dev	swdev;
 	bool			global_vlan_enable;
 	bool			alt_vlan_disable;
@@ -309,6 +312,7 @@ struct rt305x_esw {
 	struct esw_port ports[RT305X_ESW_NUM_PORTS];
 	char buf[2048];
 	char buf2[16];
+	u32 prev_link;
 };
 
 static inline void esw_w32(struct rt305x_esw *esw, u32 val, unsigned reg)
@@ -842,9 +846,6 @@ static void esw_hw_init(struct rt305x_esw *esw)
 
 	/* Apply the empty config. */
 	esw_apply_config(&esw->swdev);
-
-	/* Only unmask the port change interrupt */
-	esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
 }
 
 static void esw_handle_dev_state(struct net_device *vlan_dev, bool all_ports_down)
@@ -859,41 +860,26 @@ static void esw_handle_dev_state(struct net_device *vlan_dev, bool all_ports_dow
 	}
 }
 
-static struct net_device *esw_get_vlan_dev(struct fe_priv *priv, u32 port)
-{
-	struct rt305x_esw *esw = (struct rt305x_esw *)priv->soc->swpriv;
-	u32 pvid = esw_get_pvid(esw, port);
-	return vlan_find_dev(priv->netdev, htons(ETH_P_8021Q), pvid);
-}
-
-static u16 esw_get_vlan_dev_vid(struct net_device *vlan_dev)
-{
-	const struct vlan_dev_priv *vlan = vlan_dev_priv(vlan_dev);
-	return vlan->vlan_id;
-}
-
-static void esw_handle_dev(struct fe_priv *priv, struct rt305x_esw *esw, u32 curr_link, u32 *curr_pvids)
+static void esw_handle_dev(struct fe_priv *priv, struct rt305x_esw *esw, u32 curr_link)
 {
 	struct net_device *vlan_dev;
+	struct esw_vlan *vlan;
 	bool all_ports_down;
-	int port, port_index;
-	u16 vlan_dev_vid;
+	int vlan_index;
+	u8 vlan_ports;
 
-	for (port = 0; port < RT305X_ESW_NUM_PORTS; port++) {
-		if (curr_pvids[port] == 0)
+	for (vlan_index = 0; vlan_index < RT305X_ESW_NUM_VLANS; vlan_index++) {
+		vlan = &esw->vlans[vlan_index];
+		if (vlan->vid == RT305X_ESW_VLAN_NONE)
 			continue;
-		vlan_dev = esw_get_vlan_dev(priv, port);
+
+		vlan_ports = vlan->ports & ~RT305X_ESW_PORTS_CPU;
+		all_ports_down = !(vlan_ports & curr_link);
+
+		vlan_dev = vlan_find_dev(priv->netdev, htons(ETH_P_8021Q), vlan->vid);
 		if (!vlan_dev)
 			continue;
-		vlan_dev_vid = esw_get_vlan_dev_vid(vlan_dev);
-		all_ports_down = true;
-		for (port_index = 0; port_index < RT305X_ESW_NUM_PORTS; port_index++) {
-			if (curr_pvids[port_index] == vlan_dev_vid &&
-				(curr_link & RT305X_ESW_PORT_BIT_STATE_UP(port_index))) {
-				all_ports_down = false;
-				break;
-			}
-		}
+
 		esw_handle_dev_state(vlan_dev, all_ports_down);
 	}
 }
@@ -901,37 +887,35 @@ static void esw_handle_dev(struct fe_priv *priv, struct rt305x_esw *esw, u32 cur
 void esw_work_handle(struct fe_priv *priv)
 {
 	struct rt305x_esw *esw = (struct rt305x_esw *)priv->soc->swpriv;
-	u32 curr_pvids[RT305X_ESW_NUM_PORTS];
 	u32 curr_link;
-	int port;
 
 	rtnl_lock();
 	curr_link = esw_get_link_status(esw);
-
-	for (port = 0; port < RT305X_ESW_NUM_PORTS; port++) {
-		curr_pvids[port] = esw_get_pvid(esw, port);
-	}
-
-	esw_handle_dev(priv, esw, curr_link, curr_pvids);
+	esw_handle_dev(priv, esw, curr_link);
 	rtnl_unlock();
 
-	dev_info(esw->dev, "link changed 0x%02X\n", curr_link);
+	if(esw->prev_link != curr_link) {
+		dev_info(esw->dev, "link changed 0x%02X\n", curr_link);
+		esw->prev_link = curr_link;
+	}
 }
 
-static irqreturn_t esw_interrupt(int irq, void *_priv)
+static void esw_handle_delayed_work_task(struct work_struct *work)
 {
-	struct fe_priv *priv = (struct fe_priv *)_priv;
-	struct rt305x_esw *esw = (struct rt305x_esw *)priv->soc->swpriv;
-	u32 status;
+	struct rt305x_esw *esw = container_of(work, struct rt305x_esw, work.work);
+	struct vlan_info *vlan_info;
 
-	status = esw_r32(esw, RT305X_ESW_REG_ISR);
-	if (status & RT305X_ESW_PORT_ST_CHG) {
-		set_bit(FE_SWITCH_SATE_CHANGE, priv->pending_flags);
-		schedule_work(&priv->pending_work);
-	}
-	esw_w32(esw, status, RT305X_ESW_REG_ISR);
+	rcu_read_lock();
+	vlan_info = rcu_dereference(esw->priv->netdev->vlan_info);
+	rcu_read_unlock();
 
-	return IRQ_HANDLED;
+	if (!vlan_info)
+		goto retry;
+
+	ssleep(1);
+	esw_work_handle(esw->priv);
+retry:
+	schedule_delayed_work(&esw->work, msecs_to_jiffies(RT305X_ESW_WORK_DELAY_MS));
 }
 
 static int esw_apply_config(struct switch_dev *dev)
@@ -1012,10 +996,12 @@ static int esw_reset_switch(struct switch_dev *dev)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	cancel_delayed_work_sync(&esw->work);
 	esw->global_vlan_enable = 0;
 	memset(esw->ports, 0, sizeof(esw->ports));
 	memset(esw->vlans, 0, sizeof(esw->vlans));
 	esw_hw_init(esw);
+	schedule_delayed_work(&esw->work, 0);
 
 	return 0;
 }
@@ -1071,8 +1057,6 @@ rt3050_sw_delay_reset(struct switch_dev *dev, const struct switch_attr *attr,
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
 	esw_apply_hw_cfg(esw, value->value.i);
-
-	esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
 
 	return 0;
 }
@@ -2104,7 +2088,6 @@ int esw_init(struct fe_priv *priv)
 	struct device_node *np = priv->switch_np;
 	struct platform_device *pdev;
 	struct rt305x_esw *esw;
-	int ret;
 
 	msleep(200);
 
@@ -2117,14 +2100,10 @@ int esw_init(struct fe_priv *priv)
 
 	esw = platform_get_drvdata(pdev);
 	priv->soc->swpriv = esw;
+	esw->priv = priv;
 
-	ret = devm_request_irq(esw->dev, esw->irq, esw_interrupt, 0, "esw",
-				   priv);
-
-	if (!ret) {
-		esw_w32(esw, RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_ISR);
-		esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
-	}
+	INIT_DELAYED_WORK(&esw->work, esw_handle_delayed_work_task);
+	schedule_delayed_work(&esw->work, 0);
 
 	return 0;
 }
@@ -2209,6 +2188,7 @@ static int esw_remove(struct platform_device *pdev)
 	struct rt305x_esw *esw = platform_get_drvdata(pdev);
 
 	if (esw) {
+		cancel_delayed_work_sync(&esw->work);
 		esw_w32(esw, ~0, RT305X_ESW_REG_IMR);
 		platform_set_drvdata(pdev, NULL);
 	}

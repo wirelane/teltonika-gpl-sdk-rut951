@@ -72,7 +72,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  struct lru_gen_mm_walk {
 --- a/mm/vmscan.c
 +++ b/mm/vmscan.c
-@@ -2999,18 +2999,13 @@ void lru_gen_del_mm(struct mm_struct *mm
+@@ -3006,18 +3006,13 @@ void lru_gen_del_mm(struct mm_struct *mm
  		if (!lruvec)
  			continue;
  
@@ -96,7 +96,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	}
  
  	list_del_init(&mm->lru_gen.list);
-@@ -3194,68 +3189,54 @@ static bool iterate_mm_list(struct lruve
+@@ -3201,68 +3196,54 @@ static bool iterate_mm_list(struct lruve
  			    struct mm_struct **iter)
  {
  	bool first = false;
@@ -188,7 +188,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	if (*iter || last)
  		reset_mm_stats(lruvec, walk, last);
  
-@@ -3283,9 +3264,9 @@ static bool iterate_mm_list_nowalk(struc
+@@ -3290,9 +3271,9 @@ static bool iterate_mm_list_nowalk(struc
  
  	VM_WARN_ON_ONCE(mm_state->seq + 1 < max_seq);
  
@@ -201,7 +201,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		WRITE_ONCE(mm_state->seq, mm_state->seq + 1);
  		reset_mm_stats(lruvec, NULL, true);
  		success = true;
-@@ -3894,10 +3875,6 @@ restart:
+@@ -3901,10 +3882,6 @@ restart:
  
  		walk_pmd_range(&val, addr, next, args);
  
@@ -212,7 +212,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		if (need_resched() || walk->batched >= MAX_LRU_BATCH) {
  			end = (addr | ~PUD_MASK) + 1;
  			goto done;
-@@ -3930,8 +3907,14 @@ static void walk_mm(struct lruvec *lruve
+@@ -3937,8 +3914,14 @@ static void walk_mm(struct lruvec *lruve
  	walk->next_addr = FIRST_USER_ADDRESS;
  
  	do {
@@ -227,7 +227,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		/* page_update_gen() requires stable page_memcg() */
  		if (!mem_cgroup_trylock_pages(memcg))
  			break;
-@@ -4164,25 +4147,12 @@ static bool try_to_inc_max_seq(struct lr
+@@ -4171,25 +4154,12 @@ static bool try_to_inc_max_seq(struct lr
  		success = iterate_mm_list(lruvec, walk, &mm);
  		if (mm)
  			walk_mm(lruvec, mm, walk);
@@ -256,7 +256,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  }
  
  static bool lruvec_is_sizable(struct lruvec *lruvec, struct scan_control *sc)
-@@ -5746,7 +5716,6 @@ void lru_gen_init_lruvec(struct lruvec *
+@@ -5753,7 +5723,6 @@ void lru_gen_init_lruvec(struct lruvec *
  		INIT_LIST_HEAD(&lrugen->pages[gen][type][zone]);
  
  	lruvec->mm_state.seq = MIN_NR_GENS;

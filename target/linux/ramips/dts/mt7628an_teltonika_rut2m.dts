@@ -261,8 +261,10 @@
 	};
 
 	sim_cfg@1 {
-		tlt-mnf,device = "RUT241";
+		tlt-mnf,device = "RUT241", "RUT200";
 		tlt-mnf,hwver = <400 499>;
+		reg = <&config 0x110 0x20>;
+		type = "simcfg";
 		default = "2111010";
 	};
 
@@ -366,7 +368,7 @@
 &i2c {
 	status = "okay";
 	clock-frequency = <100000>;
-	tlt-mnf,device = "RUT241";
+	tlt-mnf,device = "RUT241", "RUT200";
 	tlt-mnf,hwver = <500 9999>;
 
 	tpm: tpm@2e {

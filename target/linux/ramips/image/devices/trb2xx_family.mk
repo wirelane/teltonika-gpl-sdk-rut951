@@ -41,7 +41,7 @@ define Device/template_trb2m
 		lan device eth0 default_ip 192.168.1.1
 
 	DEVICE_FEATURES := dual_sim mobile gps ethernet ios rs232 rs485 \
-		sw_rst_on_init xfrm-offload nat_offloading
+		sw_rst_on_init xfrm-offload nat_offloading single_port
 
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false single_port
 
@@ -70,6 +70,8 @@ define Device/TEMPLATE_teltonika_trb246
 	$(Device/teltonika_trb2m_common)
 	$(Device/template_trb2m)
 	DEVICE_MODEL := TRB246
+	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 42 DL/5.76 UL Mbps; 2G up to 296 DL/236.8 UL Kbps
+	HARDWARE/Mobile/3GPP_Release := Release 11
 	HARDWARE/Power/Power_consumption := Idle:< 1.5 W, Max:< 3.5 W
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, CB, EAC, UCRF, WEEE
 endef
@@ -79,13 +81,18 @@ define Device/TEMPLATE_teltonika_trb247
 	$(Device/template_trb2m)
 	DEVICE_MODEL := TRB247
 
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.10.2
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13
+	HARDWARE/Mobile/Module := 4G LTE Cat 1 up to 10 DL/5 UL Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 14
 endef
 
 define Device/TEMPLATE_teltonika_trb256
 	$(Device/teltonika_trb2m_common)
 	$(Device/template_trb2m)
 	DEVICE_MODEL := TRB256
+	HARDWARE/Mobile/Module := 4G LTE Cat M1 up to 588 DL/ 1119 UL kbps, Cat NB2 up to 127 DL/158.5 UL kbps, Cat NB1 up to 32 DL/70 UL kbps \
+							(simultaneous operation of cellular and GNSS connectivity is not supported)
+	HARDWARE/Mobile/3GPP_Release := Release 14
 	HARDWARE/Power/Power_consumption := Idle:< 2 W, Max:< 35 W
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, EAC, CB
 	HARDWARE/EMC_Emissions_&_Immunity/Standards := $(HW_EI_STANDARDS_EN_55032) + A1:2020; $(HW_EI_STANDARDS_EN_55035); EN IEC 61000-3-2:2019 + A1:2021; \

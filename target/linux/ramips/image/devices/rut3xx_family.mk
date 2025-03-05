@@ -5,6 +5,8 @@ define Device/TEMPLATE_teltonika_rut301
 	DEVICE_SWITCH_CONF := switch0 0:lan:1 1:lan:2 \
 		2:lan:3 3:lan:4 4:wan 6@eth0
 
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
+
 	DEVICE_NET_CONF :=       \
 		vlans          16,   \
 		max_mtu        1500, \

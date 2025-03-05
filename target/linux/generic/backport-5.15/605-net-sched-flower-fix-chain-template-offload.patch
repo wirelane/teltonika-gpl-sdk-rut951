@@ -137,7 +137,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  		return -EOPNOTSUPP;
 --- a/net/sched/cls_flower.c
 +++ b/net/sched/cls_flower.c
-@@ -2435,6 +2435,28 @@ static void fl_tmplt_destroy(void *tmplt
+@@ -2436,6 +2436,28 @@ static void fl_tmplt_destroy(void *tmplt
  	kfree(tmplt);
  }
  
@@ -166,7 +166,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  static int fl_dump_key_val(struct sk_buff *skb,
  			   void *val, int val_type,
  			   void *mask, int mask_type, int len)
-@@ -3240,6 +3262,7 @@ static struct tcf_proto_ops cls_fl_ops _
+@@ -3241,6 +3263,7 @@ static struct tcf_proto_ops cls_fl_ops _
  	.bind_class	= fl_bind_class,
  	.tmplt_create	= fl_tmplt_create,
  	.tmplt_destroy	= fl_tmplt_destroy,

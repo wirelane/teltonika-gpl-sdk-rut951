@@ -17,7 +17,7 @@ KERNEL_LOADADDR := 0x80000000
 define Device/tlt-mt7628-common
 	SOC := mt7628an
 
-	DEVICE_FEATURES := small_flash sw-offload
+	DEVICE_FEATURES := small_flash sw-offload dot1x-client
 	MTDPARTS :=
 	BLOCKSIZE := 64k
 	KERNEL := kernel-bin | append-dtb | lzma | uImage lzma
@@ -36,13 +36,14 @@ define Device/tlt-mt7628-common
 
 	IMAGE/sysupgrade.bin = \
 			append-kernel | pad-to $$$$(BLOCKSIZE) | \
-			append-rootfs | pad-rootfs | append-metadata | \
-			check-size $$$$(IMAGE_SIZE) | finalize-tlt-webui
+			append-rootfs | check-size 999m | \
+			pad-rootfs | check-size $$$$(IMAGE_SIZE) | \
+			append-metadata | finalize-tlt-webui
 
 	IMAGE/master_fw.bin = \
 			append-tlt-uboot | pad-to $$$$(UBOOT_SIZE) | \
-			append-tlt-config | pad-to $$$$(CONFIG_END) | \
-			append-tlt-art | pad-to $$$$(ART_END) | \
+			append-tlt-config | pad-to $$$$(CONFIG_SIZE) | \
+			append-tlt-art | pad-to $$$$(ART_SIZE) | \
 			append-kernel | pad-to $$$$(BLOCKSIZE) | \
 			append-rootfs | pad-rootfs | \
 			append-version | \
@@ -72,7 +73,7 @@ define Device/teltonika_trb2m
 	# Default common packages for TRB2M series
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	# Essential must-have:
-	DEVICE_PACKAGES := kmod-spi-gpio
+	DEVICE_PACKAGES := kmod-spi-gpio kmod-i2c-mt7628
 
 	# USB related:
 	DEVICE_PACKAGES += kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport \
@@ -160,7 +161,7 @@ define Device/teltonika_dap14x
 	DEVICE_BOOT_NAME := tlt-dap14x
 	DEVICE_DTS := mt7628an_teltonika_dap14x
 	DEVICE_FEATURES += small_flash serial modbus ntrip wifi ledman-lite sw-offload portlink \
-	                   xfrm-offload industrial-access-point no-wired-wan dot1x-client
+	                   xfrm-offload industrial-access-point no-wired-wan
 	# Default common packages for DAP14X series
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	DEVICE_PACKAGES += kmod-usb-ohci kmod-usb-serial-pl2303
@@ -258,6 +259,7 @@ define Device/teltonika_rut9m
 			rndis ncm bacnet ntrip mobile portlink rs232 rs485 dot1x-server port-mirror \
 	                xfrm-offload
 	DEVICE_DTS := mt7628an_teltonika_rut9m
+	IMAGE_SIZE := 12480k
 	GPL_PREFIX := GPL
 	# Default common packages for RUT9M series
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -280,16 +282,14 @@ define Device/teltonika_rut9m
 		TEMPLATE_teltonika_rut901 \
 		TEMPLATE_teltonika_rut906 \
 		TEMPLATE_teltonika_rut951 \
-		TEMPLATE_teltonika_rut956 \
-		TEMPLATE_teltonika_rut971 \
-		TEMPLATE_teltonika_rut976
+		TEMPLATE_teltonika_rut956
 endef
 TARGET_DEVICES += teltonika_rut9m
 
 define Device/teltonika_rute
 	$(Device/tlt-mt7628-common)
 
-	DEVICE_DTS := mt7628an-teltonika-rut976 mt7628an-teltonika-rut206 mt7628an-teltonika-rut271
+	DEVICE_DTS := mt7628an-teltonika-rut976 mt7628an-teltonika-rut206 mt7628an-teltonika-rut271 mt7628an-teltonika-rut971
 	KERNEL := kernel-bin | zstd | fit zstd "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addprefix image-,$$(addsuffix .dtb,$$(DEVICE_DTS))))}"
 	KERNEL_INITRAMFS := $$(KERNEL)
 
@@ -302,7 +302,7 @@ define Device/teltonika_rute
 	DEVICE_BOOT_NAME := tlt-mt7628
 	DEVICE_FEATURES := large_flash sw-offload gps usb-port serial modbus io wifi dualsim tpm \
 			rndis ncm bacnet ntrip mobile portlink rs232 rs485 dot1x-server port-mirror \
-	                xfrm-offload usb-port
+	                xfrm-offload usb-sd-card usb-port dot1x-client
 	FILESYSTEMS := squashfs
 	GPL_PREFIX := GPL
 
@@ -331,7 +331,8 @@ define Device/teltonika_rute
 	INCLUDED_DEVICES := \
 		TEMPLATE_teltonika_rut206 \
 		TEMPLATE_teltonika_rut271 \
+		TEMPLATE_teltonika_rut971 \
 		TEMPLATE_teltonika_rut976
 
-	SUPPORTED_DEVICES := teltonika,rute teltonika,rut976 teltonika,rut206 teltonika,rut271
+	SUPPORTED_DEVICES := teltonika,rute teltonika,rut976 teltonika,rut206 teltonika,rut271 teltonika,rut971
 endef
