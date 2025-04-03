@@ -33,7 +33,7 @@
 		gpio_sim_select {
 			gpio-export,name = "sim_sel";
 			gpio-export,output = <0>;
-			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 16 GPIO_ACTIVE_HIGH>;
 		};
 
 		gpio_tpm_reset {
@@ -241,7 +241,7 @@
 
 &mnfinfo {
 	sim_cfg {
-		default = "1111120_1112020_1121220";
+		default = "1111100_1112000_1121200";
 	};
 };
 

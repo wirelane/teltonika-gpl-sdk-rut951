@@ -17,7 +17,7 @@ KERNEL_LOADADDR := 0x80000000
 define Device/tlt-mt7628-common
 	SOC := mt7628an
 
-	DEVICE_FEATURES := small_flash sw-offload dot1x-client
+	DEVICE_FEATURES := small_flash sw-offload dot1x-client 128mb_ram
 	MTDPARTS :=
 	BLOCKSIZE := 64k
 	KERNEL := kernel-bin | append-dtb | lzma | uImage lzma
@@ -291,7 +291,7 @@ TARGET_DEVICES += teltonika_rut9m
 define Device/teltonika_rute
 	$(Device/tlt-mt7628-common)
 
-	DEVICE_DTS := mt7628an-teltonika-rut976 mt7628an-teltonika-rut206 mt7628an-teltonika-rut271 mt7628an-teltonika-rut971
+	DEVICE_DTS := mt7628an-teltonika-rut976 mt7628an-teltonika-rut206 mt7628an-teltonika-rut271 mt7628an-teltonika-rut276 mt7628an-teltonika-rut971
 	KERNEL := kernel-bin | zstd | fit zstd "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addprefix image-,$$(addsuffix .dtb,$$(DEVICE_DTS))))}"
 	KERNEL_INITRAMFS := $$(KERNEL)
 
@@ -304,7 +304,7 @@ define Device/teltonika_rute
 	DEVICE_BOOT_NAME := tlt-mt7628
 	DEVICE_FEATURES := large_flash sw-offload gps usb-port serial modbus io wifi dualsim tpm \
 			rndis ncm bacnet ntrip mobile portlink rs232 rs485 dot1x-server port-mirror \
-	                xfrm-offload usb-sd-card usb-port dot1x-client
+	                xfrm-offload usb-sd-card usb-port dot1x-client 128mb_ram
 	FILESYSTEMS := squashfs
 	GPL_PREFIX := GPL
 
@@ -331,8 +331,9 @@ define Device/teltonika_rute
 	INCLUDED_DEVICES := \
 		TEMPLATE_teltonika_rut206 \
 		TEMPLATE_teltonika_rut271 \
+		TEMPLATE_teltonika_rut276 \
 		TEMPLATE_teltonika_rut971 \
 		TEMPLATE_teltonika_rut976
 
-	SUPPORTED_DEVICES := teltonika,rute teltonika,rut976 teltonika,rut206 teltonika,rut271 teltonika,rut971
+	SUPPORTED_DEVICES := teltonika,rute teltonika,rut976 teltonika,rut206 teltonika,rut271 teltonika,rut276 teltonika,rut971
 endef

@@ -41,7 +41,7 @@ define Device/template_rut2x
 	DEVICE_FEATURES := mobile wifi ethernet nat_offloading port_link xfrm-offload
 endef
 
-define Device/template_rut206_io
+define Device/template_rut2x6_io
 	$(Device/teltonika_rute)
 	$(Device/template_rut2x)
 
@@ -164,13 +164,41 @@ define Device/TEMPLATE_teltonika_rut271
 endef
 
 define Device/TEMPLATE_teltonika_rut206
-	$(Device/template_rut206_io)
+	$(Device/template_rut2x6_io)
 	DEVICE_MODEL := RUT206
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 	DEVICE_FEATURES += dual_sim sd_card rs232 rs485
 
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 10/11 depending on the hardware version
+	HARDWARE/Input_Output/Input :=
+	HARDWARE/Input_Output/Output :=
+	HARDWARE/Power/Connector := $(HW_POWER_CONNECTOR_2PIN)
+	HARDWARE/Power/PoE_Standards := $(HW_POWER_POE_PASSIVE_ACTIVE)
+	HARDWARE/Physical_Interfaces/SIM := 2 $(HW_INTERFACE_SIM_TRAY)
+	HARDWARE/Physical_Interfaces/Status_leds := 3 x Connection type status LEDs, 3 x Connection strength LEDs, 2 x LAN status LEDs, 1 x Power LED
+	HARDWARE/Physical_Interfaces/Power := $(HW_INTERFACE_POWER_2PIN)
+	HARDWARE/Physical_Interfaces/IO :=
+	HARDWARE/Physical_Interfaces/RS232 := 1 $(HW_INTERFACE_RS232_6PIN)
+	HARDWARE/Physical_Interfaces/RS485 := 1 $(HW_INTERFACE_RS485_6PIN)
+	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
+	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485_HALF)
+	HARDWARE/Serial/Serial_functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
+	HARDWARE/SD_card/Physical_size := $(HW_SD_PHYSICAL_SIZE)
+	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
+	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
+	HARDWARE/SD_card/Storage_formats := $(HW_SD_STORAGE_FORMATS)
+	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
+endef
+
+define Device/TEMPLATE_teltonika_rut276
+	$(Device/template_rut2x6_io)
+	DEVICE_MODEL := RUT276
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13.4
+	DEVICE_FEATURES += dual_sim sd_card rs232 rs485
+
+	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 17
 	HARDWARE/Input_Output/Input :=
 	HARDWARE/Input_Output/Output :=
 	HARDWARE/Power/Connector := $(HW_POWER_CONNECTOR_2PIN)

@@ -213,6 +213,35 @@ define Device/TEMPLATE_teltonika_rutm30
 	HARDWARE/Physical_Specification/Weight := 519 g
 endef
 
+define Device/TEMPLATE_teltonika_rutm31
+	$(Device/teltonika_rutm_common)
+	$(Device/template_rutm_common)
+	DEVICE_MODEL := RUTM31
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13.4
+	DEVICE_FEATURES := wifi ethernet ios mobile dual_band_ssid dual_sim \
+		at_sim dsa hw_nat nat_offloading multi_tag port_link \
+		gigabit_port tpm
+	DEVICE_LAN_OPTION := "lan "
+	DEVICE_WAN_OPTION := wan
+	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
+
+	HARDWARE/Mobile/Module := 5G Sub-6GHz SA: 2 Gbps DL, 1 Gbps UL; NSA: 2.6 Gbps DL, 650 Mbps UL; 4G (LTE) - Cat 12: 600 Mbps DL, Cat 13: 150 Mbps UL; 3G - 42.2 Mbps DL, 11 Mbps UL
+	HARDWARE/Mobile/3GPP_Release := Release 15
+	HARDWARE/Physical_Interfaces/USB :=
+	HARDWARE/USB/Data_rate :=
+	HARDWARE/USB/Applications :=
+	HARDWARE/USB/External_devices :=
+	HARDWARE/USB/Storage_formats :=
+	HARDWARE/LAN/Port := 1 $(HW_ETH_LAN_PORTS)
+	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 2 x Ethernet port status LEDs, 2 x WAN status LEDs and 1 x Power LED
+	HARDWARE/Physical_Interfaces/Ethernet := 2 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
+	HARDWARE/Physical_Interfaces/SIM := 2 $(HW_INTERFACE_SIM_HOLDERS), $(HW_INTERFACE_SIM_ESIM)
+	HARDWARE/Power/Power_consumption := Idle <5 W, Max <18 W
+	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi
+	HARDWARE/Physical_Specification/Dimensions := 132 x 44.2 x 95.1 mm
+	HARDWARE/Physical_Specification/Weight := 519 g
+endef
+
 define Device/TEMPLATE_teltonika_rutm50
 	$(Device/teltonika_rutm_common)
 	$(Device/template_rutm_common)
