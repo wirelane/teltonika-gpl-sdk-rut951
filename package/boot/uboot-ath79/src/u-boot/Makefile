@@ -601,18 +601,6 @@ p2w_r602n: qca953x_common
 	@$(call define_add,CFG_ATH_GMAC_NMACS,2)
 	@$(MKCONFIG) -a ap143 mips mips ap143 ar7240 ar7240
 
-tlt-trb24x: qca953x_common
-	@$(call config_init,Teltonika TRB24XX,tlt-trb24x,16,14,1,QCA_QCA9531_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_TRB24XX,1)
-	@$(call define_add,CFG_ATHRS27_PHY,1)
-	@$(call define_add,CFG_ATH_GMAC_NMACS,2)
-	@$(call define_add,CONFIG_SHIFT_REG,1)
-	@$(call define_add,CONFIG_CMD_DIGITAL_IN,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
-	@$(call define_add,CONFIG_CMD_MNFINFO,1)
-	@$(MKCONFIG) -a ap143 mips mips ap143 ar7240 ar7240
-
 tlt-trb2m: rt2880_common
 	@$(call config_init,Teltonika TRB2M,tlt-trb2m,16,22,1,MTK_MT7628_SOC)
 	@$(call define_add,CONFIG_FOR_TELTONIKA_TRB2M,1)
@@ -667,32 +655,6 @@ tlt-dap14x: rt2880_common
 	@$(call define_add,CONFIG_CMD_MNFINFO,1)
 	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
 
-tlt-rut2xx: ar933x_common lsdk_kernel
-	@$(call config_init,Teltonika RUT2XX,tlt-rut2xx,16,22,1,QCA_AR9331_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT2XX,1)
-	@$(call define_add,CONFIG_CMD_DIGITAL_IN,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
-	@$(call define_add,CONFIG_CMD_MNFINFO,1)
-	@$(MKCONFIG) -a ap121 mips mips ap121 ar7240 ar7240
-
-tlt-rut2xx-vboot: ar933x_common lsdk_kernel
-	@$(call config_init,Teltonika RUT2XX,tlt-rut2xx,16,22,1,QCA_AR9331_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT2XX,1)
-	@$(call define_add,CONFIG_CMD_DIGITAL_IN,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,CONFIG_TLT_VERIFIED_BOOT,1)
-	@$(MKCONFIG) -a ap121 mips mips ap121 ar7240 ar7240
-
-tlt-rut2xx-vboot-64k: ar933x_common lsdk_kernel
-	@$(call config_init,Teltonika RUT2XX,tlt-rut2xx,16,22,1,QCA_AR9331_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT2XX,1)
-	@$(call define_add,CONFIG_CMD_DIGITAL_IN,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,CONFIG_TLT_VERIFIED_BOOT,1)
-	@$(call define_add,CONFIG_UBOOT_64K,1)
-	@$(MKCONFIG) -a ap121 mips mips ap121 ar7240 ar7240
-
 tlt-tap100: rt2880_common
 	@$(call config_init,Teltonika TAP100,tlt-tap100,16,46,1,MTK_MT7628_SOC)
 	@$(call define_add,CONFIG_FOR_TELTONIKA_TAP100,1)
@@ -729,26 +691,6 @@ tlt-rut2m: rt2880_common
 	@$(call define_add,CONFIG_CMD_MNFINFO,1)
 	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
 
-tlt-rut206: rt2880_common
-	@$(call config_init,Teltonika RUT206,tlt-rut206,16,44,1,MTK_MT7628_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT206,1)
-	@$(call define_add,CONFIG_SHIFT_REG,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,ON_BOARD_1024M_DRAM_COMPONENT,1)
-	@$(call define_add,ON_BOARD_DDR2,1)
-	@$(call define_add,ON_BOARD_DDR_WIDTH_16,1)
-	@$(call define_add,ON_BOARD_16BIT_DRAM_BUS,1)
-	@$(call define_add,RALINK_DDR_POWERSAVE,1)
-	@$(call define_add,CONFIG_DDR_CAL,1)
-	@$(call define_add,ASIC_BOARD,1)
-	@$(call define_add,MT7628_ASIC_BOARD,1)
-	@$(call define_add,CPU_FRAC_DIV,1)
-	@$(call define_add,CONFIG_EARLY_GPIO_INIT,1)
-	@$(call define_add,CONFIG_DO_PCIE_PERST_RESET,1)
-	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
-	@$(call define_add,CONFIG_CMD_MNFINFO,1)
-	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
-
 tlt-rut9m: rt2880_common
 	@$(call config_init,Teltonika RUT9M,tlt-rut9m,16,38,1,MTK_MT7628_SOC)
 	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT9M,1)
@@ -769,17 +711,6 @@ tlt-rut9m: rt2880_common
 	@$(call define_add,CONFIG_CMD_MNFINFO,1)
 	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
 
-tlt-rut300: qca953x_common
-	@$(call config_init,Teltonika RUT300,tlt-rut300,16,17,1,QCA_QCA9531_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT300,1)
-	@$(call define_add,CFG_ATHRS27_PHY,1)
-	@$(call define_add,CFG_ATH_GMAC_NMACS,2)
-	@$(call define_add,CONFIG_CMD_DIGITAL_IN,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
-	@$(call define_add,CONFIG_CMD_MNFINFO,1)
-	@$(MKCONFIG) -a ap143 mips mips ap143 ar7240 ar7240
-
 tlt-rut301: rt2880_common
 	@$(call config_init,Teltonika RUT301,tlt-rut301,16,46,1,MTK_MT7628_SOC)
 	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT301,1)
@@ -798,18 +729,6 @@ tlt-rut301: rt2880_common
 	@$(call define_add,CONFIG_CMD_MNFINFO,1)
 	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
 
-tlt-rut360: qca953x_common
-	@$(call config_init,Teltonika RUT360,tlt-rut360,16,17,1,QCA_QCA9531_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT360,1)
-	@$(call define_add,CFG_ATHRS27_PHY,1)
-	@$(call define_add,CFG_ATH_GMAC_NMACS,2)
-	@$(call define_add,CONFIG_SHIFT_REG,1)
-	@$(call define_add,CONFIG_CMD_DIGITAL_IN,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
-	@$(call define_add,CONFIG_CMD_MNFINFO,1)
-	@$(MKCONFIG) -a ap143 mips mips ap143 ar7240 ar7240
-
 tlt-rut361: rt2880_common
 	@$(call config_init,Teltonika RUT361,tlt-rut361,16,46,1,MTK_MT7628_SOC)
 	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT361,1)
@@ -827,56 +746,6 @@ tlt-rut361: rt2880_common
 	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
 	@$(call define_add,CONFIG_CMD_MNFINFO,1)
 	@$(MKCONFIG) -a rt2880 mips ralink mt7628 rt2880 rt2880
-
-tlt-rut9xx: ar934x_common
-	@$(call config_init,Teltonika RUT9XX,tlt-rut9xx,16,15,1,QCA_AR9344_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT9XX,1)
-	@$(call define_add,CFG_ATHRS27_PHY,1)
-	@$(call define_add,CFG_AG7240_NMACS,2)
-	@$(call define_add,CONFIG_SHIFT_REG,1)
-	@$(call define_add,CONFIG_CMD_DIGITAL_IN,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,DDR_TUNE,1)
-	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
-	@$(call define_add,CONFIG_CMD_MNFINFO,1)
-	@$(MKCONFIG) -a db12x mips mips db12x ar7240 ar7240
-
-tlt-rut9xx-vboot: ar934x_common
-	@$(call config_init,Teltonika RUT9XX,tlt-rut9xx,16,15,1,QCA_AR9344_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT9XX,1)
-	@$(call define_add,CFG_ATHRS27_PHY,1)
-	@$(call define_add,CFG_AG7240_NMACS,2)
-	@$(call define_add,CONFIG_SHIFT_REG,1)
-	@$(call define_add,CONFIG_CMD_DIGITAL_IN,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,CONFIG_TLT_VERIFIED_BOOT,1)
-	@$(call define_add,DDR_TUNE,1)
-	@$(MKCONFIG) -a db12x mips mips db12x ar7240 ar7240
-
-tlt-rut9xx-vboot-64k: ar934x_common
-	@$(call config_init,Teltonika RUT9XX,tlt-rut9xx,16,15,1,QCA_AR9344_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_RUT9XX,1)
-	@$(call define_add,CFG_ATHRS27_PHY,1)
-	@$(call define_add,CFG_AG7240_NMACS,2)
-	@$(call define_add,CONFIG_SHIFT_REG,1)
-	@$(call define_add,CONFIG_CMD_DIGITAL_IN,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,CONFIG_TLT_VERIFIED_BOOT,1)
-	@$(call define_add,CONFIG_UBOOT_64K,1)
-	@$(call define_add,DDR_TUNE,1)
-	@$(MKCONFIG) -a db12x mips mips db12x ar7240 ar7240
-
-tlt-tcr1xx: qca953x_common
-	@$(call config_init,Teltonika TCR1XX,tlt-tcr1xx,16,17,1,QCA_QCA9531_SOC)
-	@$(call define_add,CONFIG_FOR_TELTONIKA_TCR1XX,1)
-	@$(call define_add,CFG_ATHRS27_PHY,1)
-	@$(call define_add,CFG_ATH_GMAC_NMACS,2)
-	@$(call define_add,CONFIG_SHIFT_REG,1)
-	@$(call define_add,CONFIG_PCI,1)
-	@$(call define_add,CONFIG_CMD_PHY_POWER,1)
-	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
-	@$(call define_add,CONFIG_CMD_MNFINFO,1)
-	@$(MKCONFIG) -a ap143 mips mips ap143 ar7240 ar7240
 
 tlt-otd140: rt2880_common
 	@$(call config_init,Teltonika OTD140,tlt-otd140,16,46,1,MTK_MT7628_SOC)

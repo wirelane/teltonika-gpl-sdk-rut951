@@ -23,7 +23,7 @@
  #define QUECTEL_PRODUCT_EM12			0x0512
  #define QUECTEL_PRODUCT_RM500Q			0x0800
  #define QUECTEL_PRODUCT_RM520N			0x0801
-@@ -1196,6 +1197,8 @@ static const struct usb_device_id option
+@@ -1187,6 +1188,8 @@ static const struct usb_device_id option
  	{ USB_DEVICE(UBLOX_VENDOR_ID, 0x1343),		/* u-blox LARA-L6 (ECM) */
  	  .driver_info = RSVD(4) },
  	/* Quectel products using Quectel vendor ID */

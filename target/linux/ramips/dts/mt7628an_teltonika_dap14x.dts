@@ -56,20 +56,6 @@
 				gpiochip_2 = <32>; // Built-in
 			};
 		};
-
-		ledman {
-			GPIO_43 {
-				line_name = "LED_ETH_GREEN_1";
-				active_low;
-			};
-			GPIO_42 {
-				line_name = "LED_ETH_GREEN_2";
-				active_low;
-			};
-			GPIO_44 {
-				line_name = "LED_POWER";
-			};
-		};
 	};
 };
 

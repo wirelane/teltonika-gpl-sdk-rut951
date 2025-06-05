@@ -144,12 +144,6 @@
 
 	#if defined(CONFIG_BTN_RECOVERY_SCRIPTLESS)
 	#else
-		#ifdef CONFIG_FOR_TELTONIKA_RUT2XX
-			#define WDOG_DISABLE	"wdog 0;"
-		#else
-			#define WDOG_DISABLE	""
-		#endif // CONFIG_FOR_TELTONIKA_RUT2XX
-
 		#define CONFIG_ENV_BTN_RECOVERY_SCRIPT	\
 		"recovery=" \
 		"if button; then " \

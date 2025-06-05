@@ -4,7 +4,7 @@ Export 'xfrm_replay_overflow' symbol for use in XFRM output fastpath code.
 
 --- a/net/xfrm/xfrm_replay.c
 +++ b/net/xfrm/xfrm_replay.c
-@@ -765,6 +765,7 @@ int xfrm_replay_overflow(struct xfrm_sta
+@@ -767,6 +767,7 @@ int xfrm_replay_overflow(struct xfrm_sta
  	return __xfrm_replay_overflow(x, skb);
  }
  #endif

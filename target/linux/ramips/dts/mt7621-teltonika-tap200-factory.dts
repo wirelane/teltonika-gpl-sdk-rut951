@@ -57,16 +57,6 @@
 			};
 		};
 
-		ledman {
-			GPIO_8 {
-				line_name = "LED_ETH_GREEN_1";
-			};
-			GPIO_15 {
-				line_name = "LED_POWER";
-				active_low;
-			};
-		};
-
 		misc {
 			GPIO_7 {
 				line_name = "LED_GP";
@@ -85,7 +75,11 @@
 &gmac1 {
 	status = "okay";
 	label = "eth1";
-	phy-handle = <&ephy4>;
-	mtd-mac-address = <&config 0x0>;
-	mtd-mac-address-increment = <1>;
+	phy-handle = <&ethphy4>;
+	nvmem-cells = <&macaddr_config_0 1>;
+	nvmem-cell-names = "mac-address";
+};
+
+&ethphy4 {
+	/delete-property/ interrupts;
 };

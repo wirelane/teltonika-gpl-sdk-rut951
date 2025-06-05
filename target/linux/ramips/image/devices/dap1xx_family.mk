@@ -20,7 +20,7 @@ endef
 define Device/template_dap14x
 	$(Device/teltonika_dap14x)
 
-	DEVICE_SWITCH_CONF := switch0 1:lan:1 0:lan:2 6@eth0
+	DEVICE_SWITCH_CONF := switch0 1:lan:2 0:lan:1 6@eth0
 
 	DEVICE_WLAN_BSSID_LIMIT := wlan0 4
 

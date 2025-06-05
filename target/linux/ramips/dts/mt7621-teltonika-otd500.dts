@@ -59,30 +59,6 @@
 			gpio-export,input = <0>;
 			gpios = <&gpio 15 GPIO_ACTIVE_HIGH>;
 		};
-
-		green_eth_port_0 {
-			gpio-export,name = "green:eth_port_0";
-			gpio-export,output = <0>;
-			gpios = <&gpio 13 GPIO_ACTIVE_HIGH>;
-		};
-
-		green_eth_port_1 {
-			gpio-export,name = "green:eth_port_1";
-			gpio-export,output = <0>;
-			gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
-		};
-
-		yellow_eth_port_0 {
-			gpio-export,name = "yellow:eth_port_0";
-			gpio-export,output = <0>;
-			gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
-		};
-
-		yellow_eth_port_1 {
-			gpio-export,name = "yellow:eth_port_1";
-			gpio-export,output = <0>;
-			gpios = <&gpio 8 GPIO_ACTIVE_HIGH>;
-		};
 	};
 
 	leds {
@@ -133,6 +109,25 @@
 			linux,default-trigger = "timer"; // only
 		};
 
+		led_eth_g0 {
+			label = "eth_g0";
+			gpios = <&gpio 13 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_g1 {
+			label = "eth_g1";
+			gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_y0 {
+			label = "eth_y0";
+			gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_y1 {
+			label = "eth_y1";
+			gpios = <&gpio 8 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	tlt_gpios { // Modify according to wiki page "DTS syntax with Libgpiod changes"
@@ -144,46 +139,6 @@
 				gpiochip_0 = <32>; // Built-in
 				gpiochip_1 = <32>; // Built-in
 				gpiochip_2 = <32>; // Built-in
-			};
-		};
-
-
-		ledman {
-			GPIO_0 {
-				line_name = "LED_POWER";
-			};
-			GPIO_14 {
-				line_name = "PSE_LED";
-			};
-			GPIO_6 {
-				line_name = "LED_ETH_GREEN_1";
-			};
-			GPIO_13 {
-				line_name = "LED_ETH_GREEN_0";
-			};
-			GPIO_11 {
-				line_name = "LED_ETH_YELLOW_0";
-			};
-			GPIO_8 {
-				line_name = "LED_ETH_YELLOW_1";
-			};
-			GPIO_43 {
-				line_name = "LED_TECH_GEN_3";
-			};
-			GPIO_41 {
-				line_name = "LED_TECH_GEN_4";
-			};
-			GPIO_44 {
-				line_name = "LED_TECH_GEN_5";
-			};
-			GPIO_45 {
-				line_name = "LED_SSID_1";
-			};
-			GPIO_46 {
-				line_name = "LED_SSID_3";
-			};
-			GPIO_47 {
-				line_name = "LED_SSID_5";
 			};
 		};
 
@@ -218,7 +173,9 @@
 	poeman {
 		bus = "/dev/i2c-0";
 		budget@0 {
-			budget = <15400>;
+			budget = <15500>;
+			max_port_power = <15400>;
+			allowed_deficit = <600>;
 		};
 	};
 };

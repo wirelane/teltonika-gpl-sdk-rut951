@@ -9,7 +9,6 @@
 #include <asm/addrspace.h>
 #include <soc/qca_soc_common.h>
 #include <soc/qca_dram.h>
-#include <configs/db12x_dram.h>
 
 /*
  * DRAM init

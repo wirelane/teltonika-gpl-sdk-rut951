@@ -220,52 +220,6 @@
 			};
 		};
 
-		ledman {
-			GPIO_43 {
-				line_name = "LED_ETH_GREEN_1";
-				active_low;
-			};
-			GPIO_42 {
-				line_name = "LED_ETH_GREEN_2";
-				active_low;
-			};
-			GPIO_41 {
-				line_name = "LED_ETH_GREEN_3";
-				active_low;
-			};
-			GPIO_39 {
-				line_name = "LED_ETH_GREEN_4";
-				active_low;
-			};
-			GPIO_101 {
-				line_name = "LED_TECH_GEN_23";
-			};
-			GPIO_102 {
-				line_name = "LED_TECH_GEN_43";
-			};
-			GPIO_96 {
-				line_name = "LED_SSID_1";
-			};
-			GPIO_97 {
-				line_name = "LED_SSID_2";
-			};
-			GPIO_98 {
-				line_name = "LED_SSID_3";
-			};
-			GPIO_99 {
-				line_name = "LED_SSID_4";
-			};
-			GPIO_100 {
-				line_name = "LED_SSID_5";
-			};
-			GPIO_111 { // Exists in ioman as GPIO_RELAY_OPEN_1, but not used
-				compatible_model = "RUT956";
-				compatible_versions = <5 99>;
-				line_name = "LED_POWER";
-				active_low;
-			};
-		};
-
 		misc {
 			GPIO_0 {
 				compatible_model_0 = "RUT901";
@@ -445,6 +399,7 @@
 			GPIO_T2P_SIGNAL = <0>;
 			adc_min = <48>;
 			budget = <60000>;
+			allowed_deficit = <2000>;
 		};
 		budget@2 {
 			GPIO_4PIN_SIGNAL = <1>;
@@ -455,6 +410,8 @@
 			GPIO_4PIN_SIGNAL = <1>;
 			GPIO_T2P_SIGNAL = <1>;
 			budget = <15000>;
+			allowed_deficit = <300>;
+			max_port_power = <7000>;
 		};
 	};
 };
@@ -462,15 +419,18 @@
 &mnfinfo {
 	simpin1 {
 		default = "";
+		sec;
 	};
 
 	simpin2 {
 		default = "";
+		sec;
 	};
 
 	simpin3 {
 		tlt-mnf,hwver = <600 9999>;
 		default = "";
+		sec;
 	};
 
 	sim_cfg {

@@ -25,23 +25,6 @@
 		};
 	};
 
-	gpio-export {
-		compatible = "gpio-export";
-		#size-cells = <0>;
-
-		yellow_eth_port_4 {
-			gpio-export,name = "yellow:eth_port_4";
-			gpio-export,output = <0>;
-			gpios = <&gpio 8 GPIO_ACTIVE_HIGH>;
-		};
-
-		green_eth_port_4 {
-			gpio-export,name = "green:eth_port_4";
-			gpio-export,output = <0>;
-			gpios = <&gpio 7 GPIO_ACTIVE_HIGH>;
-		};
-	};
-
 	leds {
 		compatible = "gpio-leds";
 
@@ -51,6 +34,15 @@
 			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
 		};
 
+		led_eth_y4 {
+			label = "eth_y4";
+			gpios = <&gpio 8 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_g4 {
+			label = "eth_g4";
+			gpios = <&gpio 7 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	tlt_gpios { // Modify according to wiki page "DTS syntax with Libgpiod changes"
@@ -62,19 +54,6 @@
 				gpiochip_0 = <32>; // Built-in
 				gpiochip_1 = <32>; // Built-in
 				gpiochip_2 = <32>; // Built-in
-			};
-		};
-
-		ledman {
-			GPIO_7 {
-				line_name = "LED_ETH_GREEN_1";
-			};
-			GPIO_8 {
-				line_name = "LED_ETH_YELLOW_1";
-			};
-			GPIO_15 {
-				line_name = "LED_POWER";
-				active_low;
 			};
 		};
 	};
@@ -110,9 +89,13 @@
 &gmac1 {
 	status = "okay";
 	label = "eth1";
-	phy-handle = <&ephy4>;
-	mtd-mac-address = <&config 0x0>;
-	mtd-mac-address-increment = <1>;
+	phy-handle = <&ethphy4>;
+	nvmem-cells = <&macaddr_config_0 1>;
+	nvmem-cell-names = "mac-address";
+};
+
+&ethphy4 {
+	/delete-property/ interrupts;
 };
 
 &mnfinfo {

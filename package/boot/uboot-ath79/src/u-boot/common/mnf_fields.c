@@ -72,20 +72,12 @@ mnf_field_t mnf_fields[] = {
 	MNF_FIELD( 'H', "hwver",     "HW version (major)",  0x50,  4, restore_num     , 0 ),
 	MNF_FIELD( 'L', "hwver_lo",  "HW version (minor)",  0x54,  4, restore_num     , 0 ),
 	MNF_FIELD( 'B', "branch",    "HW branch",           0x58,   4, clear          , 0 ),
-
-#ifdef CONFIG_FOR_TELTONIKA_RUT2XX
-	MNF_FIELD( '1', "sim1",      "SIM 1 PIN",           0x68,  12, clear          , MNF_FIELD_REVERSED ),
-#else
 	MNF_FIELD( '1', "sim1",      "SIM 1 PIN",           0x70,   8, clear          , 0 ),
+
+#if	defined(CONFIG_FOR_TELTONIKA_RUT9M)
+	MNF_FIELD( '2', "sim2",      "SIM 2 PIN",           0x78,   8, clear          , 0 ),
 #endif
 
-#if defined(CONFIG_FOR_TELTONIKA_RUT9XX) || \
-	defined(CONFIG_FOR_TELTONIKA_RUT9M) || \
-	defined(CONFIG_FOR_TELTONIKA_RUT206)
-	MNF_FIELD( '2', "sim2",      "SIM 2 PIN",           0x78,   8, clear          , 0 ),
-#elif defined (CONFIG_FOR_TELTONIKA_TRB24XX)
-	MNF_FIELD( '2', "sim2",      "SIM 2 PIN",           0x80,   4, clear          , 0 ),
-#endif
 	MNF_FIELD( 'C', "simcfg",    "SIM config",         0x110,  32, clear          , 0 ),
 	MNF_FIELD( 'P', "profiles",  "eSIM profiles",      0x130, 128, clear          , 0 ),
 	MNF_FIELD( 'W', "wifi_pass", "WiFi password",       0x90,  16, clear          , 0 ),

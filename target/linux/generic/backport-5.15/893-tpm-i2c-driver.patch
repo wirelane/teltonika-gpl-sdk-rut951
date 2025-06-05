@@ -1768,15 +1768,7 @@
  dev_t tpm_devt;
  
  static int tpm_request_locality(struct tpm_chip *chip)
-@@ -267,7 +272,6 @@ static void tpm_dev_release(struct devic
- 	idr_remove(&dev_nums_idr, chip->dev_num);
- 	mutex_unlock(&idr_lock);
- 
--	kfree(chip->log.bios_event_log);
- 	kfree(chip->work_space.context_buf);
- 	kfree(chip->work_space.session_buf);
- 	kfree(chip->allocated_banks);
-@@ -283,7 +287,7 @@ static void tpm_dev_release(struct devic
+@@ -282,7 +287,7 @@ static void tpm_dev_release(struct devic
   *
   * Return: always 0 (i.e. success)
   */
@@ -1785,7 +1777,7 @@
  {
  	struct tpm_chip *chip = container_of(dev, struct tpm_chip, dev);
  
-@@ -337,8 +341,7 @@ struct tpm_chip *tpm_chip_alloc(struct d
+@@ -336,8 +341,7 @@ struct tpm_chip *tpm_chip_alloc(struct d
  
  	device_initialize(&chip->dev);
  
@@ -1795,7 +1787,7 @@
  	chip->dev.release = tpm_dev_release;
  	chip->dev.parent = pdev;
  	chip->dev.groups = chip->groups;
-@@ -373,6 +376,11 @@ out:
+@@ -372,6 +376,11 @@ out:
  }
  EXPORT_SYMBOL_GPL(tpm_chip_alloc);
  
@@ -1807,7 +1799,7 @@
  /**
   * tpmm_chip_alloc() - allocate a new struct tpm_chip instance
   * @pdev: parent device to which the chip is associated
-@@ -391,7 +399,7 @@ struct tpm_chip *tpmm_chip_alloc(struct
+@@ -390,7 +399,7 @@ struct tpm_chip *tpmm_chip_alloc(struct
  		return chip;
  
  	rc = devm_add_action_or_reset(pdev,
@@ -1816,7 +1808,7 @@
  				      &chip->dev);
  	if (rc)
  		return ERR_PTR(rc);
-@@ -415,7 +423,7 @@ static int tpm_add_char_device(struct tp
+@@ -414,7 +423,7 @@ static int tpm_add_char_device(struct tp
  		return rc;
  	}
  
@@ -1825,7 +1817,7 @@
  		rc = tpm_devs_add(chip);
  		if (rc)
  			goto err_del_cdev;
-@@ -466,7 +474,8 @@ static void tpm_del_legacy_sysfs(struct
+@@ -465,7 +474,8 @@ static void tpm_del_legacy_sysfs(struct
  {
  	struct attribute **i;
  
@@ -1835,7 +1827,7 @@
  		return;
  
  	sysfs_remove_link(&chip->dev.parent->kobj, "ppi");
-@@ -484,7 +493,8 @@ static int tpm_add_legacy_sysfs(struct t
+@@ -483,7 +493,8 @@ static int tpm_add_legacy_sysfs(struct t
  	struct attribute **i;
  	int rc;
  
@@ -1845,7 +1837,7 @@
  		return 0;
  
  	rc = compat_only_sysfs_link_entry_to_kobj(
-@@ -509,16 +519,32 @@ static int tpm_hwrng_read(struct hwrng *
+@@ -508,16 +519,32 @@ static int tpm_hwrng_read(struct hwrng *
  {
  	struct tpm_chip *chip = container_of(rng, struct tpm_chip, hwrng);
  
@@ -1881,7 +1873,7 @@
  	chip->hwrng.name = chip->hwrng_name;
  	chip->hwrng.read = tpm_hwrng_read;
  	return hwrng_register(&chip->hwrng);
-@@ -528,6 +554,9 @@ static int tpm_get_pcr_allocation(struct
+@@ -527,6 +554,9 @@ static int tpm_get_pcr_allocation(struct
  {
  	int rc;
  
@@ -1891,7 +1883,7 @@
  	rc = (chip->flags & TPM_CHIP_FLAG_TPM2) ?
  	     tpm2_get_pcr_allocation(chip) :
  	     tpm1_get_pcr_allocation(chip);
-@@ -539,6 +568,42 @@ static int tpm_get_pcr_allocation(struct
+@@ -538,6 +568,42 @@ static int tpm_get_pcr_allocation(struct
  }
  
  /*
@@ -1934,7 +1926,7 @@
   * tpm_chip_register() - create a character device for the TPM chip
   * @chip: TPM chip to use.
   *
-@@ -553,17 +618,7 @@ int tpm_chip_register(struct tpm_chip *c
+@@ -552,17 +618,7 @@ int tpm_chip_register(struct tpm_chip *c
  {
  	int rc;
  
@@ -1953,7 +1945,7 @@
  	if (rc)
  		return rc;
  
-@@ -590,7 +645,7 @@ int tpm_chip_register(struct tpm_chip *c
+@@ -589,7 +645,7 @@ int tpm_chip_register(struct tpm_chip *c
  	return 0;
  
  out_hwrng:
@@ -1962,7 +1954,7 @@
  		hwrng_unregister(&chip->hwrng);
  out_ppi:
  	tpm_bios_log_teardown(chip);
-@@ -615,10 +670,10 @@ EXPORT_SYMBOL_GPL(tpm_chip_register);
+@@ -614,10 +670,10 @@ EXPORT_SYMBOL_GPL(tpm_chip_register);
  void tpm_chip_unregister(struct tpm_chip *chip)
  {
  	tpm_del_legacy_sysfs(chip);

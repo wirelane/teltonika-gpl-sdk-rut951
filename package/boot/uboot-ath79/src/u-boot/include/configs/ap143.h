@@ -124,128 +124,6 @@
 						GPIO16
 	#define CONFIG_QCA_GPIO_MASK_IN		GPIO17
 
-#elif defined(CONFIG_FOR_TELTONIKA_TRB24XX)
-
-	#define CONFIG_QCA_GPIO_MASK_LED_ACT_H 	GPIO11
-
-	#define CONFIG_QCA_GPIO_MASK_IN 	GPIO3 | GPIO4 | GPIO12
-
-	#define CONFIG_SR_LED_ALL_OFF_MASK	0x00
-	#define CONFIG_SR_LED_ALL_ON_MASK	0xFF
-
-	// LED order is important!
-	#define CONFIG_SR_LED_ANIMATION_MASK 	0x01, 0x02, 0x04, \
-						0x08, 0x10, 0x20
-
-	/* GPIOs for 74X164 shift register (used as a gpio expander) */
-	#define GPIO_SR_74X164_SER	GPIO2	/* Serial input */
-	#define GPIO_SR_74X164_SRCLK	GPIO0 	/* Shift register clock */
-	#define GPIO_SR_74X164_RCLK	GPIO1 	/* Storage register clock */
-
-	#define CONFIG_QCA_GPIO_MASK_OUT_INIT_L GPIO_SR_74X164_SER |\
-						GPIO_SR_74X164_SRCLK |\
-						GPIO_SR_74X164_RCLK
-
-	#define CONFIG_GPIO_MASK_DIGITAL_IN 	GPIO3
-
-	#define OFFSET_MNF_INFO	     		0x20000
-	#define OFFSET_SERIAL_NUMBER 		0x00030
-	#define SERIAL_NUMBER_LENGTH 		0x0000A
-	#define OFFSET_LINUX_PASSWD  		0x000A0
-	#define LINUX_PASSWD_LENGTH  		0x0006A
-
-	#define DEVICE_MODEL	      		"TRB2XX" // used for u-boot validation
-	#define DEVICE_MODEL_MANIFEST 		"trb2xx" // used for firmware validation
-	#define DEVICE_MODEL_NAME		"TRB2"	 // used for mnf info validation
-
-#elif defined(CONFIG_FOR_TELTONIKA_RUT300)
-
-	#define CONFIG_QCA_GPIO_MASK_LED_ACT_H 	GPIO0 | GPIO1 | GPIO2 |\
-						GPIO3 | GPIO4
-
-	#define CONFIG_QCA_GPIO_MASK_IN 	GPIO11 | GPIO12
-
-	#define CONFIG_QCA_GPIO_MASK_OUT_INIT_L GPIO13 | GPIO14
-
-	#define CONFIG_QCA_GPIO_MASK_OUT_INIT_H GPIO15
-
-	#define OFFSET_MNF_INFO	     		0x20000
-	#define OFFSET_SERIAL_NUMBER 		0x00030
-	#define SERIAL_NUMBER_LENGTH 		0x0000A
-	#define OFFSET_LINUX_PASSWD  		0x000A0
-	#define LINUX_PASSWD_LENGTH  		0x0006A
-
-	#define DEVICE_MODEL	      		"RUT300" // used for u-boot validation
-	#define DEVICE_MODEL_MANIFEST 		"rut30x" // used for firmware validation
-	#define DEVICE_MODEL_NAME		"RUT30"	 // used for mnf info validation
-
-#elif defined(CONFIG_FOR_TELTONIKA_RUT360)
-
-	#define CONFIG_QCA_GPIO_MASK_LED_ACT_H 	GPIO4 | GPIO13
-
-	#define CONFIG_QCA_GPIO_MASK_IN 	GPIO3 | GPIO11 | GPIO12
-
-	#define CONFIG_SR_LED_ALL_OFF_MASK	0x00 // skip power led
-	#define CONFIG_SR_LED_ALL_ON_MASK	0x3E // skip power led
-
-	// LED order is important!
-	#define CONFIG_SR_LED_ANIMATION_MASK 	0x02, 0x04, 0x08, \
-						0x10, 0x20
-
-	/* GPIOs for 74X164 shift register (used as a gpio expander) */
-	#define GPIO_SR_74X164_SER	GPIO2	/* Serial input */
-	#define GPIO_SR_74X164_SRCLK	GPIO0 	/* Shift register clock */
-	#define GPIO_SR_74X164_RCLK	GPIO1 	/* Storage register clock */
-
-	#define CONFIG_QCA_GPIO_MASK_OUT_INIT_L GPIO_SR_74X164_SER |\
-						GPIO_SR_74X164_SRCLK |\
-						GPIO_SR_74X164_RCLK
-
-	#define OFFSET_MNF_INFO	     		0x20000
-	#define OFFSET_SERIAL_NUMBER 		0x00030
-	#define SERIAL_NUMBER_LENGTH 		0x0000A
-	#define OFFSET_LINUX_PASSWD  		0x000A0
-	#define LINUX_PASSWD_LENGTH  		0x0006A
-
-	#define DEVICE_MODEL	      		"RUT360" // used for u-boot validation
-	#define DEVICE_MODEL_MANIFEST 		"rut36x" // used for firmware validation
-	#define DEVICE_MODEL_NAME		"RUT36"	 // used for mnf info validation
-
-#elif defined(CONFIG_FOR_TELTONIKA_TCR1XX)
-
-	#define CONFIG_QCA_GPIO_MASK_LED_ACT_H 	GPIO4 | GPIO13
-
-	#define CONFIG_QCA_GPIO_MASK_IN 	GPIO3 | GPIO11 | GPIO12
-
-	#define CONFIG_QCA_GPIO_MASK_OUT_INIT_H GPIO16
-
-	#define CONFIG_SR_LED_ALL_OFF_MASK	0x00
-	#define CONFIG_SR_LED_ALL_ON_MASK	0x3F
-
-	// LED order is important!
-	#define CONFIG_SR_LED_ANIMATION_MASK 	0x02, 0x04, 0x08, \
-						0x10, 0x20
-
-	/* GPIOs for 74X164 shift register (used as a gpio expander) */
-	#define GPIO_SR_74X164_SER	GPIO2	/* Serial input */
-	#define GPIO_SR_74X164_SRCLK	GPIO0 	/* Shift register clock */
-	#define GPIO_SR_74X164_RCLK	GPIO1 	/* Storage register clock */
-
-	#define CONFIG_QCA_GPIO_MASK_OUT_INIT_L GPIO15 |\
-						GPIO_SR_74X164_SER |\
-						GPIO_SR_74X164_SRCLK |\
-						GPIO_SR_74X164_RCLK
-
-	#define OFFSET_MNF_INFO	     		0x20000
-	#define OFFSET_SERIAL_NUMBER 		0x00030
-	#define SERIAL_NUMBER_LENGTH 		0x0000A
-	#define OFFSET_LINUX_PASSWD  		0x000A0
-	#define LINUX_PASSWD_LENGTH  		0x0006A
-
-	#define DEVICE_MODEL	     		"TCR1XX" // used for u-boot validation
-	#define DEVICE_MODEL_MANIFEST		"tcr1xx" // used for firmware validation
-	#define DEVICE_MODEL_NAME		"TCR1"	 // used for mnf info validation
-
 #elif defined(CONFIG_FOR_TPLINK_WR841N_V11)
 
 	#define CONFIG_QCA_GPIO_MASK_LED_ACT_L	GPIO1  | GPIO2  | GPIO3  |\
@@ -382,13 +260,6 @@
 				"rootfstype=squashfs init=/sbin/init "\
 				"mtdparts=ath-nor0:128k(u-boot),1024k(kernel),2816k(rootfs),64k(config),64k(art)"
 
-#elif defined(CONFIG_FOR_TELTONIKA_TRB24XX) ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT300)  ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT360)  ||\
-      defined(CONFIG_FOR_TELTONIKA_TCR1XX)
-
-	#define CONFIG_BOOTARGS	"console=ttyS0,115200"
-
 #elif defined(CONFIG_FOR_TPLINK_WR820N_V1_CN)
 
 	#define CONFIG_BOOTARGS	"console=ttyS0,115200 root=31:02 "\
@@ -449,17 +320,6 @@
 
 	#define CFG_LOAD_ADDR	0x9F020000
 
-#elif defined(CONFIG_FOR_TELTONIKA_TRB24XX) ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT300)  ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT360)  ||\
-      defined(CONFIG_FOR_TELTONIKA_TCR1XX)
-
-	#define CFG_LOAD_ADDR	0x9F040000
-
-	#define CFG_FW_START	CFG_LOAD_ADDR
-	#define CFG_FW_LEN	0xF30000
-	#define CFG_FW_END	CFG_FW_START + CFG_FW_LEN
-
 #elif defined(CONFIG_FOR_GLINET_GL_AR300M_LITE) ||\
       defined(CONFIG_FOR_P2W_CPE505N)           ||\
       defined(CONFIG_FOR_P2W_R602N)             ||\
@@ -515,10 +375,6 @@
 
 #elif defined(CONFIG_FOR_GAINSTRONG_OOLITE_V5_2)     ||\
       defined(CONFIG_FOR_GAINSTRONG_OOLITE_V5_2_DEV) ||\
-      defined(CONFIG_FOR_TELTONIKA_TRB24XX)          ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT300)           ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT360)           ||\
-      defined(CONFIG_FOR_TELTONIKA_TCR1XX)           ||\
       defined(CONFIG_FOR_TPLINK_MR22U_V1)            ||\
       defined(CONFIG_FOR_TPLINK_MR3420_V3)           ||\
       defined(CONFIG_FOR_TPLINK_MR6400_V1V2)         ||\
@@ -632,15 +488,6 @@
 	#define OFFSET_ROUTER_MODEL		0x00FD00
 	#define OFFSET_PIN_NUMBER		0x00FE00
 
-#elif defined(CONFIG_FOR_TELTONIKA_TRB24XX) ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT300)  ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT360)  ||\
-      defined(CONFIG_FOR_TELTONIKA_TCR1XX)
-
-	#define OFFSET_MAC_DATA_BLOCK		0x020000
-	#define OFFSET_MAC_DATA_BLOCK_LENGTH	0x010000
-	#define OFFSET_MAC_ADDRESS		0x000000
-
 #elif defined(CONFIG_FOR_TPLINK_WA850RE_V2)
 
 	#define OFFSET_MAC_DATA_BLOCK		0x3c0000
@@ -717,14 +564,6 @@
 
 	#define WEBFAILSAFE_UPLOAD_ART_ADDRESS	(CFG_FLASH_BASE + 0x60000)
 
-#elif defined(CONFIG_FOR_TELTONIKA_TRB24XX) ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT300)  ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT360)  ||\
-      defined(CONFIG_FOR_TELTONIKA_TCR1XX)
-
-	#define WEBFAILSAFE_UPLOAD_ART_ADDRESS	(CFG_FLASH_BASE + 0x30000)
-
-#endif
 
 /* Firmware size limit */
 #if defined(CONFIG_FOR_ALFA_NETWORK_R36A)
@@ -759,10 +598,6 @@
       defined(CONFIG_FOR_YUNCORE_AP90Q)         ||\
       defined(CONFIG_FOR_YUNCORE_CPE830)        ||\
       defined(CONFIG_FOR_YUNCORE_T830)          ||\
-      defined(CONFIG_FOR_TELTONIKA_TRB24XX)     ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT300)      ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT360)      ||\
-      defined(CONFIG_FOR_TELTONIKA_TCR1XX)      ||\
       defined(CONFIG_FOR_ZBTLINK_ZBT_WE1526)
 
 	#define WEBFAILSAFE_UPLOAD_LIMITED_AREA_IN_BYTES	(384 * 1024)
@@ -792,13 +627,6 @@
 
 	#define CONFIG_QCA_PLL	QCA_PLL_PRESET_550_400_200
 
-#elif defined(CONFIG_FOR_TELTONIKA_TRB24XX) ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT300)  ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT360)  ||\
-      defined(CONFIG_FOR_TELTONIKA_TCR1XX)
-
-	#define CONFIG_QCA_PLL	QCA_PLL_PRESET_650_450_225
-
 #else
 
 	#define CONFIG_QCA_PLL	QCA_PLL_PRESET_650_400_200
@@ -817,10 +645,6 @@
       defined(CONFIG_FOR_COMFAST_CF_E320N_V2)        ||\
       defined(CONFIG_FOR_COMFAST_CF_E520N)           ||\
       defined(CONFIG_FOR_COMFAST_CF_E530N)           ||\
-      defined(CONFIG_FOR_TELTONIKA_TRB24XX)          ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT300)           ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT360)           ||\
-      defined(CONFIG_FOR_TELTONIKA_TCR1XX)           ||\
       defined(CONFIG_FOR_TPLINK_MR22U_V1)            ||\
       defined(CONFIG_FOR_TPLINK_MR3420_V3)           ||\
       defined(CONFIG_FOR_TPLINK_MR6400_V1V2)         ||\

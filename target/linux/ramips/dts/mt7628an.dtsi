@@ -49,6 +49,7 @@
 		wps {
 			reg = <&config 0x20 0x8>;
 			type = "digit";
+			sec;
 		};
 
 		serial {
@@ -89,11 +90,13 @@
 		wpass {
 			reg = <&config 0x90 0x10>;
 			type = "ascii";
+			sec;
 		};
 
 		pass {
 			reg = <&config 0xa0 0x6a>;
 			type = "ascii";
+			sec;
 		};
 
 		sim_cfg {
@@ -125,6 +128,7 @@
 			reg = <&config 0x536 0x4>;
 			type = "digit";
 			default = "0000";
+			sec;
 		};
 	};
 

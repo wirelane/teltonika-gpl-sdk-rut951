@@ -16,7 +16,7 @@
   * @param[out] voltage port voltage value in Volts
   * @returns on success returns 0 else error code
   */
-int get_port_voltage(struct ubus_context *ctx, char *lan, int *voltage);
+int get_port_voltage(struct ubus_context *ctx, char *lan, double *voltage);
 
 /**
   * Retrieves connected device current usage

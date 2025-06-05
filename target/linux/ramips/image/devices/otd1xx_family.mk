@@ -41,11 +41,11 @@ define Device/TEMPLATE_teltonika_otd140
 	HARDWARE/Physical_Interfaces/Antennas := 2 x Internal antennas
 	HARDWARE/Physical_Interfaces/Antennas_specifications := 1 x 698 - 960 / 1710 - 2690MHz, 50 Ω, VSWR <3.5, gain <3 dBi, omnidirectional; \
 	1 x 698 - 960 / 1710 - 2690MHz, 50 Ω, VSWR <3, gain <4.5 dBi, omnidirectional;
-	HARDWARE/PoE/PoE_In/PoE_ports := 1 x PoE In
-	HARDWARE/PoE/PoE_In/PoE_standards := 802.3af/at
-	HARDWARE/PoE/PoE_Out/PoE_ports := 1 x PoE Out
-	HARDWARE/PoE/PoE_Out/PoE_standards := 802.3af and 802.3at Alternative B
-	HARDWARE/PoE/PoE_Out/PoE_Max_Power_per_Port_(at_PSE) := 24 W Max (power supply unit dependent)
+	HARDWARE/PoE_In/PoE_ports := 1 x PoE In
+	HARDWARE/PoE_In/PoE_standards := 802.3af/at
+	HARDWARE/PoE_Out/PoE_ports := 1 x PoE Out
+	HARDWARE/PoE_Out/PoE_standards := 802.3af and 802.3at Alternative B
+	HARDWARE/PoE_Out/PoE_Max_Power_per_Port_(at_PSE) := 24 W Max (power supply unit dependent)
 	HARDWARE/Operating_Environment/Ingress_Protection_Rating := $(HW_OPERATING_PROTECTION_IP55)
 	HARDWARE/Physical_Specification/Casing_material := Plastic (PC+ASA)
 	HARDWARE/Physical_Specification/Dimensions := 110 x 49.30 x 235 mm

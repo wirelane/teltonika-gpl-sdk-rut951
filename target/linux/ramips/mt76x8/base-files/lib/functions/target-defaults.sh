@@ -14,7 +14,7 @@ ucidef_target_defaults() {
 		ucidef_set_interface_default_macaddr "wan" "$(macaddr_add "$(mtd_get_mac_binary config 0x0)" 1)"
 
 		# set up io
-		[ "${model:7:1}" = "6" ] || [ "$branch" = "A" ] || ucidef_set_hwinfo ios
+		[ "${model:7:1}" = "6" ] || [ "$branch" = "A" ] && ucidef_unset_hwinfo ios
 
 		# set up modem
 		[ "${model:5:1}" = "1" ] && \
@@ -58,7 +58,7 @@ ucidef_target_defaults() {
 			ucidef_add_static_modem_info "$model" "1-1.2" "2" "primary"
 
 		# set up io
-		[ "${model:4:2}" != "06" ] && [ "${model:4:2}" != "76" ] && [ "${model:6:1}" != "1" ] && ucidef_set_hwinfo ios
+		[ "${model:6:1}" = "1" ] && ucidef_unset_hwinfo ios
 
 		# set up eSIM
 		[ "${model:6:1}" = "2" ] && [ "${model::6}" = "RUT241" ] && {
@@ -80,7 +80,7 @@ ucidef_target_defaults() {
 		ucidef_add_static_modem_info "$model" "1-1" "primary"
 
 		# set up io
-		[ "${model:7:1}" != "1" ] && ucidef_set_hwinfo ios
+		[ "${model:7:1}" = "1" ] && ucidef_unset_hwinfo ios
 		;;
 	TRB2*)
 		# set up modem

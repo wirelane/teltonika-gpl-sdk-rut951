@@ -26,7 +26,13 @@ set_poe_chips(){
 }
 
 generate_poe_config(){
-	touch /etc/config/poe
+	local conf="/etc/config/poe"
+
+	touch "$conf"
+	chmod 0666 "$conf"
+	chown poeman:poeman "$conf" 2>/dev/null
+
+	[ -n "$(cat $conf)" ] && return
 
 	if json_is_a poe object; then
 		json_select poe
@@ -64,4 +70,4 @@ generate_poe_config(){
 	fi
 }
 
-conf_file_register_hook generate_poe_config /etc/config/poe
+conf_register_hook generate_poe_config

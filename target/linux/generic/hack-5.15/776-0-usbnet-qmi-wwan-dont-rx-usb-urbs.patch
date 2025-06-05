@@ -70,7 +70,7 @@ Ideally, we could just add FLAG_MULTI_PACKET flag to qmi_wwan, but since the sub
  	.manage_power   = qmi_wwan_manage_power,
 --- a/drivers/net/usb/usbnet.c
 +++ b/drivers/net/usb/usbnet.c
-@@ -564,8 +564,10 @@ static int rx_submit (struct usbnet *dev
+@@ -575,8 +575,10 @@ static int rx_submit (struct usbnet *dev
  
  static inline int rx_process(struct usbnet *dev, struct sk_buff *skb)
  {
@@ -82,7 +82,7 @@ Ideally, we could just add FLAG_MULTI_PACKET flag to qmi_wwan, but since the sub
  		/* With RX_ASSEMBLE, rx_fixup() must update counters */
  		if (!(dev->driver_info->flags & FLAG_RX_ASSEMBLE))
  			dev->net->stats.rx_errors++;
-@@ -573,6 +575,10 @@ static inline int rx_process(struct usbn
+@@ -584,6 +586,10 @@ static inline int rx_process(struct usbn
  	}
  	// else network stack removes extra byte if we forced a short packet
  
@@ -93,7 +93,7 @@ Ideally, we could just add FLAG_MULTI_PACKET flag to qmi_wwan, but since the sub
  	/* all data was already cloned from skb inside the driver */
  	if (dev->driver_info->flags & FLAG_MULTI_PACKET)
  		return -EALREADY;
-@@ -1430,7 +1436,7 @@ netdev_tx_t usbnet_start_xmit (struct sk
+@@ -1441,7 +1447,7 @@ netdev_tx_t usbnet_start_xmit (struct sk
  	}
  	urb->transfer_buffer_length = length;
  

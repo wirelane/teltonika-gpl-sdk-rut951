@@ -8,7 +8,7 @@
  
  /*-------------------------------------------------------------------------*/
  
-@@ -396,7 +397,7 @@ int usbnet_change_mtu (struct net_device
+@@ -407,7 +408,7 @@ int usbnet_change_mtu (struct net_device
  	int		old_rx_urb_size = dev->rx_urb_size;
  
  	// no second zero-length packet read wanted after mtu-sized packets

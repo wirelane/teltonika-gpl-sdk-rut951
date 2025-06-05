@@ -153,10 +153,12 @@
 &mnfinfo {
 	simpin1 {
 		default = "";
+		sec;
 	};
 
 	simpin2 {
 		default = "";
+		sec;
 	};
 
 	sim_cfg {

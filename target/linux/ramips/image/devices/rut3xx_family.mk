@@ -76,7 +76,7 @@ define Device/TEMPLATE_teltonika_rut361
 	DEVICE_INTERFACE_CONF := \
 		lan default_ip 192.168.1.1
 
-	DEVICE_FEATURES := mobile wifi ethernet nat_offloading port_link xfrm-offload small_flash reset_button
+	DEVICE_FEATURES := mobile wifi ios ethernet nat_offloading port_link xfrm-offload small_flash reset_button
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 

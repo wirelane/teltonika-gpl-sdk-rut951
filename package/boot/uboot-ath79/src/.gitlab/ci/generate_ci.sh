@@ -3,25 +3,15 @@ set -euo pipefail
 SCRIPT_PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 
 BOOTLOADERS=(
-"mips|rut2xx"
-"mips|rut2xx-vboot"
-"mips|rut2xx-vboot-64k"
-"mips|rut300"
-"mips|rut360"
-"mips|rut9xx"
-"mips|rut9xx-vboot"
-"mips|rut9xx-vboot-64k"
-"mips|tcr1xx"
-"mips|trb24x"
 "mipsel|rut14x"
 "mipsel|dap14x"
 "mipsel|rut2m"
-"mipsel|rut206"
 "mipsel|rut301"
 "mipsel|rut361"
 "mipsel|rut9m"
 "mipsel|tap100"
 "mipsel|otd140"
+"mipsel|trb2m"
 )
 
 for BOOTLOADER in "${BOOTLOADERS[@]}"; do

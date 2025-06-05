@@ -16,11 +16,11 @@ define Device/teltonika_otd5_common
 	HARDWARE/Physical_Interfaces/Antennas := 2 x Internal antennas
 	HARDWARE/Physical_Interfaces/Antennas_specifications := 1 x 698 - 960 / 1710 - 2690MHz, 50 Ω, VSWR <3.5, gain <3 dBi, omnidirectional; \
 	1 x 698 - 960 / 1710 - 2690MHz, 50 Ω, VSWR <3, gain <4.5 dBi, omnidirectional;
-	HARDWARE/PoE/PoE_In/PoE_ports := 1 x PoE In
-	HARDWARE/PoE/PoE_In/PoE_standards := 802.3af/at
-	HARDWARE/PoE/PoE_Out/PoE_ports := 1 x PoE Out
-	HARDWARE/PoE/PoE_Out/PoE_standards := 802.3af and 802.3at Alternative B
-	HARDWARE/PoE/PoE_Out/PoE_Max_Power_per_Port_(at_PSE) := 24 W Max (power supply unit dependent)
+	HARDWARE/PoE_In/PoE_ports := 1 x PoE In
+	HARDWARE/PoE_In/PoE_standards := 802.3af/at
+	HARDWARE/PoE_Out/PoE_ports := 1 x PoE Out
+	HARDWARE/PoE_Out/PoE_standards := 802.3af and 802.3at Alternative B
+	HARDWARE/PoE_Out/PoE_Max_Power_per_Port_(at_PSE) := 24 W Max (power supply unit dependent)
 	HARDWARE/Operating_Environment/Ingress_Protection_Rating := $(HW_OPERATING_PROTECTION_IP55)
 	HARDWARE/Physical_Specification/Casing_material := Plastic (PC+ASA)
 	HARDWARE/Physical_Specification/Dimensions := 110 x 49.30 x 235 mm
@@ -62,6 +62,7 @@ define Device/TEMPLATE_teltonika_otd500
 
 	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 16
+	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 endef
 
 define Device/TEMPLATE_teltonika_otd501
@@ -76,4 +77,5 @@ define Device/TEMPLATE_teltonika_otd501
 
 	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
 	HARDWARE/Mobile/3GPP_Release := Release 15
+	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_OPTIONAL)
 endef

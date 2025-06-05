@@ -124,41 +124,6 @@
 			};
 		};
 
-		ledman {
-			GPIO_1 {
-				line_name = "LED_POWER";
-				active_low;
-			};
-			GPIO_6 {
-				line_name = "LED_PSE";
-			};
-			GPIO_39 {
-				line_name = "LED_ETH_GREEN_1";
-			};
-			GPIO_42 {
-				line_name = "LED_ETH_GREEN_2";
-			};
-			GPIO_45 {
-				line_name = "LED_TECH_GEN_2";
-				active_low;
-			};
-			GPIO_38 {
-				line_name = "LED_TECH_GEN_3";
-			};
-			GPIO_37 {
-				line_name = "LED_TECH_GEN_4";
-			};
-			GPIO_43 {
-				line_name = "LED_SSID_1";
-			};
-			GPIO_41 {
-				line_name = "LED_SSID_3";
-			};
-			GPIO_40 {
-				line_name = "LED_SSID_5";
-			};
-		};
-
 		misc {
 			GPIO_0 {
 				line_name = "GPIO_MODEM_POWER_1";
@@ -178,7 +143,9 @@
 	poeman {
 		bus = "/dev/i2c-0";
 		budget@0 {
-			budget = <15400>;
+			budget = <15500>;
+			max_port_power = <15400>;
+			allowed_deficit = <300>;
 		};
 	};
 };
@@ -186,10 +153,12 @@
 &mnfinfo {
 	simpin1 {
 		default = "";
+		sec;
 	};
 
 	simpin2 {
 		default = "";
+		sec;
 	};
 
 	sim_cfg {

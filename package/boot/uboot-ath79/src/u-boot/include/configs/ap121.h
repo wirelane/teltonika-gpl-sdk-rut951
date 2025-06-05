@@ -156,32 +156,6 @@
 
 	#define CONFIG_QCA_GPIO_MASK_LED_ACT_L	GPIO27
 
-#elif defined(CONFIG_FOR_TELTONIKA_RUT2XX)
-
-	#define CONFIG_QCA_GPIO_MASK_LED_ACT_L 	GPIO14 | GPIO17
-	#define CONFIG_QCA_GPIO_MASK_LED_ACT_H 	GPIO8  | GPIO24 | GPIO21 |\
-						GPIO23 | GPIO7  | GPIO6  |\
-						GPIO26 | GPIO27
-	#define CONFIG_QCA_GPIO_MASK_IN 	GPIO0  | GPIO16
-	#define CONFIG_QCA_GPIO_MASK_OUT_INIT_L GPIO12
-
-	// LED order is important!
-	#define CONFIG_QCA_LED_ANIMATION_MASK 	GPIO8,  GPIO24, GPIO21, \
-						GPIO23, GPIO7,  GPIO6,  \
-						GPIO26, GPIO27
-
-	#define CONFIG_GPIO_MASK_DIGITAL_IN	GPIO16
-
-	#define OFFSET_MNF_INFO	    		0x20000
-	#define OFFSET_SERIAL_NUMBER		0x00030
-	#define SERIAL_NUMBER_LENGTH		0x0000A
-	#define OFFSET_LINUX_PASSWD 		0x000A0
-	#define LINUX_PASSWD_LENGTH 		0x0006A
-
-	#define DEVICE_MODEL	     		"RUT2xx" // used for u-boot validation
-	#define DEVICE_MODEL_MANIFEST		"rut2xx" // used for firmware validation
-	#define DEVICE_MODEL_NAME		"RUT2"	 // used for mnf info validation
-
 #endif
 
 /*
@@ -269,12 +243,6 @@
 				"rootfstype=squashfs init=/sbin/init "\
 				"mtdparts=ar7240-nor0:128k(u-boot),64k(u-boot-env),16128k(firmware),64k(art)"
 
-#elif defined(CONFIG_FOR_TELTONIKA_RUT2XX)
-
-	#define CONFIG_BOOTARGS	"console=ttyS0,115200"
-
-#endif
-
 /*
  * =============================
  * Load address and boot command
@@ -295,8 +263,7 @@
 	#define CFG_LOAD_ADDR	0x9F080000
 
 #elif defined(CONFIG_FOR_DRAGINO_MS14)      ||\
-      defined(CONFIG_FOR_VILLAGE_TELCO_MP2) ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT2XX)
+      defined(CONFIG_FOR_VILLAGE_TELCO_MP2)
 
 	#define CFG_LOAD_ADDR	0x9F040000
 
@@ -439,12 +406,6 @@
 	#define OFFSET_MAC_DATA_BLOCK_LENGTH	0x010000
 	#define OFFSET_MAC_ADDRESS		0x000006
 
-#elif defined(CONFIG_FOR_TELTONIKA_RUT2XX)
-
-	#define OFFSET_MAC_DATA_BLOCK		0x020000
-	#define OFFSET_MAC_DATA_BLOCK_LENGTH	0x010000
-	#define OFFSET_MAC_ADDRESS		0x000000
-
 #else
 
 	#define OFFSET_MAC_DATA_BLOCK		0x010000
@@ -468,8 +429,7 @@
     !defined(CONFIG_FOR_HAK5_PACKET_SQUIRREL)        &&\
     !defined(CONFIG_FOR_HAK5_WIFI_PINEAPPLE_NANO)    &&\
     !defined(CONFIG_FOR_UNWIRED_DEVICES_UNWIRED_ONE) &&\
-    !defined(CONFIG_FOR_VILLAGE_TELCO_MP2)           &&\
-    !defined(CONFIG_FOR_TELTONIKA_RUT2XX)
+    !defined(CONFIG_FOR_VILLAGE_TELCO_MP2)
 
 	#define OFFSET_ROUTER_MODEL	0xFD00
 
@@ -538,17 +498,12 @@
 
 	#define WEBFAILSAFE_UPLOAD_ART_ADDRESS	(CFG_FLASH_BASE + 0x10000)
 
-#elif defined(CONFIG_FOR_TELTONIKA_RUT2XX)
-
-	#define WEBFAILSAFE_UPLOAD_ART_ADDRESS	(CFG_FLASH_BASE + 0x30000)
-
 #endif
 
 /* Firmware size limit */
 #if defined(CONFIG_FOR_8DEVICES_CARAMBOLA2) ||\
     defined(CONFIG_FOR_GLINET_GL_AR150)     ||\
-    defined(CONFIG_FOR_GLINET_GL_USB150)    ||\
-    defined(CONFIG_FOR_TELTONIKA_RUT2XX)
+    defined(CONFIG_FOR_GLINET_GL_USB150)
 
 	#define WEBFAILSAFE_UPLOAD_LIMITED_AREA_IN_BYTES	(384 * 1024)
 

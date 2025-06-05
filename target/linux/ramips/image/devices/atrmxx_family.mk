@@ -30,14 +30,21 @@ define Device/TEMPLATE_teltonika_atrm50
 
 	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 16
+	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/SD_card/Physical_size := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_formats := $(HW_SD_STORAGE_FORMATS)
 	HARDWARE/Wireless/Wireless_mode := $(HW_WIFI_5)
+	HARDWARE/Power/Connector := A-coded M12 power connector
+	HARDWARE/Power/Input_voltage_range := 9 - 50 VDC, overvoltage protection (70V), reverse polarity protection, surge protection >69 VDC 10us max
+	HARDWARE/Physical_Interfaces/Power := 1 x A-coded M12 power connector
+	HARDWARE/Physical_Interfaces/Ethernet := 4 x X-coded M12 connectors, $(HW_ETH_SPEED_1000)
+	HARDWARE/Physical_Interfaces/IO :=
+	HARDWARE/Physical_Interfaces/Power_Control := 1 x Battery input, 1 x Ignition input on A-coded M12 power connector
 	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 10 x Ethernet port status LEDs, 4 x WAN status LEDs, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
 	HARDWARE/Physical_Interfaces/Antennas := 4 x SMA for LTE, 2 x RP-SMA for WiFi, 1 x SMA for GNNS
-	HARDWARE/Physical_Interfaces/SIM := 2 $(HW_INTERFACE_SIM_HOLDERS), $(HW_INTERFACE_SIM_ESIM)
+	HARDWARE/Physical_Interfaces/SIM := 2 $(HW_INTERFACE_SIM_HOLDERS)
 	HARDWARE/Physical_Interfaces/Ethernet := 5 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
 	HARDWARE/Power/Power_consumption := Idle: <5 W, Max: <18 W
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for Mobile, 1 x SMA for GNSS

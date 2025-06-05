@@ -57,54 +57,6 @@
 			gpio-export,output = <1>;
 			gpios = <&gpio 46 GPIO_ACTIVE_HIGH>;
 		};
-
-		yellow_eth_port_3 {
-			gpio-export,name = "yellow:eth_port_3";
-			gpio-export,output = <0>;
-			gpios = <&shift_io 1 GPIO_ACTIVE_HIGH>;
-		};
-
-		yellow_eth_port_2 {
-			gpio-export,name = "yellow:eth_port_2";
-			gpio-export,output = <0>;
-			gpios = <&shift_io 3 GPIO_ACTIVE_HIGH>;
-		};
-
-		yellow_eth_port_1 {
-			gpio-export,name = "yellow:eth_port_1";
-			gpio-export,output = <0>;
-			gpios = <&shift_io 5 GPIO_ACTIVE_HIGH>;
-		};
-
-		yellow_eth_port_0 {
-			gpio-export,name = "yellow:eth_port_0";
-			gpio-export,output = <0>;
-			gpios = <&shift_io 7 GPIO_ACTIVE_HIGH>;
-		};
-
-		green_eth_port_3 {
-			gpio-export,name = "green:eth_port_3";
-			gpio-export,output = <0>;
-			gpios = <&shift_io 0 GPIO_ACTIVE_HIGH>;
-		};
-
-		green_eth_port_2 {
-			gpio-export,name = "green:eth_port_2";
-			gpio-export,output = <0>;
-			gpios = <&shift_io 2 GPIO_ACTIVE_HIGH>;
-		};
-
-		green_eth_port_1 {
-			gpio-export,name = "green:eth_port_1";
-			gpio-export,output = <0>;
-			gpios = <&shift_io 4 GPIO_ACTIVE_HIGH>;
-		};
-
-		green_eth_port_0 {
-			gpio-export,name = "green:eth_port_0";
-			gpio-export,output = <0>;
-			gpios = <&shift_io 6 GPIO_ACTIVE_HIGH>;
-		};
 	};
 
 	leds {
@@ -149,6 +101,46 @@
 			gpios = <&shift_io 14 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "timer"; //only
 		};
+
+		led_eth_y3 {
+			label = "eth_y3";
+			gpios = <&shift_io 1 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_y2 {
+			label = "eth_y2";
+			gpios = <&shift_io 3 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_y1 {
+			label = "eth_y1";
+			gpios = <&shift_io 5 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_y0 {
+			label = "eth_y0";
+			gpios = <&shift_io 7 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_g3 {
+			label = "eth_g3";
+			gpios = <&shift_io 0 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_g2 {
+			label = "eth_g2";
+			gpios = <&shift_io 2 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_g1 {
+			label = "eth_g1";
+			gpios = <&shift_io 4 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_g0 {
+			label = "eth_g0";
+			gpios = <&shift_io 6 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	tlt_gpios { // Modify according to wiki page "DTS syntax with Libgpiod changes"
@@ -178,55 +170,6 @@
 			};
 			GPIO_12 {
 				line_name = "GPIO_RELAY_CLOSE_1";
-			};
-		};
-
-		ledman {
-			GPIO_0 {
-				line_name = "LED_POWER";
-				active_low;
-			};
-			GPIO_96 {
-				line_name = "LED_ETH_GREEN_4";
-			};
-			GPIO_97 {
-				line_name = "LED_ETH_YELLOW_4";
-			};
-			GPIO_98 {
-				line_name = "LED_ETH_GREEN_3";
-			};
-			GPIO_99 {
-				line_name = "LED_ETH_YELLOW_3";
-			};
-			GPIO_100 {
-				line_name = "LED_ETH_GREEN_2";
-			};
-			GPIO_101 {
-				line_name = "LED_ETH_YELLOW_2";
-			};
-			GPIO_102 {
-				line_name = "LED_ETH_GREEN_1";
-			};
-			GPIO_103 {
-				line_name = "LED_ETH_YELLOW_1";
-			};
-			GPIO_105 {
-				line_name = "LED_TECH_GEN_3";
-			};
-			GPIO_106 {
-				line_name = "LED_TECH_GEN_4";
-			};
-			GPIO_107 {
-				line_name = "LED_TECH_GEN_5";
-			};
-			GPIO_108 {
-				line_name = "LED_SSID_1";
-			};
-			GPIO_109 {
-				line_name = "LED_SSID_3";
-			};
-			GPIO_110 {
-				line_name = "LED_SSID_5";
 			};
 		};
 
@@ -283,7 +226,7 @@
 				block_type = BLOCK_16PIN;
 				block_pin = "12";
 				tolerance = "0.05";
-				path = "/sys/class/hwmon/hwmon0/device/in0_input";
+				path = "/sys/class/hwmon/hwmon0/in0_input";
 				io_param = "g1";
 
 				adc_cof@0 {
@@ -295,7 +238,7 @@
 				block_type = BLOCK_16PIN;
 				block_pin = "12";
 				tolerance = "0.00004";
-				path = "/sys/class/hwmon/hwmon0/device/in0_input";
+				path = "/sys/class/hwmon/hwmon0/in0_input";
 				io_param = "g0";
 
 				adc_cof@0 {

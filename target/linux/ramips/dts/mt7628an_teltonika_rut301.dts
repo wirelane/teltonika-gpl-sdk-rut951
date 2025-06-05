@@ -89,33 +89,6 @@
 				active_low;
 			};
 		};
-
-		ledman {
-			GPIO_43 {
-				line_name = "LED_ETH_GREEN_1";
-				active_low;
-			};
-			GPIO_42 {
-				line_name = "LED_ETH_GREEN_2";
-				active_low;
-			};
-			GPIO_41 {
-				line_name = "LED_ETH_GREEN_3";
-				active_low;
-			};
-			GPIO_40 {
-				line_name = "LED_ETH_GREEN_4";
-				active_low;
-			};
-			GPIO_39 {
-				line_name = "LED_ETH_GREEN_5";
-				active_low;
-			};
-			GPIO_37 {
-				line_name = "LED_POWER";
-				active_low;
-			};
-		};
 	};
 	ioman {
 		layout@0 {

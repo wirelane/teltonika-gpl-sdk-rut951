@@ -218,10 +218,6 @@ int  reset_button_status(void);
 int  digital_in_status(void);
 extern ulong monitor_flash_len;
 
-#ifdef CONFIG_FOR_TELTONIKA_RUT2XX
-void rut2xx_set_wdog(unsigned regval);
-#endif // CONFIG_FOR_TELTONIKA_RUT2XX
-
 /* common/flash.c */
 void flash_perror (int);
 

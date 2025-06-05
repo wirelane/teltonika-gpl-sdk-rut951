@@ -41,30 +41,6 @@
 			gpio-export,output = <1>;
 			gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
 		};
-
-		yellow_eth_port_1 {
-			gpio-export,name = "yellow:eth_port_1";
-			gpio-export,output = <0>;
-			gpios = <&gpio 45 GPIO_ACTIVE_HIGH>;
-		};
-
-		yellow_eth_port_0 {
-			gpio-export,name = "yellow:eth_port_0";
-			gpio-export,output = <0>;
-			gpios = <&gpio 42 GPIO_ACTIVE_HIGH>;
-		};
-
-		green_eth_port_1 {
-			gpio-export,name = "green:eth_port_1";
-			gpio-export,output = <0>;
-			gpios = <&gpio 41 GPIO_ACTIVE_HIGH>;
-		};
-
-		green_eth_port_0 {
-			gpio-export,name = "green:eth_port_0";
-			gpio-export,output = <0>;
-			gpios = <&gpio 43 GPIO_ACTIVE_HIGH>;
-		};
 	};
 
 	leds {
@@ -109,6 +85,26 @@
 			gpios = <&gpio 47 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "timer"; // only
 		};
+
+		led_eth_g1 {
+			label = "eth_g1";
+			gpios = <&gpio 41 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_g0 {
+			label = "eth_g0";
+			gpios = <&gpio 43 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_y1 {
+			label = "eth_y1";
+			gpios = <&gpio 45 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_y0 {
+			label = "eth_y0";
+			gpios = <&gpio 42 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	tlt_gpios { // Modify according to wiki page "DTS syntax with Libgpiod changes"
@@ -136,49 +132,6 @@
 			};
 			GPIO_17 {
 				line_name = "GPIO_IN_2";
-				active_low;
-			};
-		};
-
-		ledman {
-			GPIO_0 {
-				line_name = "LED_POWER";
-				active_low;
-			};
-			GPIO_43 {
-				line_name = "LED_ETH_GREEN_1";
-			};
-			GPIO_41 {
-				line_name = "LED_ETH_GREEN_2";
-			};
-			GPIO_42 {
-				line_name = "LED_ETH_YELLOW_1";
-			};
-			GPIO_45 {
-				line_name = "LED_ETH_YELLOW_2";
-			};
-			GPIO_7 {
-				line_name = "LED_TECH_GEN_RED";
-				active_low;
-			};
-			GPIO_12 {
-				line_name = "LED_TECH_GEN_GREEN";
-				active_low;
-			};
-			GPIO_8 {
-				line_name = "LED_TECH_GEN_BLUE";
-				active_low;
-			};
-			GPIO_47 {
-				line_name = "LED_SSID_RED";
-				active_low;
-			};
-			GPIO_46 {
-				line_name = "LED_SSID_GREEN";
-				active_low;
-			};
-			GPIO_48 {
-				line_name = "LED_SSID_BLUE";
 				active_low;
 			};
 		};
@@ -255,8 +208,10 @@
 	};
 };
 
-&mdio {
-	ephy4: ephy@4 {
-		reg = <0>;
-	};
+&gmac1 {
+	phy-handle = <&ethphy0>;
+};
+
+&ethphy0 {
+	/delete-property/ interrupts;
 };

@@ -139,20 +139,7 @@
   * pinmux_request_gpio() - request pinmuxing for a GPIO pin
   * @pctldev: pin controller device affected
   * @pin: the pin to mux in for GPIO
---- a/drivers/pinctrl/pinmux.h
-+++ b/drivers/pinctrl/pinmux.h
-@@ -17,6 +17,8 @@ int pinmux_validate_map(const struct pin
- 
- bool pinmux_can_be_used_for_gpio(struct pinctrl_dev *pctldev, unsigned pin);
- 
-+int pinmux_request_gpio_tlt(struct pinctrl_dev *pctldev,
-+                        int pin, unsigned mux_group);
- int pinmux_request_gpio(struct pinctrl_dev *pctldev,
- 			struct pinctrl_gpio_range *range,
- 			unsigned pin, unsigned gpio);
---- a/drivers/pinctrl/pinmux.c
-+++ b/drivers/pinctrl/pinmux.c
-@@ -431,12 +431,21 @@ int pinmux_enable_setting(const struct p
+@@ -431,12 +498,21 @@ int pinmux_enable_setting(const struct p
  
  	/* Try to allocate all pins in this group, one by one */
  	for (i = 0; i < num_pins; i++) {
@@ -175,3 +162,14 @@
  			pname = desc ? desc->name : "non-existing";
  			gname = pctlops->get_group_name(pctldev,
  						setting->data.mux.group);
+--- a/drivers/pinctrl/pinmux.h
++++ b/drivers/pinctrl/pinmux.h
+@@ -17,6 +17,8 @@ int pinmux_validate_map(const struct pin
+ 
+ bool pinmux_can_be_used_for_gpio(struct pinctrl_dev *pctldev, unsigned pin);
+ 
++int pinmux_request_gpio_tlt(struct pinctrl_dev *pctldev,
++                        int pin, unsigned mux_group);
+ int pinmux_request_gpio(struct pinctrl_dev *pctldev,
+ 			struct pinctrl_gpio_range *range,
+ 			unsigned pin, unsigned gpio);

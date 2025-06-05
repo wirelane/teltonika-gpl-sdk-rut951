@@ -18,6 +18,7 @@ define Device/teltonika_rut2x_common
 	HARDWARE/Physical_Specification/Dimensions := 83 x 25 x 74 mm
 	HARDWARE/Physical_Specification/Weight := 125 g
 	HARDWARE/Physical_Specification/Mounting_options := Bottom and sideways DIN rail mounting slots
+	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_OPTIONAL)
 endef
 
 define Device/template_rut2x
@@ -69,6 +70,7 @@ define Device/TEMPLATE_teltonika_rut200
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT200
+	DEVICE_FEATURES += ios
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 	DEVICE_FEATURES += small_flash
 
@@ -96,11 +98,10 @@ define Device/TEMPLATE_teltonika_rut241
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT241
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
-	DEVICE_FEATURES += esim-p small_flash
+	DEVICE_FEATURES += esim-p ios small_flash
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
 	HARDWARE/Mobile/3GPP_Release := Release 10/11 depending on the hardware version
-	HARDWARE/Mobile/eSIM** := Optional: consumer type eSIM (SGP.22), up to 7 eSIM profiles
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, ANRT, Kenya, ICASA, FCC, IC, PTCRB, NOM, RCM, KC, Giteki, \
 	IMDA, E-mark, CB, UL/CSA Safety, RoHS, REACH, R118
 	HARDWARE/Regulatory_&_Type_Approvals/Operator := AT&T, Verizon, T-Mobile, Uscellula
@@ -124,6 +125,7 @@ define Device/TEMPLATE_teltonika_rut260
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT260
+	DEVICE_FEATURES += ios
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.1
 	DEVICE_FEATURES += small_flash
 
@@ -142,6 +144,7 @@ define Device/TEMPLATE_teltonika_rut271
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT271
+	DEVICE_FEATURES += ios
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.12.1
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
@@ -218,5 +221,19 @@ define Device/TEMPLATE_teltonika_rut276
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_formats := $(HW_SD_STORAGE_FORMATS)
+	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
+endef
+
+define Device/TEMPLATE_teltonika_rut281
+	$(Device/teltonika_rute)
+	$(Device/teltonika_rut2x_common)
+	$(Device/template_rut2x)
+	DEVICE_MODEL := RUT281
+	DEVICE_FEATURES += ios
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.15
+
+	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
+	HARDWARE/Mobile/3GPP_Release := Release 10
+	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
 endef

@@ -18,7 +18,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 
 --- a/block/Kconfig
 +++ b/block/Kconfig
-@@ -192,6 +192,15 @@ config BLK_INLINE_ENCRYPTION_FALLBACK
+@@ -204,6 +204,15 @@ config BLK_INLINE_ENCRYPTION_FALLBACK
  
  menu "Partition Types"
  

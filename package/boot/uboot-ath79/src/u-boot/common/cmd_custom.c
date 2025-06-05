@@ -407,20 +407,4 @@ U_BOOT_CMD(phy_power_set, 3, 1, do_phy_power_set,
 	"power\n"
 	"	- value to set the power to\n");
 
-#ifdef CONFIG_FOR_TELTONIKA_RUT2XX
-int do_wdog(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
-{
-	unsigned reg = argc == 2 ? simple_strtoul(argv[1], NULL, 10) : 0;
-
-	rut2xx_set_wdog(reg);
-
-	return 0;
-}
-
-U_BOOT_CMD(wdog, 2, 1, do_wdog,
-	"toggle watchdog\n",
-	"<register_value>\n"
-	"	- sets RST_WATCHDOG_TIMER register, \"0\" disables watchdog\n");
-#endif // CONFIG_FOR_TELTONIKA_RUT2XX
-
 #endif /* CONFIG_CMD_PHY_POWER */

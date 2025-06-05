@@ -1,6 +1,7 @@
 define Device/teltonika_rut9x_common
 	$(Device/tlt-mt7628-hw-common)
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
+	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_OPTIONAL)
 	HARDWARE/WAN/Port := 1 $(HW_ETH_WAN_PORT)
 	HARDWARE/WAN/Speed := $(HW_ETH_SPEED_100)
 	HARDWARE/WAN/Standard := $(HW_ETH_WAN_STANDARD)
@@ -10,7 +11,7 @@ define Device/teltonika_rut9x_common
 	HARDWARE/Power/Power_consumption := < 2 W idle, < 7 W Max
 	HARDWARE/Physical_Interfaces/Ethernet := 4 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_100)
 	HARDWARE/Physical_Interfaces/Status_leds := 1 x Bi-color connection status, 5 x Mobile connection strength, 4 x ETH status, 1 x Power
-	HARDWARE/Physical_Interfaces/SIM := 2 $(HW_INTERFACE_SIM_HOLDERS), $(HW_INTERFACE_SIM_ESIM)
+	HARDWARE/Physical_Interfaces/SIM := 2 $(HW_INTERFACE_SIM_HOLDERS)
 	HARDWARE/Physical_Specification/Casing_material := $(HW_PHYSICAL_HOUSING_AL_PL)
 	HARDWARE/Physical_Specification/Dimensions := 110 x 50 x 100 mm
 	HARDWARE/Physical_Specification/Weight := 287 g
@@ -36,7 +37,7 @@ define Device/template_rut9x
 
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
 
-	DEVICE_FEATURES := dual_sim mobile nat_offloading port_link \
+	DEVICE_FEATURES := dual_sim ios mobile nat_offloading port_link \
 		wifi ethernet xfrm-offload soft_port_mirror reset_button
 endef
 
@@ -149,15 +150,15 @@ define Device/TEMPLATE_teltonika_rut951
 	DEVICE_MODEL := RUT951
 	DEVICE_FEATURES += small_flash
 
-	HARDWARE/PoE** := PoE (Optional)
-	HARDWARE/PoE/PoE_In/PoE_ports := 1 x PoE In
-	HARDWARE/PoE/PoE_In/PoE_standards := 802.3af/at
-	HARDWARE/PoE/PoE_Out/PoE_ports := 1 x PoE Out
-	HARDWARE/PoE/PoE_Out/PoE_standards := 802.3af and 802.3at Alternative B
-	HARDWARE/PoE/PoE_Out/PoE_Max_Power_per_Port_(at_PSE) := 24 W Max (power supply unit dependent)
+	HARDWARE/PoE_In_(Optional)/PoE_ports := 1 x PoE In
+	HARDWARE/PoE_In_(Optional)/PoE_standards := 802.3af/at
+	HARDWARE/PoE_Out_(Optional)/PoE_ports := 1 x PoE Out
+	HARDWARE/PoE_Out_(Optional)/PoE_standards := 802.3af and 802.3at Alternative B
+	HARDWARE/PoE_Out_(Optional)/PoE_Max_Power_per_Port_(at_PSE) := 24 W Max (power supply unit dependent)
+	HARDWARE/Power/PoE_Standards  := Optional: $(HW_POWER_POE_PASSIVE_30V)
 	HARDWARE/Mobile/3GPP_Release := Release 10/11 depending on the hardware version
-	HARDWARE/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
-	HARDWARE/Input_Output/Output := 1 $(HW_OUTPUT_DO_30V)
+	HARDWARE/Input_Output/Input := 1 $(HW_INPUT_DI_30V) (Not available with active PoE)
+	HARDWARE/Input_Output/Output := 1 $(HW_OUTPUT_DO_30V) (Not available with active PoE)
 	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi antenna connectors
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, ANRT, Kenya, CITC, ICASA, FCC, IC, PTCRB, RCM, Giteki, \
 	ECE R118, E-mark, CB, UL/CSA Safety, RoHS, REACH, C1D2
@@ -311,6 +312,43 @@ define Device/TEMPLATE_teltonika_rut976
 	HARDWARE/EMC_Emissions_&_Immunity/DIP := $(HW_IMUNITY_EMISION_DIP)
 	HARDWARE/RF/Standards := $(HW_RF_EN_300_328_V2.2.2); $(HW_RF_EN_301_511_V12.5.1); $(HW_RF_EN_301_908-1_V15.2.1); $(HW_RF_EN_301_908-2_V13.1.1); \
 	$(HW_RF_EN_301_908-13_V13.2.1); EN 303 413 V1.1.1;
+	HARDWARE/Safety_(Ordinary_Locations)/Standards := CE:EN IEC 62368-1:2020 + A11:2020, EN IEC 62311:2020, EN 50665:2017; RCM:AS/NZS 62368.1:2022; \
+	CB:IEC 62368-1:2018; UL/CSA Safety:UL 62368-1 (3rd Ed., Rev. December 13, 2019), C22.2 No. 62368-1:19 (3rd Ed., Rev. December 13, 2019);
+	HARDWARE/Safety_(Hazardous_Locations)/Standards := UL/CSA Safety:UL 121201, 9th Ed., Rev. April 1, 2021, CAN/CSA C22.2 No. 213, 3rd Ed. April 2021
+	HARDWARE/Safety_(Hazardous_Locations)/Hazardous_Environments := Class I, Division 2, Groups A, B, C, D; Class I, Zone 2, \
+	Group IIC; -40°C ≤ Ta ≤ 75°C, T4, IP30;
+endef
+
+define Device/TEMPLATE_teltonika_rut981
+	$(Device/teltonika_rute)
+	$(Device/teltonika_rut9x_common)
+	$(Device/template_rut9x)
+	DEVICE_MODEL := RUT981
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.15
+
+	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
+	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
+	HARDWARE/Power/PoE_Standards  := Optional: $(HW_POWER_POE_PASSIVE_30V)
+	HARDWARE/Mobile/3GPP_Release := Release 10
+	HARDWARE/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
+	HARDWARE/Input_Output/Output := 1 $(HW_OUTPUT_DO_30V)
+	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi antenna connectors
+	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, ANRT, Kenya, CITC, ICASA, FCC, IC, PTCRB, RCM, Giteki, \
+	ECE R118, E-mark, CB, UL/CSA Safety, RoHS, REACH, C1D2
+	HARDWARE/Regulatory_&_Type_Approvals/Operator := AT&T, Verizon, T-Mobile
+	HARDWARE/EMC_Emissions_&_Immunity/Standards := $(HW_EI_STANDARDS_EN_55032); $(HW_EI_STANDARDS_EN_55035); $(HW_EI_STANDARDS_EN_IEC_61000-3-2); \
+	$(HW_EI_STANDARDS_EN_61000-3-3); $(HW_EI_STANDARDS_EN_301_489-1_V2.2.3); $(HW_EI_STANDARDS_EN_301_489-17_V3.2.4); \
+	$(HW_EI_STANDARDS_EN_301_489-52_V1.2.1);
+	HARDWARE/EMC_Emissions_&_Immunity/ESD := $(HW_IMUNITY_EMISION_ESD)
+	HARDWARE/EMC_Emissions_&_Immunity/Radiated_Immunity := EN 61000-4-3:2020
+	HARDWARE/EMC_Emissions_&_Immunity/EFT := $(HW_IMUNITY_EMISION_EFT)
+	HARDWARE/EMC_Emissions_&_Immunity/Surge_Immunity_(AC_Mains_Power_Port) := $(HW_IMUNITY_EMISION_SURGE)
+	HARDWARE/EMC_Emissions_&_Immunity/CS := EN 61000-4-6:2014
+	HARDWARE/EMC_Emissions_&_Immunity/DIP := $(HW_IMUNITY_EMISION_DIP)
+	HARDWARE/RF/Standards := $(HW_RF_EN_300_328_V2.2.2); $(HW_RF_EN_301_511_V12.5.1); $(HW_RF_EN_301_908-1_V15.2.1); $(HW_RF_EN_301_908-2_V13.1.1); \
+	$(HW_RF_EN_301_908-13_V13.2.1);
+	HARDWARE/Safety/Standards := CE:$(HW_SAFETY_EN_IEC_62368-1), $(HW_SAFETY_EN_IEC_62311), $(HW_SAFETY_EN_5066); RCM:$(HW_SAFETY_AS/NZS_62368); \
+	CB:$(HW_SAFETY_IEC_62368-1); UL/CSA Safety:UL 62368-1 (3rd Ed., Rev. December 13, 2019), C22.2 No. 62368-1:19 (3rd Ed., Rev. December 13, 2019);
 	HARDWARE/Safety_(Ordinary_Locations)/Standards := CE:EN IEC 62368-1:2020 + A11:2020, EN IEC 62311:2020, EN 50665:2017; RCM:AS/NZS 62368.1:2022; \
 	CB:IEC 62368-1:2018; UL/CSA Safety:UL 62368-1 (3rd Ed., Rev. December 13, 2019), C22.2 No. 62368-1:19 (3rd Ed., Rev. December 13, 2019);
 	HARDWARE/Safety_(Hazardous_Locations)/Standards := UL/CSA Safety:UL 121201, 9th Ed., Rev. April 1, 2021, CAN/CSA C22.2 No. 213, 3rd Ed. April 2021

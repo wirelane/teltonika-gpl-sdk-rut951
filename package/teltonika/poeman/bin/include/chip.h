@@ -12,10 +12,10 @@ int chip_init(void);
 void chip_deinit(void);
 int chip_port_enable(const char *lan, bool enable);
 int chip_get_port_power(const char *lan, int *on);
-int chip_get_port_i(const char *lan, int *current);
-int chip_get_port_v(const char *lan, int *voltage);
+int chip_get_port_current_ma(const char *lan, int *current);
+int chip_get_port_voltage_mv(const char *lan, int *voltage);
 int chip_get_port_t(const char *lan, int *temperature);
 int chip_get_port_pd_class(const char *lan, const char **class);
-void chip_dump_regs();
+void chip_dump_regs(void);
 
 #endif

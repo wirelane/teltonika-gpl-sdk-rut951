@@ -258,13 +258,6 @@ COMMON_ETHS27_TARGETS = \
 $(COMMON_ETHS27_TARGETS):
 	@$(call build,123,1,ETH_CONFIG=_s27)
 
-tlt-trb24x:
-	@$(call build,123,1,\
-		ETH_CONFIG=_s27 \
-		DEVICE_VENDOR=teltonika \
-		DEVICE_MODEL=TRB2XX \
-		CFG_74X164=1)
-
 tlt-trb2m:
 	@$(call build,128,0,\
 		DEVICE_VENDOR=teltonika \
@@ -280,100 +273,31 @@ tlt-dap14x:
 		DEVICE_VENDOR=teltonika \
 		DEVICE_MODEL=DAP14X)
 
-tlt-rut2xx:
-	@$(call build,128,1,\
-		DEVICE_VENDOR=teltonika \
-		DEVICE_MODEL=RUT2xx)
-
-tlt-rut2xx-vboot:
-	@$(call build,128,1,\
-		DEVICE_VENDOR=teltonika_VerifiedBoot \
-		DEVICE_MODEL=RUT2xx \
-		CFG_TLT_VERIFIED_BOOT=1 \
-		VERIFIED_BOOT_STR=-vb)
-
-tlt-rut2xx-vboot-64k:
-	@$(call build,64,1,\
-		DEVICE_VENDOR=teltonika_recovery \
-		DEVICE_MODEL=RUT2xx \
-		CFG_TLT_VERIFIED_BOOT=1 \
-		VERIFIED_BOOT_STR=-vbr)
-
 tlt-rut2m:
 	@$(call build,128,0,\
 		DEVICE_VENDOR=teltonika \
 		DEVICE_MODEL=RUT2M)
-
-tlt-rut206:
-	@$(call build,128,0,\
-		DEVICE_VENDOR=teltonika \
-		DEVICE_MODEL=RUT206)
 
 tlt-tap100:
 	@$(call build,128,0,\
 		DEVICE_VENDOR=teltonika \
 		DEVICE_MODEL=TAP100)
 
-tlt-rut300:
-	@$(call build,123,1,\
-		ETH_CONFIG=_s27 \
-		DEVICE_VENDOR=teltonika \
-		DEVICE_MODEL=RUT300)
-
 tlt-rut301:
 	@$(call build,128,0,\
 		DEVICE_VENDOR=teltonika \
 		DEVICE_MODEL=RUT301)
-
-tlt-rut360:
-	@$(call build,123,1,\
-		ETH_CONFIG=_s27 \
-		DEVICE_VENDOR=teltonika \
-		DEVICE_MODEL=RUT360 \
-		CFG_74X164=1)
 
 tlt-rut361:
 	@$(call build,128,0,\
 		DEVICE_VENDOR=teltonika \
 		DEVICE_MODEL=RUT361)
 
-tlt-rut9xx:
-	@$(call build,128,1,\
-		ETH_CONFIG=_s27 \
-		DEVICE_VENDOR=teltonika \
-		DEVICE_MODEL=RUT9XX \
-		CFG_74X164=1 \
-		CONFIG_LZ4=1)
-
-tlt-rut9xx-vboot:
-	@$(call build,128,1,\
-		ETH_CONFIG=_s27 \
-		DEVICE_VENDOR=teltonika_VerifiedBoot \
-		DEVICE_MODEL=RUT9XX \
-		CFG_74X164=1 \
-		CFG_TLT_VERIFIED_BOOT=1 \
-		VERIFIED_BOOT_STR=-vb)
-
-tlt-rut9xx-vboot-64k:
-	@$(call build,64,1,\
-		ETH_CONFIG=_s27 \
-		DEVICE_VENDOR=teltonika_recovery \
-		DEVICE_MODEL=RUT9XX \
-		CFG_74X164=1 \
-		CFG_TLT_VERIFIED_BOOT=1 \
-		VERIFIED_BOOT_STR=-vbr)
 
 tlt-rut9m:
 	@$(call build,128,0,\
 		DEVICE_VENDOR=teltonika \
 		DEVICE_MODEL=RUT9M)
-
-tlt-tcr1xx:
-	@$(call build,123,1,\
-		ETH_CONFIG=_s27 \
-		DEVICE_VENDOR=teltonika \
-		DEVICE_MODEL=TCR1XX \
-		CFG_74X164=1)
 
 tlt-otd140:
 	@$(call build,128,0,\

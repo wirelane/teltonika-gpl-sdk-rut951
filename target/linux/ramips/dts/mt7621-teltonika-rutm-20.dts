@@ -26,32 +26,20 @@
 
 		gpio_modem_power {
 			gpio-export,name = "modem_power";
-			gpio-export,output = <0>; // tmp
-			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
+			gpio-export,output = <1>; // tmp
+			gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
 		};
 
-		yellow_eth_port_1 {
-			gpio-export,name = "yellow:eth_port_1";
+		gpio_sim_select {
+			gpio-export,name = "sim_sel";
 			gpio-export,output = <0>;
-			gpios = <&gpio 45 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 5 GPIO_ACTIVE_HIGH>;
 		};
 
-		yellow_eth_port_0 {
-			gpio-export,name = "yellow:eth_port_0";
-			gpio-export,output = <0>;
-			gpios = <&gpio 42 GPIO_ACTIVE_HIGH>;
-		};
-
-		green_eth_port_1 {
-			gpio-export,name = "green:eth_port_1";
-			gpio-export,output = <0>;
-			gpios = <&gpio 41 GPIO_ACTIVE_HIGH>;
-		};
-
-		green_eth_port_0 {
-			gpio-export,name = "green:eth_port_0";
-			gpio-export,output = <0>;
-			gpios = <&gpio 43 GPIO_ACTIVE_HIGH>;
+		gpio_tpm_reset {
+			gpio-export,name = "tpm_reset";
+			gpio-export,output = <1>;
+			gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -97,6 +85,26 @@
 			gpios = <&gpio 47 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "timer"; // only
 		};
+
+		led_eth_y1 {
+			label = "eth_y1";
+			gpios = <&gpio 45 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_y0 {
+			label = "eth_y0";
+			gpios = <&gpio 42 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_g1 {
+			label = "eth_g1";
+			gpios = <&gpio 41 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_eth_g0 {
+			label = "eth_g0";
+			gpios = <&gpio 43 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	tlt_gpios { // Modify according to wiki page "DTS syntax with Libgpiod changes"
@@ -108,49 +116,6 @@
 				gpiochip_0 = <32>; // Built-in
 				gpiochip_1 = <32>; // Built-in
 				gpiochip_2 = <32>; // Built-in
-			};
-		};
-
-		ledman {
-			GPIO_0 {
-				line_name = "LED_POWER";
-				active_low;
-			};
-			GPIO_43 {
-				line_name = "LED_ETH_GREEN_1";
-			};
-			GPIO_41 {
-				line_name = "LED_ETH_GREEN_2";
-			};
-			GPIO_42 {
-				line_name = "LED_ETH_YELLOW_1";
-			};
-			GPIO_45 {
-				line_name = "LED_ETH_YELLOW_2";
-			};
-			GPIO_7 {
-				line_name = "LED_TECH_GEN_RED";
-				active_low;
-			};
-			GPIO_12 {
-				line_name = "LED_TECH_GEN_GREEN";
-				active_low;
-			};
-			GPIO_8 {
-				line_name = "LED_TECH_GEN_BLUE";
-				active_low;
-			};
-			GPIO_47 {
-				line_name = "LED_SSID_RED";
-				active_low;
-			};
-			GPIO_46 {
-				line_name = "LED_SSID_GREEN";
-				active_low;
-			};
-			GPIO_48 {
-				line_name = "LED_SSID_BLUE";
-				active_low;
 			};
 		};
 
@@ -190,12 +155,15 @@
 		budget@1 {
 			GPIO_T2P_SIGNAL = <0>;
 			GPIO_PG_SIGNAL = <1>;
-			budget = <30000>;
+			budget = <30200>;
+			allowed_deficit = <600>;
 		};
 		budget@2 {
 			GPIO_T2P_SIGNAL = <1>;
 			GPIO_PG_SIGNAL = <1>;
 			budget = <15000>;
+			max_port_power = <7000>;
+			allowed_deficit = <300>;
 		};
 	};
 };
@@ -218,7 +186,7 @@
 
 &mnfinfo {
 	sim_cfg {
-		default = "1111020_1112020";
+		default = "1111100_1112000_1121200";
 		keep-sim-presence;
 	};
 };
@@ -238,8 +206,10 @@
 	};
 };
 
-&mdio {
-	ephy4: ephy@4 {
-		reg = <0>;
-	};
+&gmac1 {
+	phy-handle = <&ethphy0>;
+};
+
+&ethphy0 {
+	/delete-property/ interrupts;
 };

@@ -18,6 +18,7 @@ define Device/tlt-mt7628-common
 	SOC := mt7628an
 
 	DEVICE_FEATURES := small_flash sw-offload dot1x-client 128mb_ram reset_button
+
 	MTDPARTS :=
 	BLOCKSIZE := 64k
 	KERNEL := kernel-bin | append-dtb | lzma | uImage lzma
@@ -66,8 +67,8 @@ define Device/teltonika_trb2m
 	DEVICE_MODEL := TRB2M
 	DEVICE_BOOT_NAME := tlt-trb2m
 	DEVICE_DTS := mt7628an_teltonika_trb2m
-	DEVICE_FEATURES += gateway pppmobile gps serial serial-reset-quirk \
-			modbus io single_port dualsim bacnet ntrip mobile ncm dot1x-server \
+	DEVICE_FEATURES += gateway pppmobile gps serial \
+			modbus ios single_port dualsim bacnet ntrip mobile ncm dot1x-server \
 	                xfrm-offload no-wired-wan
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.5
@@ -97,6 +98,7 @@ define Device/teltonika_tap100
 	DEVICE_BOOT_NAME := tlt-tap100
 	DEVICE_DTS := mt7628an_teltonika_tap100
 	DEVICE_FEATURES := small_flash access_point single_port wifi ledman-lite dot1x-client no-wired-wan reset_button
+
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4
 	GPL_PREFIX := GPL
 	# Default common packages for TAP100 series
@@ -184,7 +186,7 @@ define Device/teltonika_rut2m
 	DEVICE_MODEL := RUT2M
 	DEVICE_BOOT_NAME := tlt-rut2m
 	DEVICE_DTS := mt7628an_teltonika_rut2m
-	DEVICE_FEATURES += io wifi rndis mobile portlink dualsim dot1x-server xfrm-offload
+	DEVICE_FEATURES += ios wifi rndis mobile portlink dualsim dot1x-server xfrm-offload
 	GPL_PREFIX := GPL
 	# Default common packages for RUT241, RUT200 series
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -220,7 +222,7 @@ define Device/teltonika_rut301
 	DEVICE_MODEL := RUT301
 	DEVICE_BOOT_NAME := tlt-rut301
 	DEVICE_DTS := mt7628an_teltonika_rut301
-	DEVICE_FEATURES += usb-port serial io basic-router ledman-lite portlink dot1x-server \
+	DEVICE_FEATURES += usb-port serial ios basic-router ledman-lite portlink dot1x-server \
 	                   xfrm-offload ntrip
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.1
@@ -239,7 +241,7 @@ define Device/teltonika_rut361
 	DEVICE_MODEL := RUT361
 	DEVICE_BOOT_NAME := tlt-rut361
 	DEVICE_DTS := mt7628an_teltonika_rut361
-	DEVICE_FEATURES += io wifi rndis mobile portlink dot1x-server xfrm-offload
+	DEVICE_FEATURES += ios wifi rndis mobile portlink dot1x-server xfrm-offload
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.1
 	GPL_PREFIX := GPL
 	# Default common packages for RUT361
@@ -262,7 +264,7 @@ define Device/teltonika_rut9m
 	$(Device/tlt-mt7628-common)
 	DEVICE_MODEL := RUT9M
 	DEVICE_BOOT_NAME := tlt-rut9m
-	DEVICE_FEATURES += gps usb-port serial modbus io wifi dualsim \
+	DEVICE_FEATURES += gps usb-port serial modbus ios wifi dualsim \
 			rndis ncm bacnet ntrip mobile portlink rs232 rs485 dot1x-server port-mirror \
 	                xfrm-offload poe
 	DEVICE_DTS := mt7628an_teltonika_rut9m
@@ -297,7 +299,14 @@ TARGET_DEVICES += teltonika_rut9m
 define Device/teltonika_rute
 	$(Device/tlt-mt7628-common)
 
-	DEVICE_DTS := mt7628an-teltonika-rut976 mt7628an-teltonika-rut206 mt7628an-teltonika-rut271 mt7628an-teltonika-rut276 mt7628an-teltonika-rut971
+	DEVICE_DTS := \
+		mt7628an-teltonika-rut976 \
+		mt7628an-teltonika-rut206 \
+		mt7628an-teltonika-rut271 \
+		mt7628an-teltonika-rut276 \
+		mt7628an-teltonika-rut281 \
+		mt7628an-teltonika-rut971 \
+		mt7628an-teltonika-rut981
 	KERNEL := kernel-bin | zstd | fit zstd "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addprefix image-,$$(addsuffix .dtb,$$(DEVICE_DTS))))}"
 	KERNEL_INITRAMFS := $$(KERNEL)
 
@@ -308,7 +317,7 @@ define Device/teltonika_rute
 
 	DEVICE_MODEL := RUTE
 	DEVICE_BOOT_NAME := tlt-mt7628
-	DEVICE_FEATURES := large_flash sw-offload gps usb-port serial modbus io wifi dualsim tpm \
+	DEVICE_FEATURES := large_flash sw-offload gps usb-port serial modbus ios wifi dualsim tpm \
 			rndis ncm bacnet ntrip mobile portlink rs232 rs485 dot1x-server port-mirror \
 	                xfrm-offload usb-sd-card usb-port dot1x-client 128mb_ram reset_button
 	FILESYSTEMS := squashfs
@@ -336,11 +345,13 @@ define Device/teltonika_rute
 		TEMPLATE_teltonika_rut206 \
 		TEMPLATE_teltonika_rut271 \
 		TEMPLATE_teltonika_rut276 \
+		TEMPLATE_teltonika_rut281 \
 		TEMPLATE_teltonika_rut971 \
-		TEMPLATE_teltonika_rut976
+		TEMPLATE_teltonika_rut976 \
+		TEMPLATE_teltonika_rut981
 
-	SUPPORTED_DEVICES := teltonika,rute teltonika,rut976 teltonika,rut206 teltonika,rut271 teltonika,rut276 teltonika,rut971
+	SUPPORTED_DEVICES := teltonika,rute teltonika,rut976 teltonika,rut206 teltonika,rut271 teltonika,rut276 teltonika,rut281 teltonika,rut971 teltonika,rut981
 
-	DEVICE_MODEM_VENDORS := Quectel
-	DEVICE_MODEM_LIST := EC200A EC25 RG255C
+	DEVICE_MODEM_VENDORS := Quectel Telit
+	DEVICE_MODEM_LIST := EC200A EC25 RG255C LE910C4
 endef

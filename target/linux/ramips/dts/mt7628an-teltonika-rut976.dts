@@ -194,46 +194,6 @@
 			};
 		};
 
-		ledman {
-			GPIO_43 {
-				line_name = "LED_ETH_GREEN_1";
-				active_low;
-			};
-			GPIO_42 {
-				line_name = "LED_ETH_GREEN_2";
-				active_low;
-			};
-			GPIO_41 {
-				line_name = "LED_ETH_GREEN_3";
-				active_low;
-			};
-			GPIO_39 {
-				line_name = "LED_ETH_GREEN_4";
-				active_low;
-			};
-			GPIO_101 {
-				line_name = "LED_TECH_GEN_23";
-			};
-			GPIO_102 {
-				line_name = "LED_TECH_GEN_43";
-			};
-			GPIO_96 {
-				line_name = "LED_SSID_1";
-			};
-			GPIO_97 {
-				line_name = "LED_SSID_2";
-			};
-			GPIO_98 {
-				line_name = "LED_SSID_3";
-			};
-			GPIO_99 {
-				line_name = "LED_SSID_4";
-			};
-			GPIO_100 {
-				line_name = "LED_SSID_5";
-			};
-		};
-
 		misc {
 			GPIO_0 {
 				compatible_versions = <5 99>;
@@ -342,15 +302,18 @@
 &mnfinfo {
 	simpin1 {
 		default = "";
+		sec;
 	};
 
 	simpin2 {
 		default = "";
+		sec;
 	};
 
 	simpin3 {
 		tlt-mnf,hwver = <600 9999>;
 		default = "";
+		sec;
 	};
 
 	sim_cfg {

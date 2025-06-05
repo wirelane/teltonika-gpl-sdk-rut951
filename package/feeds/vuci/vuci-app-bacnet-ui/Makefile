@@ -5,7 +5,6 @@ APP_TITLE:=VuCI Support for BACnet
 APP_TLT_NAME:=BACnet Router
 APP_ROUTER:=$(TLT_PLATFORM_NAME)
 APP_APP_NAME:=bacnet-router
-APP_HW_INFO:=rs485
 
 include ../app.mk
 

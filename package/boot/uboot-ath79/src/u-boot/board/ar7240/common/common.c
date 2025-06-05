@@ -398,10 +398,3 @@ void full_reset(void)
 	qca_full_chip_reset();
 }
 
-#ifdef CONFIG_FOR_TELTONIKA_RUT2XX
-void rut2xx_set_wdog(unsigned regval)
-{
-	qca_soc_reg_write(QCA_RST_WATCHDOG_TIMER_CTRL_REG, regval ? 0b11 : 0);
-	qca_soc_reg_write(QCA_RST_WATCHDOG_TIMER_REG, regval);
-}
-#endif // CONFIG_FOR_TELTONIKA_RUT2XX

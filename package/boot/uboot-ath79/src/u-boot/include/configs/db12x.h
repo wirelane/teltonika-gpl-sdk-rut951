@@ -85,44 +85,8 @@
 						GPIO3 | GPIO13 | GPIO19 |\
 						GPIO20
 
-#elif defined(CONFIG_FOR_TELTONIKA_RUT9XX)
-
-	#define CONFIG_QCA_GPIO_MASK_LED_ACT_L 	GPIO1 | GPIO13 | GPIO14 |\
-						GPIO22
-
-	#define CONFIG_QCA_GPIO_MASK_IN 	GPIO2 | GPIO19 | GPIO21
-
-	#define CONFIG_SR_LED_ALL_OFF_MASK	0x00
-	#define CONFIG_SR_LED_ALL_ON_MASK	0x7F // skip modem_change_sim GPIO
-
-	// LED order is important!
-	#define CONFIG_SR_LED_ANIMATION_MASK 	0x01, 0x02, 0x04, 0x08, \
-						0x10
-
-	/* GPIOs for 74X164 shift register (used as a gpio expander) */
-	#define GPIO_SR_74X164_SER	GPIO12	/* Serial input */
-	#define GPIO_SR_74X164_SRCLK	GPIO4 	/* Shift register clock */
-	#define GPIO_SR_74X164_RCLK	GPIO20 	/* Storage register clock */
-
-	#define CONFIG_QCA_GPIO_MASK_OUT_INIT_L GPIO_SR_74X164_SER |\
-						GPIO_SR_74X164_SRCLK |\
-						GPIO_SR_74X164_RCLK
-
-	#define CONFIG_GPIO_MASK_DIGITAL_IN 	GPIO2
-
-	#define OFFSET_MNF_INFO	     		0x20000
-	#define OFFSET_SERIAL_NUMBER 		0x00030
-	#define SERIAL_NUMBER_LENGTH 		0x0000A
-	#define OFFSET_LINUX_PASSWD  		0x000A0
-	#define LINUX_PASSWD_LENGTH  		0x0006A
-
 #endif
 
-#if defined(CONFIG_FOR_TELTONIKA_RUT9XX)
-	#define DEVICE_MODEL 			"RUT9XX" // used for u-boot validation
-	#define DEVICE_MODEL_MANIFEST 		"rut9xx" // used for firmware validation
-	#define DEVICE_MODEL_NAME		"RUT9"	 // used for mnf info validation
-#endif
 /*
  * ================
  * Default bootargs
@@ -160,11 +124,6 @@
 				"rootfstype=squashfs,jffs2 init=/sbin/init "\
 				"mtdparts=ath-nor0:64k(u-boot),64k(u-boot-env),6528k(rootfs),1408K(uImage)"\
 				",7936k@0x20000(firmware),64k(NVRAM),64k(ART),8128k@0x00000(firmware2)"
-
-#elif defined(CONFIG_FOR_TELTONIKA_RUT9XX)
-
-	#define CONFIG_BOOTARGS	"console=ttyS0,115200"
-
 #else
 
 	#define CONFIG_BOOTARGS	"console=ttyS0,115200 root=31:02 "\
@@ -193,14 +152,6 @@
 #elif defined(CONFIG_FOR_YUNCORE_CPE870)
 
 	#define CFG_LOAD_ADDR		0x9F680000
-
-#elif defined(CONFIG_FOR_TELTONIKA_RUT9XX)
-
-	#define CFG_LOAD_ADDR		0x9F040000
-
-	#define CFG_FW_START		CFG_LOAD_ADDR
-	#define CFG_FW_LEN		0xF30000
-	#define CFG_FW_END		CFG_FW_START + CFG_FW_LEN
 
 #else
 
@@ -238,12 +189,6 @@
 	#define CFG_ENV_SIZE		0xFC00
 	#define CFG_ENV_SECT_SIZE	0x10000
 
-#elif defined(CONFIG_FOR_TELTONIKA_RUT9XX)
-
-	#define CFG_ENV_ADDR		0x9F01EC00
-	#define CFG_ENV_SIZE		0x1000
-	#define CFG_ENV_SECT_SIZE	0x10000
-
 #else
 
 	#define CFG_ENV_ADDR		0x9F01EC00
@@ -276,12 +221,6 @@
       defined(CONFIG_FOR_YUNCORE_CPE870)
 
 	#define OFFSET_MAC_DATA_BLOCK		0xFF0000
-	#define OFFSET_MAC_DATA_BLOCK_LENGTH	0x010000
-	#define OFFSET_MAC_ADDRESS		0x000000
-
-#elif defined(CONFIG_FOR_TELTONIKA_RUT9XX)
-
-	#define OFFSET_MAC_DATA_BLOCK		0x020000
 	#define OFFSET_MAC_DATA_BLOCK_LENGTH	0x010000
 	#define OFFSET_MAC_ADDRESS		0x000000
 
@@ -336,10 +275,6 @@
 
 	#define WEBFAILSAFE_UPLOAD_ART_ADDRESS	(CFG_FLASH_BASE + 0x70000)
 
-#elif defined(CONFIG_FOR_TELTONIKA_RUT9XX)
-
-	#define WEBFAILSAFE_UPLOAD_ART_ADDRESS	(CFG_FLASH_BASE + 0x30000)
-
 #endif
 
 /* Firmware size limit */
@@ -351,8 +286,7 @@
 
 	#define WEBFAILSAFE_UPLOAD_LIMITED_AREA_IN_BYTES	(2752 * 1024)
 
-#elif defined(CONFIG_FOR_GLINET_GL_AR300) ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT9XX)
+#elif defined(CONFIG_FOR_GLINET_GL_AR300)
 
 	#define WEBFAILSAFE_UPLOAD_LIMITED_AREA_IN_BYTES	(384 * 1024)
 
@@ -371,15 +305,7 @@
  * PLL/Clocks configuration
  * ========================
  */
-#if defined(CONFIG_FOR_TELTONIKA_RUT9XX)
-
-	#define CONFIG_QCA_PLL	QCA_PLL_PRESET_550_375_250
-
-#else
-
-	#define CONFIG_QCA_PLL	QCA_PLL_PRESET_550_400_200
-
-#endif
+#define CONFIG_QCA_PLL	QCA_PLL_PRESET_550_400_200
 
 #if defined(CONFIG_FOR_ALFA_NETWORK_N5Q)
 
@@ -399,8 +325,7 @@
       defined(CONFIG_FOR_TPLINK_WDR43X0_V1) ||\
       defined(CONFIG_FOR_TPLINK_WR1041N_V2) ||\
       defined(CONFIG_FOR_TPLINK_WR841N_V8)  ||\
-      defined(CONFIG_FOR_YUNCORE_CPE870)    ||\
-      defined(CONFIG_FOR_TELTONIKA_RUT9XX)
+      defined(CONFIG_FOR_YUNCORE_CPE870)
 
 	#if !defined(CONFIG_UBOOT_64K)
 		#define CONFIG_QCA_PLL_IN_FLASH_BLOCK_OFFSET	0x10000

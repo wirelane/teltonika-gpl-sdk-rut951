@@ -3,7 +3,7 @@ are tad overkill for calculating flow hashes, and take a lot of cpu time too.
 
 --- a/net/core/flow_dissector.c
 +++ b/net/core/flow_dissector.c
-@@ -1554,8 +1554,7 @@ static inline u32 __flow_hash_from_keys(
+@@ -1563,8 +1563,7 @@ static inline u32 __flow_hash_from_keys(
  
  	__flow_hash_consistentify(keys);
  

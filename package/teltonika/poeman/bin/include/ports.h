@@ -40,14 +40,14 @@ typedef struct {
 } t_port;
 
 int ports_init(int ports_number);
-t_port *get_ports();
-int get_ports_num();
+t_port *get_ports(void);
+int get_ports_num(void);
 t_port *get_port_by_id(const int id);
 t_port *get_port_by_number(int numb);
 t_port *get_port_by_name(const char *name);
 t_port *get_next_port(t_port *port);
 t_port *get_port_by_chip(int addr, int id);
 void chip_dump_port(t_port *port, t_poe_dump *info);
-void ports_deinit();
+void ports_deinit(void);
 
 #endif

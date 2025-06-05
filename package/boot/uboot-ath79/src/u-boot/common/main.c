@@ -300,9 +300,6 @@ init_led_animation_array();
 
 #if defined(CONFIG_GPIO_MASK_DIGITAL_IN)
 	if (digital_in_status()) {
-	#ifdef CONFIG_FOR_TELTONIKA_RUT2XX
-		rut2xx_set_wdog(0);
-	#endif // CONFIG_FOR_TELTONIKA_RUT2XX
 		printf("Digital input active, starting httpd\n");
 		setenv("httpd_timeout_enabled", "1");
 		setenv("eth_init_max_tries", "5");
@@ -336,10 +333,6 @@ init_led_animation_array();
 	#endif
 	}
 #endif /* CONFIG_BOOTDELAY && CONFIG_BOOTDELAY >= 0 */
-
-#ifdef CONFIG_FOR_TELTONIKA_RUT2XX
-	rut2xx_set_wdog(0);
-#endif
 
 #ifndef CFG_HUSH_PARSER
 	if (rc < 0) {
