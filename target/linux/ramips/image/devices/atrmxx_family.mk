@@ -28,7 +28,7 @@ define Device/TEMPLATE_teltonika_atrm50
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 
-	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550 Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200 Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/SD_card/Physical_size := $(HW_SD_PHYSICAL_SIZE)

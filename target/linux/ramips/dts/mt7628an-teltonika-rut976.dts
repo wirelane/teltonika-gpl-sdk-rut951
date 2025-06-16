@@ -350,21 +350,6 @@
 	};
 };
 
-&pcie {
-	status = "okay";
-};
-
-&pcie0 {
-	mt76@0,0 {
-		reg = <0x0000 0 0 0 0>;
-		ieee80211-freq-limit = <5000000 6000000>;
-		mediatek,mtd-eeprom = <&factory 0x28000>;
-		nvmem-cells = <&macaddr_config_0>;
-		nvmem-cell-names = "mac-address";
-		mac-address-increment = <(-1)>;
-	};
-};
-
 &spi0 {
 	status = "okay";
 

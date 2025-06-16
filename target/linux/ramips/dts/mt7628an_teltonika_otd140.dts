@@ -109,7 +109,6 @@
 			default-state = "on";
 			retain-state-shutdown;
 		};
-
 	};
 
 	tlt_gpios { // Modify according to wiki page "DTS syntax with Libgpiod changes"

@@ -60,7 +60,7 @@ define Device/TEMPLATE_teltonika_otd500
 		nat_offloading multi_tag port_link gigabit_port poe xfrm-offload \
 		tpm networks_external reset_button
 
-	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550 Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200 Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 endef
@@ -75,7 +75,7 @@ define Device/TEMPLATE_teltonika_otd501
 		nat_offloading multi_tag port_link gigabit_port poe xfrm-offload \
 		tpm networks_external reset_button
 
-	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
+	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650 Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
 	HARDWARE/Mobile/3GPP_Release := Release 15
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_OPTIONAL)
 endef

@@ -56,6 +56,7 @@ define Device/TEMPLATE_teltonika_rut142
 	$(Device/template_rut14x)
 	DEVICE_MODEL := RUT142
 	DEVICE_FEATURES += rs232
+
 	DEVICE_SERIAL_CAPABILITIES := \
 	"rs232"                                                           \
 		"300 600 1200 2400 4800 9600 19200 38400 57600 115200"        \

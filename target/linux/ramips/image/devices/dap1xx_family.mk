@@ -51,6 +51,7 @@ define Device/TEMPLATE_teltonika_dap142
 	$(Device/template_dap14x)
 	DEVICE_MODEL := DAP142
 	DEVICE_FEATURES += rs232
+
 	DEVICE_SERIAL_CAPABILITIES := \
 	"rs232"                                                           \
 		"300 600 1200 2400 4800 9600 19200 38400 57600 115200"        \

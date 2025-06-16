@@ -1,6 +1,6 @@
 define Device/teltonika_rut9x_common
 	$(Device/tlt-mt7628-hw-common)
-	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
+	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_OPTIONAL)
 	HARDWARE/WAN/Port := 1 $(HW_ETH_WAN_PORT)
 	HARDWARE/WAN/Speed := $(HW_ETH_SPEED_100)
@@ -45,6 +45,7 @@ define Device/template_rut9x_io
 
 	DEVICE_USB_JACK_PATH := /usb1/1-1/1-1.1/
 	DEVICE_FEATURES += usb gps rs232 rs485
+
 	DEVICE_SERIAL_CAPABILITIES := \
 		"rs232"                                                           \
 			"300 600 1200 2400 4800 9600 19200 38400 57600 115200"        \

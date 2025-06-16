@@ -90,7 +90,7 @@ define Device/TEMPLATE_teltonika_trb256
 	$(Device/teltonika_trb2m_common)
 	$(Device/template_trb2m)
 	DEVICE_MODEL := TRB256
-	HARDWARE/Mobile/Module := 4G LTE Cat M1 up to 588 DL/ 1119 UL kbps, Cat NB2 up to 127 DL/158.5 UL kbps, Cat NB1 up to 32 DL/70 UL kbps \
+	HARDWARE/Mobile/Module := 4G LTE Cat M1 up to 588 DL/ 1119 UL Kbps, Cat NB2 up to 127 DL/158.5 UL Kbps, Cat NB1 up to 32 DL/70 UL Kbps \
 							(simultaneous operation of cellular and GNSS connectivity is not supported)
 	HARDWARE/Mobile/3GPP_Release := Release 14
 	HARDWARE/Power/Power_consumption := Idle:< 2 W, Max:< 35 W

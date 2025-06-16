@@ -172,9 +172,11 @@ define Device/TEMPLATE_teltonika_rutm20
 
 	DEVICE_LAN_OPTION := "lan "
 	DEVICE_WAN_OPTION := wan
+	DEVICE_USB_JACK_PATH :=
+	DEVICE_CHECK_PATH += , usb_check /sys/bus/usb/drivers/usb/2-1 reboot
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
-	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
+	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650 Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/Physical_Interfaces/USB :=
@@ -202,9 +204,10 @@ define Device/TEMPLATE_teltonika_rutm30
 
 	DEVICE_LAN_OPTION := "lan "
 	DEVICE_WAN_OPTION := wan
+	DEVICE_USB_JACK_PATH :=
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
-	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
+	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650 Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/Physical_Interfaces/USB :=
@@ -266,7 +269,7 @@ define Device/TEMPLATE_teltonika_rutm50
 	DEVICE_USB_JACK_PATH := /usb1/1-2/
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
-	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4 Gbps DL (4x4 MIMO) 900, 550 Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6 Gbps (4x4 MIMO), UL Cat 18 200 Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
 	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 10 x Ethernet port status LEDs, 4 x WAN status LEDs, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
@@ -291,7 +294,7 @@ define Device/TEMPLATE_teltonika_rutm51
 	DEVICE_WAN_OPTION := wan
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
-	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
+	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6 Gbps, UL 650 Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
 	HARDWARE/Mobile/3GPP_Release := Release 15
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
 	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 10 x Ethernet port status LEDs, 4 x WAN status LEDs, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
@@ -316,7 +319,7 @@ define Device/TEMPLATE_teltonika_rutm52
 	DEVICE_USB_JACK_PATH :=
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
-	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550 Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200 Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/Physical_Interfaces/USB :=
@@ -351,8 +354,8 @@ define Device/TEMPLATE_teltonika_rutm54
 	DEVICE_USB_JACK_PATH := /usb1/1-2/
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
-	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 3.4Gbps DL, 0.55Gbps UL, SA 2.5Gbps DL, 0.9Gbps UL; 4G LTE CAT 19 DL 1.6Gbps on DL, CAT. 18 UL 211Mbps, \
-	3G HSPA+ Rel9 DL/UL 42/5.7Mbps
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 3.4Gbps DL, 0.55Gbps UL, SA 2.5Gbps DL, 0.9Gbps UL; 4G LTE CAT 19 DL 1.6Gbps on DL, CAT. 18 UL 211 Mbps, \
+	3G HSPA+ Rel9 DL/UL 42/5.7 Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
@@ -397,7 +400,7 @@ define Device/TEMPLATE_teltonika_rutm55
 			"half"                                                         \
 			"/usb1/1-1/1-1\:1.0/"
 
-	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550 Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200 Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/LAN/Port := 3 $(HW_ETH_LAN_PORTS)
 	HARDWARE/Physical_Interfaces/Status_leds := 3 x connection status LEDs, 3 x connection strength LEDs, 8 x Ethernet port status LEDs, 1 x Power LED
@@ -423,8 +426,8 @@ define Device/TEMPLATE_teltonika_rutm56
 	DEVICE_USB_JACK_PATH :=
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
-	HARDWARE/Mobile/Module := 1 x 5G Sub-6Ghz SA/NSA 2.4/3.4Gbps DL (4x4 MIMO), 900/550 Mbps UL (2x2); 4G (LTE) – LTE Cat 20 2.0Gbps DL, 210Mbps UL; 3G – 42 Mbps DL, 5.76Mbps UL, \
-	1 x 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
+	HARDWARE/Mobile/Module := 1 x 5G Sub-6Ghz SA/NSA 2.4/3.4Gbps DL (4x4 MIMO), 900/550 Mbps UL (2x2); 4G (LTE) – LTE Cat 20 2.0Gbps DL, 210 Mbps UL; 3G – 42 Mbps DL, 5.76 Mbps UL, \
+	1 x 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/3GPP_Release := Release 16, Release 9
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/Physical_Interfaces/USB :=
@@ -458,7 +461,7 @@ define Device/TEMPLATE_teltonika_rutm59
 	DEVICE_CHECK_PATH :=
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
-	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200Mbps
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550 Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200 Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Wireless/Wireless_mode :=
 	HARDWARE/Wireless/WIFI_users :=

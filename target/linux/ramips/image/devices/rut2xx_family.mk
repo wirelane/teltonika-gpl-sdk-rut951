@@ -70,11 +70,10 @@ define Device/TEMPLATE_teltonika_rut200
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT200
-	DEVICE_FEATURES += ios
+	DEVICE_FEATURES += ios small_flash
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
-	DEVICE_FEATURES += small_flash
 
-	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
+	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, EAC, Anatel, ANRT, Kenya, ICASA, NCC, \
 	ETA-WPC, SIRIM, IMDA, NTC, NBTC, MTC NOM, E-mark, CB, RoHS, REACH, R118
@@ -100,7 +99,7 @@ define Device/TEMPLATE_teltonika_rut241
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 	DEVICE_FEATURES += esim-p ios small_flash
 
-	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
+	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/3GPP_Release := Release 10/11 depending on the hardware version
 	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, ANRT, Kenya, ICASA, FCC, IC, PTCRB, NOM, RCM, KC, Giteki, \
 	IMDA, E-mark, CB, UL/CSA Safety, RoHS, REACH, R118
@@ -125,9 +124,8 @@ define Device/TEMPLATE_teltonika_rut260
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT260
-	DEVICE_FEATURES += ios
+	DEVICE_FEATURES += ios small_flash
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.1
-	DEVICE_FEATURES += small_flash
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 12
@@ -174,7 +172,7 @@ define Device/TEMPLATE_teltonika_rut206
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 	DEVICE_FEATURES += dual_sim sd_card rs232 rs485
 
-	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Mbps
+	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/3GPP_Release := Release 10/11 depending on the hardware version
 	HARDWARE/Input_Output/Input :=
 	HARDWARE/Input_Output/Output :=
@@ -232,7 +230,7 @@ define Device/TEMPLATE_teltonika_rut281
 	DEVICE_FEATURES += ios
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.15
 
-	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
+	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/3GPP_Release := Release 10
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
