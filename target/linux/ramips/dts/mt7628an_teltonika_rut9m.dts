@@ -390,15 +390,13 @@
 		};
 		budget@0 {
 			GPIO_4PIN_SIGNAL = <0>;
-			GPIO_T2P_SIGNAL = <0>;
-			adc_max = <48>;
+			adc_max = <46>;
 			budget = <0>;
 		};
 		budget@1 {
 			GPIO_4PIN_SIGNAL = <0>;
-			GPIO_T2P_SIGNAL = <0>;
-			adc_min = <48>;
-			budget = <60000>;
+			adc_min = <46>;
+			budget = <90000>;
 			allowed_deficit = <2000>;
 		};
 		budget@2 {

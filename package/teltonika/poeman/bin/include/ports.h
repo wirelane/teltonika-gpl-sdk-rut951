@@ -37,6 +37,7 @@ typedef struct {
 	int index;
 	void *poe;
 	enum port_state state;
+	int fail;
 } t_port;
 
 int ports_init(int ports_number);

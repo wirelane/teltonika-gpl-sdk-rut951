@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=poeman
 
-PKG_SOURCE_VERSION:=2.13
+PKG_SOURCE_VERSION:=2.15
 PKG_LICENSE:=Teltonika-closed
 
 include $(INCLUDE_DIR)/package.mk
