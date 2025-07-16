@@ -52,7 +52,7 @@
 
 		gpio_sim_select {
 			gpio-export,name = "sim_sel";
-			gpio-export,output = <1>;
+			gpio-export,output = <0>;
 			gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
 		};
 
@@ -208,18 +208,22 @@
 &mnfinfo {
 	simpin1 {
 		default = "";
+		sec;
 	};
 
 	simpin2 {
 		default = "";
+		sec;
 	};
 
 	simpin3 {
 		default = "";
+		sec;
 	};
 
 	sim_cfg {
 		default = "1111120_1112020_1121220";
+		keep-sim-presence;
 	};
 
 	blver {
@@ -235,21 +239,6 @@
 	gpio {
 		groups = "i2s", "p4led_an", "p3led_an", "p2led_an", "p1led_an", "p0led_an", "gpio", "wled_an", "perst", "refclk", "spi cs1";
 		function = "gpio";
-	};
-};
-
-&pcie {
-	status = "okay";
-};
-
-&pcie0 {
-	mt76@0,0 {
-		reg = <0x0000 0 0 0 0>;
-		ieee80211-freq-limit = <5000000 6000000>;
-		mediatek,mtd-eeprom = <&factory 0x28000>;
-		nvmem-cells = <&macaddr_config_0>;
-		nvmem-cell-names = "mac-address";
-		mac-address-increment = <(-1)>;
 	};
 };
 

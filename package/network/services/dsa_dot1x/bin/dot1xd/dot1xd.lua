@@ -26,23 +26,22 @@ local ubus_handler = function(msg, name)
 	local settings = port_settings[msg.iface]
 
 	if msg.authorized and (tonumber(msg.vid) or 0) > 0 and settings.use_vlans then
-		conn:call("file", "exec", {
-			command = port_block_script,
-			params = {
-				"assign_vlan", msg.iface,
-				tostring(msg.vid)
-			}
+		util.file_exec(port_block_script, {
+			"assign_vlan",
+			msg.iface,
+			tostring(msg.vid)
 		})
 	end
 
-	conn:call("file", "exec", {
-		command = port_block_script,
-		params = { "toggle_controlled_port", msg.iface, tostring(not msg.authorized), msg.address or "" }
+	util.file_exec(port_block_script, {
+		"toggle_controlled_port",
+		msg.iface,
+		tostring(not msg.authorized),
+		msg.address or ""
 	})
 
-	conn:call("file", "exec", {
-		command = port_block_script,
-		params = { "sync" }
+	util.file_exec(port_block_script, {
+		"sync"
 	})
 end
 
@@ -93,19 +92,19 @@ local function port_events(msg, name)
 	if msg.state == "UP" and not exists then
 		conn:call("hostapd", "config_add", {
 			iface = settings.port,
-			config = "/tmp/port_security/hostapd/"..settings.port..".config"
+			config = "/tmp/run/dot1x_server/"..settings.port..".config"
 		})
 	elseif msg.state == "DOWN" then
-		conn:call("file", "exec", {
-			command = port_block_script,
-			params = { "toggle_controlled_port", settings.port, "true" }
+		util.file_exec(port_block_script, {
+			"toggle_controlled_port",
+			settings.port,
+			"true"
 		})
 		conn:call("hostapd", "config_remove", {iface = settings.port})
 		return
 	end
-	conn:call("file", "exec", {
-		command = port_block_script,
-		params = { "sync" }
+	util.file_exec(port_block_script, {
+		"sync"
 	})
 end
 
@@ -118,9 +117,9 @@ local methods = {
 			function(req, _)
 				local port_status = {}
 				uci.cursor():foreach("dot1x", "port", function(s)
-					local state_cmd = conn:call("file", "exec", {
-						command = port_block_script,
-						params = { "get_port_state", s.iface }
+					local state_cmd = util.file_exec(port_block_script, {
+						"get_port_state",
+						s.iface
 					})
 					local state = string.gsub(state_cmd.stdout or "", "%s+", "")
 					port_status[s[".name"]] = {state = state}
@@ -141,15 +140,14 @@ local function request_identity()
 	identity_timer:set(IDENTITY_REQUEST_TIMEOUT)
 	uci.cursor():foreach("dot1x", "port", function(s)
 		if s.enabled ~= "1" or s.role ~= "server" then return end
-		local state_cmd = conn:call("file", "exec", {
-			command = port_block_script,
-			params = { "get_port_state", s.iface }
+		local state_cmd = util.file_exec(port_block_script, {
+			"get_port_state",
+			s.iface
 		})
 		local state = string.gsub(state_cmd.stdout or "", "%s+", "")
 		if state == "AUTHORIZED" then return end
-		conn:call("file", "exec", {
-			command = eap_sender_app,
-			params = { s.iface }
+		util.file_exec(eap_sender_app, {
+			s.iface
 		})
 	end)
 end

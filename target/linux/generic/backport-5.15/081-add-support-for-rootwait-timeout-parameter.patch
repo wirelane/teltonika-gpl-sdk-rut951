@@ -29,7 +29,7 @@ Signed-off-by: Loic Poulain <loic.poulain@linaro.org>
  
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -5133,6 +5133,10 @@
+@@ -5148,6 +5148,10 @@
  			Useful for devices that are detected asynchronously
  			(e.g. USB and MMC devices).
  

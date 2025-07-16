@@ -278,11 +278,22 @@
 		};
 	};
 
-	reg_soc_3v3: reg-soc-3v3 {
+	reg_usb_vbus: regulator {
 		compatible = "regulator-fixed";
+		regulator-name = "usb_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		regulator-boot-on;
+		regulator-always-on;
+	};
+
+	reg_3p3v: regulator-3p3v {
+		compatible = "regulator-fixed";
+		regulator-name = "fixed-3.3V";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		regulator-name = "soc_3v3";
+		regulator-boot-on;
+		regulator-always-on;
 	};
 };
 
@@ -318,21 +329,39 @@
 };
 
 &xhci {
+	vbus-supply = <&reg_usb_vbus>;
+	vusb33-supply = <&reg_3p3v>;
+
+
 	modem_usbhub_3: hub@1 {
 		compatible = "usb5e3,620";
 		reg = <1>;
 		reset-gpios = <&shift_io 29 GPIO_ACTIVE_LOW>;
-		vdd-supply = <&reg_soc_3v3>;
 		peer-hub = <&modem_usbhub_2>;
 	};
 
 	modem_usbhub_2: hub@2 {
- 		compatible = "usb5e3,610";
- 		reg = <2>;
- 		reset-gpios = <&shift_io 29 GPIO_ACTIVE_LOW>;
- 		vdd-supply = <&reg_soc_3v3>;
- 		peer-hub = <&modem_usbhub_3>;
- 	};
+		 compatible = "usb5e3,610";
+		 reg = <2>;
+		 reset-gpios = <&shift_io 29 GPIO_ACTIVE_LOW>;
+		 peer-hub = <&modem_usbhub_3>;
+	 };
+
+	/* 2.0 hub on port 1 */
+	modem_usbhub_2p_2: hub@3 {
+		compatible = "usb451,8027";
+		reg = <1>;
+		peer-hub = <&modem_usbhub_2p_3>;
+		reset-gpios = <&shift_io 29 GPIO_ACTIVE_LOW>;
+	};
+
+	/* 3.0 hub on port 2 */
+	modem_usbhub_2p_3: hub@4 {
+		compatible = "usb451,8025";
+		reg = <2>;
+		peer-hub = <&modem_usbhub_2p_2>;
+		reset-gpios = <&shift_io 29 GPIO_ACTIVE_LOW>;
+	};
 };
 
 &i2c {

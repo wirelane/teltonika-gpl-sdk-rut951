@@ -82,7 +82,7 @@ Index: mt76_515-2023-09-18-2afc7285/mt7603/mac.c
 +		return 0;
 +
 +	snr = dev->snr;
-+	noise = avg_rssi - snr;
++	noise = max(avg_rssi - snr, -127);
 +
 +	return noise;
 +}

@@ -179,69 +179,45 @@
 				line_name = "GPIO_OUT_1";
 			};
 			GPIO_11 {
-				compatible_model_0 = "RUT956";
+				compatible_model_0 = "RUT906", "RUT956";
 				line_name_0 = "GPIO_ISOLATED_INPUT";
 
-				compatible_model_1 = "RUT906";
-				line_name_1 = "GPIO_ISOLATED_INPUT";
-
-				compatible_model_2 = "RUT951";
-				compatible_branch_2 = "A";
-				line_name_2 = "GPIO_T2P_SIGNAL";
+				compatible_model_1 = "RUT951";
+				compatible_branch_1 = "A";
+				line_name_1 = "GPIO_T2P_SIGNAL";
 
 				active_low;
 			};
 			GPIO_37 {
-				compatible_model_0 = "RUT956";
+				compatible_model_0 = "RUT906", "RUT956";
 				line_name_0 = "GPIO_IN_2";
 
-				compatible_model_1 = "RUT906";
-				line_name_1 = "GPIO_IN_2";
-
-				compatible_model_2 = "RUT951";
-				compatible_branch_2 = "A";
-				line_name_2 = "GPIO_4PIN_SIGNAL";
+				compatible_model_1 = "RUT951";
+				compatible_branch_1 = "A";
+				line_name_1 = "GPIO_4PIN_SIGNAL";
 
 				active_low;
 			};
 			GPIO_104 {
-				compatible_model_0 = "RUT956";
-				line_name_0 = "GPIO_OUT_2";
-
-				compatible_model_1 = "RUT906";
-				line_name_1 = "GPIO_OUT_2";
+				compatible_model = "RUT906", "RUT956";
+				line_name = "GPIO_OUT_2";
 			};
 			GPIO_105 {
-				compatible_model_0 = "RUT956";
-				line_name_0 = "GPIO_RELAY_CLOSE_1";
-
-				compatible_model_1 = "RUT906";
-				line_name_1 = "GPIO_RELAY_CLOSE_1";
+				compatible_model = "RUT906", "RUT956";
+				line_name = "GPIO_RELAY_CLOSE_1";
 			};
 		};
 
 		misc {
 			GPIO_0 {
-				compatible_model_0 = "RUT901";
+				compatible_model_0 = "RUT901", "RUT906", "RUT951", "RUT956";
 				compatible_versions_0 = <5 99>;
 				line_name_0 = "GPIO_MODEM_STATUS";
 
-				compatible_model_1 = "RUT906";
-				compatible_versions_1 = <5 99>;
+				compatible_model_1 = "RUT951";
+				compatible_versions_1 = <0 99>;
+				compatible_branch_1 = "A";
 				line_name_1 = "GPIO_MODEM_STATUS";
-
-				compatible_model_2 = "RUT956";
-				compatible_versions_2 = <5 99>;
-				line_name_2 = "GPIO_MODEM_STATUS";
-
-				compatible_model_3 = "RUT951";
-				compatible_versions_3 = <5 99>;
-				line_name_3 = "GPIO_MODEM_STATUS";
-
-				compatible_model_4 = "RUT951";
-				compatible_versions_4 = <0 99>;
-				compatible_branch_4 = "A";
-				line_name_4 = "GPIO_MODEM_STATUS";
 
 				active_low;
 			};
@@ -259,15 +235,12 @@
 				line_name = "GPIO_SIM_SELECT_2";
 			};
 			GPIO_44 {
-				compatible_model_0 = "RUT906";
+				compatible_model_0 = "RUT906", "RUT956";
 				line_name_0 = "GPIO_RS485_D_EN";
 
-				compatible_model_1 = "RUT956";
-				line_name_1 = "GPIO_RS485_D_EN";
-
-				compatible_model_2 = "RUT951";
-				compatible_branch_2 = "A";
-				line_name_2 = "TPM_RESET";
+				compatible_model_1 = "RUT951";
+				compatible_branch_1 = "A";
+				line_name_1 = "TPM_RESET";
 			};
 			GPIO_46 {
 				compatible_model = "RUT951";
@@ -275,11 +248,8 @@
 				line_name = "PSE_RESET";
 			};
 			GPIO_109 {
-				compatible_model_0 = "RUT906";
-				line_name_0 = "GPIO_RS485_RX_EN";
-
-				compatible_model_1 = "RUT956";
-				line_name_1 = "GPIO_RS485_RX_EN";
+				compatible_model = "RUT906", "RUT956";
+				line_name = "GPIO_RS485_RX_EN";
 			};
 			GPIO_110 {
 				line_name = "GPIO_DCD";

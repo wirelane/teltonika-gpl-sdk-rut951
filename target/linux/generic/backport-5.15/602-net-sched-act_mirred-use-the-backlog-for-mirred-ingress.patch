@@ -71,9 +71,9 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  
 -	err = tcf_mirred_forward(want_ingress, skb2);
 +	err = tcf_mirred_forward(at_ingress, want_ingress, skb2);
- 	if (err) {
- out:
+ 	if (err)
  		tcf_action_inc_overlimit_qstats(&m->common);
+ 	__this_cpu_dec(mirred_nest_level);
 --- a/tools/testing/selftests/net/forwarding/tc_actions.sh
 +++ b/tools/testing/selftests/net/forwarding/tc_actions.sh
 @@ -189,9 +189,6 @@ mirred_egress_to_ingress_tcp_test()

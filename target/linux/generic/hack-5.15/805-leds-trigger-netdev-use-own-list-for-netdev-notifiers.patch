@@ -90,7 +90,7 @@ Signed-off-by: Benas Bagvilas <benas.bagvilas@teltonika.lt>
  };
  
  static void set_baseline_state(struct led_netdev_data *trigger_data)
-@@ -435,13 +440,11 @@ static struct attribute *netdev_trig_att
+@@ -462,13 +467,11 @@ static struct attribute *netdev_trig_att
  };
  ATTRIBUTE_GROUPS(netdev_trig);
  
@@ -105,7 +105,7 @@ Signed-off-by: Benas Bagvilas <benas.bagvilas@teltonika.lt>
  
  	if (evt != NETDEV_UP && evt != NETDEV_DOWN && evt != NETDEV_CHANGE
  	    && evt != NETDEV_REGISTER && evt != NETDEV_UNREGISTER
-@@ -486,6 +489,26 @@ static int netdev_trig_notify(struct not
+@@ -513,6 +516,26 @@ static int netdev_trig_notify(struct not
  	return NOTIFY_DONE;
  }
  
@@ -132,7 +132,7 @@ Signed-off-by: Benas Bagvilas <benas.bagvilas@teltonika.lt>
  /* here's the real work! */
  static void netdev_trig_work(struct work_struct *work)
  {
-@@ -551,9 +574,6 @@ static int netdev_trig_activate(struct l
+@@ -581,9 +604,6 @@ static int netdev_trig_activate(struct l
  
  	mutex_init(&trigger_data->lock);
  
@@ -142,7 +142,7 @@ Signed-off-by: Benas Bagvilas <benas.bagvilas@teltonika.lt>
  	INIT_DELAYED_WORK(&trigger_data->work, netdev_trig_work);
  
  	trigger_data->led_cdev = led_cdev;
-@@ -583,18 +603,20 @@ static int netdev_trig_activate(struct l
+@@ -613,18 +633,20 @@ static int netdev_trig_activate(struct l
  
  	led_set_trigger_data(led_cdev, trigger_data);
  
@@ -168,7 +168,7 @@ Signed-off-by: Benas Bagvilas <benas.bagvilas@teltonika.lt>
  
  	cancel_delayed_work_sync(&trigger_data->work);
  
-@@ -612,7 +634,24 @@ static struct led_trigger netdev_led_tri
+@@ -644,7 +666,24 @@ static struct led_trigger netdev_led_tri
  	.groups = netdev_trig_groups,
  };
  

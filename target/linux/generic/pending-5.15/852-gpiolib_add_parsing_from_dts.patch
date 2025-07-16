@@ -268,10 +268,11 @@
  	if (ret)
 --- a/include/linux/gpio/driver.h
 +++ b/include/linux/gpio/driver.h
-@@ -766,4 +766,9 @@ static inline void gpiochip_unlock_as_ir
+@@ -766,4 +766,10 @@ static inline void gpiochip_unlock_as_ir
  }
  #endif /* CONFIG_GPIOLIB */
  
++struct gpio_desc *gpiochip_get_desc(struct gpio_chip *gc, unsigned int hwnum);
 +int tlt_gpio_set_line_name(struct gpio_chip *chip, const char *line_name, int index);
 +int tlt_gpio_set_active_low(struct gpio_chip *chip, int index);
 +struct gpio_chip *gpiochip_find_by_id(int id);

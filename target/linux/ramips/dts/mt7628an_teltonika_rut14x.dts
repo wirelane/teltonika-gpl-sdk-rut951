@@ -30,6 +30,15 @@
 		power_led {
 			label = "power_led";
 			gpios = <&gpio 44 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "RUT140", "RUT142";
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+		power_led@1 {
+			label = "power_led";
+			gpios = <&gpio 4 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "RUT145";
 			default-state = "on";
 			retain-state-shutdown;
 		};
@@ -43,6 +52,8 @@
 			label = "wan_led";
 			gpios = <&gpio 42 GPIO_ACTIVE_LOW>;
 		};
+
+
 	};
 
 	tlt_gpios { // Modify according to wiki page "DTS syntax with Libgpiod changes"
@@ -54,6 +65,17 @@
 				gpiochip_0 = <32>; // Built-in
 				gpiochip_1 = <32>; // Built-in
 				gpiochip_2 = <32>; // Built-in
+			};
+		};
+
+		misc {
+			GPIO_38 {
+				line_name = "GPIO_RS485_RX_EN";
+				compatible_model = "RUT145";
+			};
+			GPIO_44 {
+				line_name = "GPIO_RS485_D_EN";
+				compatible_model = "RUT145";
 			};
 		};
 	};

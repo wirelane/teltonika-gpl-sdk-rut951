@@ -181,11 +181,8 @@
 
 		ioman {
 			GPIO_24 {
-				line_name_0 = "GPIO_IN_1";
-				compatible_model_0 = "TRB246";
-
-				line_name_1 = "GPIO_IN_1";
-				compatible_model_1 = "TRB256";
+				line_name = "GPIO_IN_1";
+				compatible_model = "TRB246", "TRB256";
 
 				active_low;
 			};
@@ -193,11 +190,8 @@
 				line_name = "GPIO_OUT_1";
 			};
 			GPIO_27 {
-				line_name_0 = "GPIO_IN_2";
-				compatible_model_0 = "TRB246";
-
-				line_name_1 = "GPIO_IN_2";
-				compatible_model_1 = "TRB256";
+				line_name = "GPIO_IN_2";
+				compatible_model = "TRB246", "TRB256";
 
 				active_low;
 			};
@@ -205,11 +199,8 @@
 				line_name = "GPIO_OUT_2";
 			};
 			GPIO_14 {
-				line_name_0 = "GPIO_IN_3";
-				compatible_model_0 = "TRB246";
-
-				line_name_1 = "GPIO_IN_3";
-				compatible_model_1 = "TRB256";
+				line_name = "GPIO_IN_3";
+				compatible_model = "TRB246", "TRB256";
 
 				active_low;
 			};
@@ -248,18 +239,18 @@
 				compatible_model = "TRB247";
 			};
 			GPIO_4 {
-				line_name_0 = "GPIO_RS485_D_EN";
-				compatible_model_0 = "TRB246";
-
-				line_name_1 = "GPIO_RS485_D_EN";
-				compatible_model_1 = "TRB256";
+				line_name = "GPIO_RS485_D_EN";
+				compatible_model = "TRB246", "TRB256";
 			};
 			GPIO_5 {
-				line_name_0 = "GPIO_RS485_RX_EN";
-				compatible_model_0 = "TRB246";
-
-				line_name_1 = "GPIO_RS485_RX_EN";
-				compatible_model_1 = "TRB256";
+				line_name = "GPIO_RS485_RX_EN";
+				compatible_model = "TRB246", "TRB256";
+				mode = "output-low";
+			};
+			GPIO_11 {
+				line_name = "GPIO_RS485_RX_EN";
+				compatible_model = "TRB247";
+				mode = "output-low";
 			};
 			GPIO_6 {
 				line_name = "GPIO_RS485_D_EN";

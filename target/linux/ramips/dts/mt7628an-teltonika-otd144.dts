@@ -142,7 +142,9 @@
 	poeman {
 		bus = "/dev/i2c-0";
 		budget@0 {
-			budget = <15400>;
+			budget = <15500>;
+			max_port_power = <15400>;
+			allowed_deficit = <300>;
 		};
 	};
 };

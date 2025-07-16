@@ -146,8 +146,8 @@ define Device/teltonika_rut14x
 	DEVICE_MODEL := RUT14X
 	DEVICE_BOOT_NAME := tlt-rut14x
 	DEVICE_DTS := mt7628an_teltonika_rut14x
-	DEVICE_FEATURES += small_flash serial modbus ntrip wifi ledman-lite sw-offload portlink dot1x-server \
-	                   xfrm-offload
+	DEVICE_FEATURES += small_flash serial rs232 rs485 modbus ntrip wifi ledman-lite sw-offload portlink \
+	                   dot1x-server xfrm-offload
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.6
 	GPL_PREFIX := GPL
@@ -161,7 +161,8 @@ define Device/teltonika_rut14x
 
 	INCLUDED_DEVICES := \
 		TEMPLATE_teltonika_rut140 \
-		TEMPLATE_teltonika_rut142
+		TEMPLATE_teltonika_rut142 \
+		TEMPLATE_teltonika_rut145
 endef
 
 define Device/teltonika_dap14x
@@ -169,7 +170,7 @@ define Device/teltonika_dap14x
 	DEVICE_MODEL := DAP14X
 	DEVICE_BOOT_NAME := tlt-dap14x
 	DEVICE_DTS := mt7628an_teltonika_dap14x
-	DEVICE_FEATURES += small_flash serial modbus ntrip wifi ledman-lite sw-offload portlink \
+	DEVICE_FEATURES += small_flash serial rs232 rs485 modbus ntrip wifi ledman-lite sw-offload portlink \
 	                   xfrm-offload industrial_access_point no-wired-wan
 
 	# Default common packages for DAP14X series
@@ -182,7 +183,8 @@ define Device/teltonika_dap14x
 
 	INCLUDED_DEVICES := \
 		TEMPLATE_teltonika_dap140 \
-		TEMPLATE_teltonika_dap142
+		TEMPLATE_teltonika_dap142 \
+		TEMPLATE_teltonika_dap145
 endef
 
 define Device/teltonika_rut2m
@@ -316,7 +318,6 @@ define Device/teltonika_rute
 		mt7628an-teltonika-rut971 \
 		mt7628an-teltonika-rut981 \
 		mt7628an-teltonika-otd144
-
 	KERNEL := kernel-bin | zstd | fit zstd "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addprefix image-,$$(addsuffix .dtb,$$(DEVICE_DTS))))}"
 	KERNEL_INITRAMFS := $$(KERNEL)
 
@@ -327,9 +328,10 @@ define Device/teltonika_rute
 
 	DEVICE_MODEL := RUTE
 	DEVICE_BOOT_NAME := tlt-mt7628
-	DEVICE_FEATURES := large_flash sw-offload gps usb-port serial modbus ios wifi dualsim tpm \
+	DEVICE_FEATURES := large_flash sw-offload gps usb-port serial modbus ios wifi dualsim \
 			rndis ncm bacnet ntrip mobile portlink rs232 rs485 dot1x-server port-mirror \
 	                xfrm-offload usb-sd-card usb-port dot1x-client 128mb_ram poe reset_button
+
 	FILESYSTEMS := squashfs
 	GPL_PREFIX := GPL
 
@@ -362,9 +364,9 @@ define Device/teltonika_rute
 		TEMPLATE_teltonika_rut981 \
 		TEMPLATE_teltonika_otd144
 
-	SUPPORTED_DEVICES := teltonika,rute teltonika,rut976 teltonika,rut206 teltonika,rut271 teltonika,rut276 teltonika,rut281 \
-			teltonika,rut971 teltonika,rut981 teltonika,otd144
+	SUPPORTED_DEVICES := teltonika,rute teltonika,rut976 teltonika,rut206 teltonika,rut271 teltonika,rut276 teltonika,rut281 teltonika,rut971 \
+			     teltonika,rut981 teltonika,otd144
 
-	DEVICE_MODEM_VENDORS := Quectel Teltonika
-	DEVICE_MODEM_LIST := EC200A EC25 RG255C ALA440
+	DEVICE_MODEM_VENDORS := Quectel Telit Teltonika
+	DEVICE_MODEM_LIST := EC200A EC25 RG255C LE910C4 ALA440
 endef

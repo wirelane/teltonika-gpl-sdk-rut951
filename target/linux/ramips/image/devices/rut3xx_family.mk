@@ -24,35 +24,33 @@ define Device/TEMPLATE_teltonika_rut301
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 
-	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
-	HARDWARE/Mobile/3GPP_Release := Release 12
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M) $(HW_FLASH_TYPE_NOR_SERIAL)
-	HARDWARE/Wireless/Wireless_mode :=
-	HARDWARE/Wireless/WIFI_users :=
+	HARDWARE/Wireless/Wireless_Mode :=
+	HARDWARE/Wireless/Wi\-Fi_Users :=
 	HARDWARE/WAN/Port := 1 $(HW_ETH_WAN_PORT)
   	HARDWARE/WAN/Speed := $(HW_ETH_SPEED_100)
   	HARDWARE/WAN/Standard := $(HW_ETH_WAN_STANDARD)
   	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
   	HARDWARE/LAN/Speed := $(HW_ETH_SPEED_100)
   	HARDWARE/LAN/Standard := $(HW_ETH_LAN_2_STANDARD)
-	HARDWARE/Power/PoE_Standards := $(HW_POWER_POE_INSTALL)
-	HARDWARE/Power/Power_consumption := Idle:< 0.8 W, Max:< 3.8 W
-	HARDWARE/Physical_Interfaces/Ethernet := 5 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_100)
-	HARDWARE/Physical_Interfaces/IO := $(HW_INTERFACE_IO_4PIN_IOS)
-	HARDWARE/Physical_Interfaces/Status_leds := 1 x WAN type LED, 4 x LAN status LEDs, 1 x Power LED
-	HARDWARE/Physical_Interfaces/USB := 1 $(HW_INTERFACE_USB)
-	HARDWARE/USB/Data_rate := $(HW_USB_2_DATA_RATE)
+	TECHNICAL/Power/PoE_Standards := $(HW_POWER_POE_INSTALL)
+	TECHNICAL/Power/Power_Consumption := Idle:< 0.8 W, Max:< 3.8 W
+	TECHNICAL/Physical_Interfaces/Ethernet := 5 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_100)
+	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_4PIN_IOS)
+	TECHNICAL/Physical_Interfaces/Status_Leds := 1 x WAN type LED, 4 x LAN status LEDs, 1 x Power LED
+	TECHNICAL/Physical_Interfaces/USB := 1 $(HW_INTERFACE_USB)
+	HARDWARE/USB/Data_Rate := $(HW_USB_2_DATA_RATE)
 	HARDWARE/USB/Applications := $(HW_USB_APPLICATIONS)
-	HARDWARE/USB/External_devices := $(HW_USB_EXTERNAL_DEV)
-	HARDWARE/USB/Storage_formats := $(HW_USB_STORAGE_FORMATS)
-	HARDWARE/Input_Output/Input := 2 $(HW_INPUT_DI_30V)
-	HARDWARE/Input_Output/Output := 2 $(HW_OUTPUT_DO_40V)
-	HARDWARE/Physical_Specification/Casing_material := $(HW_PHYSICAL_HOUSING_AL)
-	HARDWARE/Physical_Specification/Dimensions := 100 x 30 x 85 mm
-	HARDWARE/Physical_Specification/Weight := 233 g
-	HARDWARE/Physical_Specification/Mounting_options := $(HW_PHYSICAL_MOUNTING)
-	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, FCC, IC, CB, EAC, UCRF, WEEE
-	HARDWARE/Physical_Interfaces/Status_leds := 1 x WAN type LED, 4 x LAN status LEDs, 1 x Power LED
+	HARDWARE/USB/External_Devices := $(HW_USB_EXTERNAL_DEV)
+	HARDWARE/USB/Storage_Formats := $(HW_USB_STORAGE_FORMATS)
+	TECHNICAL/Input_Output/Input := 2 $(HW_INPUT_DI_30V)
+	TECHNICAL/Input_Output/Output := 2 $(HW_OUTPUT_DO_40V)
+	TECHNICAL/Physical_Specification/Casing_Material := $(HW_PHYSICAL_HOUSING_AL)
+	TECHNICAL/Physical_Specification/Dimensions := 100 x 30 x 85 mm
+	TECHNICAL/Physical_Specification/Weight := 233 g
+	TECHNICAL/Physical_Specification/Mounting_Options := $(HW_PHYSICAL_MOUNTING)
+	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, FCC, IC, CB, EAC, UCRF, WEEE
+	TECHNICAL/Physical_Interfaces/Status_Leds := 1 x WAN type LED, 4 x LAN status LEDs, 1 x Power LED
 endef
 
 define Device/TEMPLATE_teltonika_rut361
@@ -80,26 +78,28 @@ define Device/TEMPLATE_teltonika_rut361
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 
+	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 12
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M) $(HW_FLASH_TYPE_NOR_SERIAL)
-	HARDWARE/Wireless/Wireless_mode := 802.11 b/g/n, 2x2 MIMO
-	HARDWARE/Wireless/WIFI_users := $(HW_WIFI_50_USERS)
+	HARDWARE/Wireless/Wireless_Mode := 802.11 b/g/n, 2x2 MIMO
+	HARDWARE/Wireless/Wi\-Fi_Users := $(HW_WIFI_50_USERS)
 	HARDWARE/WAN/Port := 1 $(HW_ETH_WAN_PORT)
 	HARDWARE/WAN/Speed := $(HW_ETH_SPEED_100)
 	HARDWARE/WAN/Standard := $(HW_ETH_WAN_STANDARD)
 	HARDWARE/LAN/Port := 1 $(HW_ETH_LAN_PORT)
 	HARDWARE/LAN/Speed := $(HW_ETH_SPEED_100)
 	HARDWARE/LAN/Standard := $(HW_ETH_LAN_2_STANDARD)
-	HARDWARE/Power/PoE_Standards := $(HW_POWER_POE_INSTALL)
-	HARDWARE/Power/Power_consumption := Idle:< 2.4 W, Max:< 4.7 W
-	HARDWARE/Physical_Interfaces/IO := $(HW_INTERFACE_IO_4PIN_IOS)
-	HARDWARE/Physical_Interfaces/Status_leds := 2 x Mobile connection type, 3 x Mobile connection strength, 2 x Eth status, 1 x Power
-	HARDWARE/Physical_Interfaces/SIM := 1 $(HW_INTERFACE_SIM_HOLDER)
-	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi
-	HARDWARE/Input_Output/Input := 2 $(HW_INPUT_DI_30V)
-	HARDWARE/Input_Output/Output := 2 $(HW_OUTPUT_DO_30V)
-	HARDWARE/Physical_Specification/Casing_material := $(HW_PHYSICAL_HOUSING_AL)
-	HARDWARE/Physical_Specification/Dimensions := 100 x 30 x 85 mm
-	HARDWARE/Physical_Specification/Weight := 243 g
-	HARDWARE/Physical_Specification/Mounting_options := $(HW_PHYSICAL_MOUNTING)
-	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, UCRF, EAC, WEEE, CB
+	TECHNICAL/Power/PoE_Standards := $(HW_POWER_POE_INSTALL)
+	TECHNICAL/Power/Power_Consumption := Idle:< 2.4 W, Max:< 4.7 W
+	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_4PIN_IOS)
+	TECHNICAL/Physical_Interfaces/Status_Leds := 2 x Mobile connection type, 3 x Mobile connection strength, 2 x Eth status, 1 x Power
+	TECHNICAL/Physical_Interfaces/SIM := 1 $(HW_INTERFACE_SIM_HOLDER)
+	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi
+	TECHNICAL/Input_Output/Input := 2 $(HW_INPUT_DI_30V)
+	TECHNICAL/Input_Output/Output := 2 $(HW_OUTPUT_DO_30V)
+	TECHNICAL/Physical_Specification/Casing_Material := $(HW_PHYSICAL_HOUSING_AL)
+	TECHNICAL/Physical_Specification/Dimensions := 100 x 30 x 85 mm
+	TECHNICAL/Physical_Specification/Weight := 243 g
+	TECHNICAL/Physical_Specification/Mounting_Options := $(HW_PHYSICAL_MOUNTING)
+	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, UCRF, EAC, WEEE, CB
 endef

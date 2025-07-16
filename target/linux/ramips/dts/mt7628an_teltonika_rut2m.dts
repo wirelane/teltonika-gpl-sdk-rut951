@@ -126,39 +126,27 @@
 				compatible_versions_0 = <0 2>;
 				line_name_0 = "GPIO_IN_1";
 
-				compatible_model_1 = "RUT241";
+				compatible_model_1 = "RUT200", "RUT241";
 				compatible_versions_1 = <0 4>;
 				line_name_1 = "GPIO_IN_1";
-
-				compatible_model_2 = "RUT200";
-				compatible_versions_2 = <0 4>;
-				line_name_2 = "GPIO_IN_1";
 			};
 			GPIO_0 {
 				compatible_model_0 = "RUT260";
 				compatible_versions_0 = <3 99>;
 				line_name_0 = "GPIO_IN_1";
 
-				compatible_model_1 = "RUT241";
+				compatible_model_1 = "RUT200", "RUT241";
 				compatible_versions_1 = <5 99>;
 				line_name_1 = "GPIO_IN_1";
-
-				compatible_model_2 = "RUT200";
-				compatible_versions_2 = <5 99>;
-				line_name_2 = "GPIO_IN_1";
 			};
 			GPIO_5 {
 				compatible_model_0 = "RUT260";
 				compatible_versions_0 = <0 2>;
 				line_name_0 = "GPIO_OUT_1";
 
-				compatible_model_1 = "RUT241";
+				compatible_model_1 = "RUT200", "RUT241";
 				compatible_versions_1 = <0 4>;
 				line_name_1 = "GPIO_OUT_1";
-
-				compatible_model_2 = "RUT200";
-				compatible_versions_2 = <0 4>;
-				line_name_2 = "GPIO_OUT_1";
 			};
 			GPIO_6 {
 				compatible_model = "RUT260";
@@ -166,13 +154,9 @@
 				line_name = "GPIO_OUT_1";
 			};
 			GPIO_37 {
-				compatible_model_0 = "RUT241";
-				compatible_versions_0 = <5 99>;
-				line_name_0 = "GPIO_OUT_1";
-
-				compatible_model_1 = "RUT200";
-				compatible_versions_1 = <5 99>;
-				line_name_1 = "GPIO_OUT_1";
+				compatible_model = "RUT200", "RUT241";
+				compatible_versions = <5 99>;
+				line_name = "GPIO_OUT_1";
 			};
 		};
 

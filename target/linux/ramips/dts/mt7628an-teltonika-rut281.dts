@@ -178,7 +178,8 @@
 	};
 
 	sim_cfg {
-		default = "1111000_1122000";
+		default = "1111010_1122010";
+		keep-sim-presence;
 	};
 
 	blver {
