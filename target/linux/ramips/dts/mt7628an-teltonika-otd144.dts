@@ -67,7 +67,7 @@
 
 		led_gen_2 {
 			label = "mob_gen_2";
-			gpios = <&gpio 45 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 45 GPIO_ACTIVE_LOW>;
 		};
 
 		led_gen_3 {

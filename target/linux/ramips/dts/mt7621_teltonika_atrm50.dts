@@ -71,6 +71,13 @@
 			gpio-export,output = <0>;
 			gpios = <&shift_io 22 GPIO_ACTIVE_HIGH>;
 		};
+
+		gpio_tpm_reset {
+			gpio-export,name = "tpm_reset";
+			gpio-export,output = <1>;
+			gpios = <&gpio 18 GPIO_ACTIVE_HIGH>;
+		};
+
 	};
 
 	leds {

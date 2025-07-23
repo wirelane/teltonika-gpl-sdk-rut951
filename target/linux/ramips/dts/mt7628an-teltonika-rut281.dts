@@ -29,6 +29,12 @@
 			gpio-export,output = <0>;
 			gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
 		};
+
+		gpio_tpm_reset {
+			gpio-export,name = "tpm_reset";
+			gpio-export,output = <1>;
+			gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	keys {
@@ -114,20 +120,10 @@
 		};
 
 		ioman {
-			GPIO_4 {
-				compatible_versions = <0 4>;
-				line_name = "GPIO_IN_1";
-			};
 			GPIO_0 {
-				compatible_versions = <5 99>;
 				line_name = "GPIO_IN_1";
-			};
-			GPIO_5 {
-				compatible_versions = <0 4>;
-				line_name = "GPIO_OUT_1";
 			};
 			GPIO_37 {
-				compatible_versions = <5 99>;
 				line_name = "GPIO_OUT_1";
 			};
 		};
@@ -138,6 +134,9 @@
 			};
 			GPIO_3 {
 				line_name = "GPIO_MODEM_POWER_1";
+			};
+			GPIO_6 {
+				line_name = "GPIO_TPM_REST";
 			};
 		};
 	};
