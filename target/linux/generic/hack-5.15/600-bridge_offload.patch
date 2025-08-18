@@ -676,7 +676,7 @@ Subject: [PATCH] net/bridge: add bridge offload
  };
  
  #define kobj_to_brport(obj)	container_of(obj, struct net_bridge_port, kobj)
-@@ -519,6 +532,9 @@ struct net_bridge {
+@@ -520,6 +533,9 @@ struct net_bridge {
  	struct kobject			*ifobj;
  	u32				auto_cnt;
  
@@ -686,7 +686,7 @@ Subject: [PATCH] net/bridge: add bridge offload
  #ifdef CONFIG_NET_SWITCHDEV
  	/* Counter used to make sure that hardware domains get unique
  	 * identifiers in case a bridge spans multiple switchdev instances.
-@@ -554,6 +570,10 @@ struct br_input_skb_cb {
+@@ -555,6 +571,10 @@ struct br_input_skb_cb {
  #ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
  	u8 br_netfilter_broute:1;
  #endif

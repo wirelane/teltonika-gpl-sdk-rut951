@@ -41,7 +41,7 @@ define Device/template_trb2m
 		lan device eth0 default_ip 192.168.1.1
 
 	DEVICE_FEATURES := gateway dual_sim mobile gps ethernet ios rs232 rs485 \
-		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button
+		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button 128mb_ram
 
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false single_port
 
@@ -66,6 +66,19 @@ define Device/template_trb2m
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 endef
 
+define Device/TEMPLATE_teltonika_trb236
+	$(Device/teltonika_trb2m_common)
+	$(Device/template_trb2m)
+	DEVICE_MODEL := TRB236
+
+	DEVICE_FEATURES += esim
+
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.17
+	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/3GPP_Release := Release 11
+	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, CB, WEEE
+endef
+
 define Device/TEMPLATE_teltonika_trb246
 	$(Device/teltonika_trb2m_common)
 	$(Device/template_trb2m)
@@ -80,6 +93,8 @@ define Device/TEMPLATE_teltonika_trb247
 	$(Device/teltonika_trb2m_common)
 	$(Device/template_trb2m)
 	DEVICE_MODEL := TRB247
+
+	DEVICE_FEATURES += esim
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13
 	HARDWARE/Mobile/Module := 4G LTE Cat 1 up to 10 DL/5 UL Mbps

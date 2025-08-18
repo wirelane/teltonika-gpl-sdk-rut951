@@ -232,6 +232,9 @@
 			GPIO_18 {
 				line_name = "TPM_RESET";
 			};
+			GPIO_112 {
+				line_name = "GPIO_GPS_POWER";
+			};
 			GPIO_117 {
 				line_name = "GPIO_MODEM_RESET_1";
 			};
@@ -296,11 +299,6 @@
 
 &switch0 {
 	ports {
-		port@0 {
-			status = "okay";
-			label = "lan0";
-		};
-
 		port@1 {
 			status = "okay";
 			label = "lan1";

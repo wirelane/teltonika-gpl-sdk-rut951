@@ -614,6 +614,7 @@ tlt-trb2m: rt2880_common
 	@$(call define_add,ASIC_BOARD,1)
 	@$(call define_add,MT7628_ASIC_BOARD,1)
 	@$(call define_add,CPU_FRAC_DIV,1)
+	@$(call define_add,CONFIG_DO_PCIE_PERST_RESET,1)
 	@$(call define_add,CONFIG_EARLY_GPIO_INIT,1)
 	@$(call define_add,CONFIG_MNFINFO_SUPPORT,1)
 	@$(call define_add,CONFIG_CMD_MNFINFO,1)

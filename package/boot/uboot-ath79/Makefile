@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uboot-ath79
 
-PKG_SOURCE_VERSION:=4.6.5
+PKG_SOURCE_VERSION:=4.6.6
 
 PKG_ASLR_PIE:=0
 

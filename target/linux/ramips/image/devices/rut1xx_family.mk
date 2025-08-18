@@ -38,7 +38,7 @@ define Device/template_rut14x
 
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
 
-	DEVICE_FEATURES := wifi nat_offloading ethernet port_link xfrm-offload small_flash reset_button
+	DEVICE_FEATURES := wifi nat_offloading ethernet port_link xfrm-offload small_flash reset_button 128mb_ram
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 endef

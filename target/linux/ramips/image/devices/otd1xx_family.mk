@@ -43,7 +43,7 @@ define Device/template_otd1xx
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
 
 	DEVICE_FEATURES := dual_sim mobile ethernet nat_offloading poe \
-		port_link xfrm-offload networks_external reset_button
+		port_link xfrm-offload networks_external reset_button 128mb_ram
 endef
 
 define Device/TEMPLATE_teltonika_otd140
@@ -115,8 +115,6 @@ define Device/TEMPLATE_teltonika_otd144
 
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M) $(HW_FLASH_TYPE_NOR_SERIAL)
-	HARDWARE/Wireless/Wireless_Mode :=
-	HARDWARE/Wireless/Wi\-Fi_Users :=
 	HARDWARE/Ethernet/Standard := (can be configured as WAN), $(HW_ETH_LAN_2_STANDARD)
 	HARDWARE/Power/Power_consumption := Idle: < 2.5 W / Max: < 6 W / PoE Max < 21 W
 	HARDWARE/Physical_Interfaces/Status_leds := 3 x Mobile connection type, 3 x Mobile connection strength, 4 x ETH status LEDs

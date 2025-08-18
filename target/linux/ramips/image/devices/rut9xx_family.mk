@@ -39,7 +39,7 @@ define Device/template_rut9x
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
 
 	DEVICE_FEATURES := dual_sim ios mobile nat_offloading port_link \
-		wifi ethernet xfrm-offload soft_port_mirror reset_button
+		wifi ethernet xfrm-offload soft_port_mirror reset_button 128mb_ram
 endef
 
 define Device/template_rut9x_io

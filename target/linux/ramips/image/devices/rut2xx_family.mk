@@ -40,7 +40,7 @@ define Device/template_rut2x
 	DEVICE_INTERFACE_CONF := \
 		lan default_ip 192.168.1.1
 
-	DEVICE_FEATURES := mobile wifi ethernet nat_offloading port_link xfrm-offload reset_button
+	DEVICE_FEATURES := mobile wifi ethernet nat_offloading port_link xfrm-offload reset_button 128mb_ram
 endef
 
 define Device/template_rut2x6_io

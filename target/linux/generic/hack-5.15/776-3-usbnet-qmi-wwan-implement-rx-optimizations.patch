@@ -2,7 +2,7 @@ Implement zerocopy and napi/GRO optimizations for qmimux driver
 
 --- a/drivers/net/usb/qmi_wwan.c
 +++ b/drivers/net/usb/qmi_wwan.c
-@@ -415,11 +415,12 @@ static bool qmimux_has_slaves(struct usb
+@@ -416,11 +416,12 @@ static bool qmimux_has_slaves(struct usb
  
  static int qmimux_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
  {
@@ -16,7 +16,7 @@ Implement zerocopy and napi/GRO optimizations for qmimux driver
  
  	if (dev->driver_info->data & QMI_WWAN_V5_HEAD) {
  		qmimux_hdr_sz += sizeof(struct rmnet_map_v5_csum_header);
-@@ -444,30 +445,43 @@ static int qmimux_rx_fixup(struct usbnet
+@@ -445,30 +446,43 @@ static int qmimux_rx_fixup(struct usbnet
  			goto skip;
  		pkt_len = len - pad_len;
  
@@ -74,7 +74,7 @@ Implement zerocopy and napi/GRO optimizations for qmimux driver
  			net->stats.rx_errors++;
  			return 0;
  		} else {
-@@ -1302,7 +1316,8 @@ err:
+@@ -1296,7 +1310,8 @@ err:
  
  static const struct driver_info	qmi_wwan_info = {
  	.description	= "WWAN/QMI device",
@@ -84,7 +84,7 @@ Implement zerocopy and napi/GRO optimizations for qmimux driver
  	.bind		= qmi_wwan_bind,
  	.unbind		= qmi_wwan_unbind,
  	.manage_power	= qmi_wwan_manage_power,
-@@ -1311,7 +1326,8 @@ static const struct driver_info	qmi_wwan
+@@ -1305,7 +1320,8 @@ static const struct driver_info	qmi_wwan
  
  static const struct driver_info	qmi_wwan_info_quirk_dtr = {
  	.description	= "WWAN/QMI device",
@@ -94,7 +94,7 @@ Implement zerocopy and napi/GRO optimizations for qmimux driver
  	.bind		= qmi_wwan_bind,
  	.unbind		= qmi_wwan_unbind,
  	.manage_power	= qmi_wwan_manage_power,
-@@ -1321,7 +1337,9 @@ static const struct driver_info	qmi_wwan
+@@ -1315,7 +1331,9 @@ static const struct driver_info	qmi_wwan
  
  static const struct driver_info qmi_wwan_info_quirk_dtr_sdx55 = {
  	.description    = "WWAN/QMI device",

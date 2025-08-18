@@ -46,6 +46,17 @@ read_radius_client() {
 
 active_instances=false
 
+parse_vid() {
+	local vid="$1"
+	local parsed
+	[ "${vid::3}" = "cfg" ] && {
+		config_get parsed "$vid" "vlan"
+		echo "$parsed"
+		return 0
+	}
+	echo "$vid"
+}
+
 parse_port_section() {
 	local port="$1"
 	local vlans_updated=$2
@@ -98,6 +109,10 @@ parse_port_section() {
 		[ "$reject_vlan" = "disabled" ] && reject_vlan="0"
 		[ "$guest_vlan" = "disabled" ] && guest_vlan="0"
 		[ "$fallback_vlan" = "disabled" ] && fallback_vlan="0"
+		accept_vlan="$(parse_vid "$accept_vlan")"
+		reject_vlan="$(parse_vid "$reject_vlan")"
+		fallback_vlan="$(parse_vid "$fallback_vlan")"
+		guest_vlan="$(parse_vid "$guest_vlan")"
 
 		add_config_line "accept_vlan" "$accept_vlan" "$file"
 		[ "$reject_vlan" -gt 0 ] && add_config_line "reject_vlan" "$reject_vlan" "$file"

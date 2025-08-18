@@ -43,6 +43,7 @@ generate_dot1x_server() {
 			set dot1x.example.port='1812'
 			set dot1x.example.secret='-'
 			set dot1x.example.address='0.0.0.0'
+			set dot1x.example.name='example'
 	EOF
 }
 

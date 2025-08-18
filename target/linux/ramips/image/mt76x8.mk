@@ -69,7 +69,7 @@ define Device/teltonika_trb2m
 	DEVICE_DTS := mt7628an_teltonika_trb2m
 	DEVICE_FEATURES += gateway pppmobile gps serial \
 			modbus ios single_port dualsim bacnet ntrip mobile ncm dot1x-server \
-	                xfrm-offload no-wired-wan
+	        esim xfrm-offload no-wired-wan tpm
 
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.5
@@ -85,12 +85,13 @@ define Device/teltonika_trb2m
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	INCLUDED_DEVICES := \
+		TEMPLATE_teltonika_trb236 \
 		TEMPLATE_teltonika_trb246 \
 		TEMPLATE_teltonika_trb256 \
 		TEMPLATE_teltonika_trb247
 
 	DEVICE_MODEM_VENDORS := Quectel
-	DEVICE_MODEM_LIST := EC25 EG915Q BG95
+	DEVICE_MODEM_LIST := EC25 EG915Q BG95 EG95
 endef
 
 define Device/teltonika_tap100
@@ -98,7 +99,7 @@ define Device/teltonika_tap100
 	DEVICE_MODEL := TAP100
 	DEVICE_BOOT_NAME := tlt-tap100
 	DEVICE_DTS := mt7628an_teltonika_tap100
-	DEVICE_FEATURES := small_flash access_point single_port wifi ledman-lite dot1x-client no-wired-wan reset_button
+	DEVICE_FEATURES := small_flash access_point single_port wifi ledman-lite dot1x-client no-wired-wan reset_button 64mb_ram
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4
 	GPL_PREFIX := GPL

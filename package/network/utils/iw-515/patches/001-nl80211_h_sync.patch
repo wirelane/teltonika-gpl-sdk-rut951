@@ -188,7 +188,7 @@
   *
   * @NL80211_ATTR_MU_MIMO_GROUP_DATA: array of 24 bytes that defines a MU-MIMO
   *	groupID for monitor mode.
-@@ -2663,6 +2753,71 @@ enum nl80211_commands {
+@@ -2663,6 +2753,69 @@ enum nl80211_commands {
   *	association request when used with NL80211_CMD_NEW_STATION). Can be set
   *	only if %NL80211_STA_FLAG_WME is set.
   *
@@ -225,8 +225,6 @@
 + *	When used with %NL80211_CMD_FRAME_TX_STATUS, indicates the ack RX
 + *	timestamp. When used with %NL80211_CMD_FRAME RX notification, indicates
 + *	the incoming frame RX timestamp.
-+ * @NL80211_ATTR_WIPHY_ANTENNA_GAIN: Configured antenna gain. Used to reduce
-+ *	transmit power to stay within regulatory limits. u32, dBi.
 + *
 + * @NL80211_ATTR_TD_BITMAP: Transition Disable bitmap, for subsequent
 + *	(re)associations.
@@ -260,7 +258,7 @@
   * @NUM_NL80211_ATTR: total number of nl80211_attrs available
   * @NL80211_ATTR_MAX: highest attribute number currently defined
   * @__NL80211_ATTR_AFTER_LAST: internal use
-@@ -3177,6 +3332,32 @@ enum nl80211_attrs {
+@@ -3177,6 +3332,30 @@ enum nl80211_attrs {
  
  	NL80211_ATTR_DISABLE_EHT,
  
@@ -287,8 +285,6 @@
 +	NL80211_ATTR_EMA_RNR_ELEMS,
 +
 +	NL80211_ATTR_MLO_LINK_DISABLED,
-+
-+	NL80211_ATTR_WIPHY_ANTENNA_GAIN,
 +
  	/* add attributes here, update the policy in nl80211.c */
  

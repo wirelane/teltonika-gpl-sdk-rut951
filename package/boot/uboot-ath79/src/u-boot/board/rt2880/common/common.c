@@ -325,22 +325,38 @@ void init_led_animation_array(void)
 {
 	uint64_t led_animation_mask[] = { CONFIG_MTK_LED_ANIMATION_MASK };
 
-	global_led_animation_mask_len = sizeof(led_animation_mask) / sizeof(led_animation_mask[0]);
-
 #if defined (CONFIG_FOR_TELTONIKA_TRB2M)
-	uint64_t trb247_mask[] = { CONFIG_MTK_LED_ANIMATION_MASK_TRB247 };
 	const char mnf_name[12];
 	mnf_get_field("name", mnf_name);
 
-	if (!strncmp(mnf_name, "TRB247", 6)) {
+	if (!strncmp(mnf_name, "TRB236", 6)) {
+		if (CONFIG_MTK_LED_ANIMATION_MASK_TRB236_LEN > ARRAY_MAX_LED_COUNT) {
+			printf("Error: TRB236 LED animation mask length exceeds max length\n");
+			global_led_animation_mask_len = 0;
+			return;
+		}
+		global_led_animation_mask_len = CONFIG_MTK_LED_ANIMATION_MASK_TRB236_LEN;
+		global_active_high_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_H_TRB236;
+		global_active_low_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_L_TRB236;
+		set_global_led_animation_cfg((uint64_t[]){CONFIG_MTK_LED_ANIMATION_MASK_TRB236}, global_led_animation_mask);
+
+		return;
+	} else if (!strncmp(mnf_name, "TRB247", 6)) {
+		if (CONFIG_MTK_LED_ANIMATION_MASK_TRB247_LEN > ARRAY_MAX_LED_COUNT) {
+			printf("Error: TRB247 LED animation mask length exceeds max length\n");
+			global_led_animation_mask_len = 0;
+			return;
+		}
+		global_led_animation_mask_len = CONFIG_MTK_LED_ANIMATION_MASK_TRB247_LEN;
 		global_active_high_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_H_TRB247;
 		global_active_low_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_L_TRB247;
-		global_led_animation_mask_len = sizeof(trb247_mask) / sizeof(trb247_mask[0]);
-		set_global_led_animation_cfg(trb247_mask, global_led_animation_mask);
+		set_global_led_animation_cfg((uint64_t[]){CONFIG_MTK_LED_ANIMATION_MASK_TRB247}, global_led_animation_mask);
 
 		return;
 	}
 #endif
+
+	global_led_animation_mask_len = sizeof(led_animation_mask) / sizeof(led_animation_mask[0]);
 	set_global_led_animation_cfg(led_animation_mask, global_led_animation_mask);
 
 	return;
