@@ -318,6 +318,7 @@ define Device/teltonika_rute
 		mt7628an-teltonika-rut281 \
 		mt7628an-teltonika-rut971 \
 		mt7628an-teltonika-rut981 \
+		mt7628an-teltonika-rut986 \
 		mt7628an-teltonika-otd144
 	KERNEL := kernel-bin | zstd | fit zstd "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addprefix image-,$$(addsuffix .dtb,$$(DEVICE_DTS))))}"
 	KERNEL_INITRAMFS := $$(KERNEL)
@@ -363,10 +364,11 @@ define Device/teltonika_rute
 		TEMPLATE_teltonika_rut971 \
 		TEMPLATE_teltonika_rut976 \
 		TEMPLATE_teltonika_rut981 \
+		TEMPLATE_teltonika_rut986 \
 		TEMPLATE_teltonika_otd144
 
 	SUPPORTED_DEVICES := teltonika,rute teltonika,rut976 teltonika,rut206 teltonika,rut271 teltonika,rut276 teltonika,rut281 teltonika,rut971 \
-			     teltonika,rut981 teltonika,otd144
+			     teltonika,rut981 teltonika,rut986 teltonika,otd144
 
 	DEVICE_MODEM_VENDORS := Quectel Telit Teltonika
 	DEVICE_MODEM_LIST := EC200A EC25 RG255C LE910C4 ALA440

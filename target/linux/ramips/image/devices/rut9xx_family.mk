@@ -358,3 +358,64 @@ define Device/TEMPLATE_teltonika_rut981
 	HARDWARE/Safety_(Hazardous_Locations)/Hazardous_Environments := Class I, Division 2, Groups A, B, C, D; Class I, Zone 2, \
 	Group IIC; -40°C ≤ Ta ≤ 75°C, T4, IP30;
 endef
+
+define Device/TEMPLATE_teltonika_rut986
+	$(Device/teltonika_rute)
+	$(Device/teltonika_rut9x_common)
+	$(Device/template_rut9x)
+	$(Device/template_rut9x_io)
+	DEVICE_MODEL := RUT986
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.17.2
+
+	DEVICE_FEATURES += usb-port
+
+	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
+	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
+	HARDWARE/Power/PoE_Standards  := Optional: $(HW_POWER_POE_PASSIVE_30V)
+	HARDWARE/Mobile/3GPP_Release := Release 10
+	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN) (available from HW revision 1600)
+	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS
+	TECHNICAL/Physical_Interfaces/USB := 1 $(HW_INTERFACE_USB)
+	TECHNICAL/Physical_Interfaces/RS232 := 1 $(HW_INTERFACE_RS232_DB9)
+	TECHNICAL/Physical_Interfaces/RS485 := 1 $(HW_INTERFACE_RS485_6PIN)
+	TECHNICAL/Physical_Interfaces/Input_Output := 1 x 10-pin industrial socket for inputs/outputs
+	TECHNICAL/Input_Output/Input := 1 x digital dry input (0 - 3 V), 1 x digital galvanically isolated input (0 - 30 V), 1 x analog input (0 - 24 V), \
+	1 x Digital non-isolated input (on 4-pin power connector, 0 - 5 V detected as logic low, 8 - 30 V detected as logic high)
+	TECHNICAL/Input_Output/Output := 1 x digital open collector output (30 V, 250 mA), 1 x SPST relay output (40 V, 4 A), \
+	1 x Digital open collector output (30 V, 300 mA, on 4-pin power connector)
+	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232)
+	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485)
+	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
+	HARDWARE/USB/Data_Rate := $(HW_USB_2_DATA_RATE)
+	HARDWARE/USB/Applications := $(HW_USB_APPLICATIONS)
+	HARDWARE/USB/External_Devices := $(HW_USB_EXTERNAL_DEV)
+	HARDWARE/USB/Storage_Formats := $(HW_USB_STORAGE_FORMATS)
+	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
+	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
+	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)
+	HARDWARE/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
+	HARDWARE/Input_Output/Output := 1 $(HW_OUTPUT_DO_30V)
+	HARDWARE/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi antenna connectors
+	HARDWARE/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, ANRT, Kenya, CITC, ICASA, FCC, IC, PTCRB, RCM, Giteki, \
+	ECE R118, E-mark, CB, UL/CSA Safety, RoHS, REACH, C1D2
+	HARDWARE/Regulatory_&_Type_Approvals/Operator := AT&T, Verizon, T-Mobile
+	REGULATORY/EMC_Emissions_&_Immunity/Standards := $(HW_EI_STANDARDS_EN_55032); $(HW_EI_STANDARDS_EN_55035); $(HW_EI_STANDARDS_EN_IEC_61000-3-2); \
+	$(HW_EI_STANDARDS_EN_61000-3-3); $(HW_EI_STANDARDS_EN_301_489-1_V2.2.3); $(HW_EI_STANDARDS_EN_301_489-17_V3.2.4); \
+	EN 301 489-19 V2.1.1; $(HW_EI_STANDARDS_EN_301_489-52_V1.2.1);
+	REGULATORY/EMC_Emissions_&_Immunity/ESD := $(HW_IMUNITY_EMISION_ESD)
+	REGULATORY/EMC_Emissions_&_Immunity/Radiated_Immunity := EN 61000-4-3:2020
+	REGULATORY/EMC_Emissions_&_Immunity/EFT := $(HW_IMUNITY_EMISION_EFT)
+	REGULATORY/EMC_Emissions_&_Immunity/Surge_Immunity_(AC_Mains_Power_Port) := $(HW_IMUNITY_EMISION_SURGE)
+	REGULATORY/EMC_Emissions_&_Immunity/CS := $(HW_IMUNITY_EMISION_CS)
+	REGULATORY/EMC_Emissions_&_Immunity/DIP := $(HW_IMUNITY_EMISION_DIP)
+	REGULATORY/RF/Standards := $(HW_RF_EN_300_328_V2.2.2); $(HW_RF_EN_301_511_V12.5.1); $(HW_RF_EN_301_908-1_V15.2.1); $(HW_RF_EN_301_908-2_V13.1.1); \
+	$(HW_RF_EN_301_908-13_V13.2.1); EN 303 413 V1.1.1;
+	HARDWARE/Safety/Standards := CE:$(HW_SAFETY_EN_IEC_62368-1), $(HW_SAFETY_EN_IEC_62311), $(HW_SAFETY_EN_5066); RCM:$(HW_SAFETY_AS/NZS_62368); \
+	CB:$(HW_SAFETY_IEC_62368-1); UL/CSA Safety:UL 62368-1 (3rd Ed., Rev. December 13, 2019), C22.2 No. 62368-1:19 (3rd Ed., Rev. December 13, 2019);
+	REGULATORY/Safety_(Ordinary_Locations)/Standards := CE:EN IEC 62368-1:2020 + A11:2020, EN IEC 62311:2020, EN 50665:2017; RCM:AS/NZS 62368.1:2022; \
+	CB:IEC 62368-1:2018; UL/CSA Safety:UL 62368-1 (3rd Ed., Rev. December 13, 2019), C22.2 No. 62368-1:19 (3rd Ed., Rev. December 13, 2019);
+	REGULATORY/Safety_(Hazardous_Locations)/Standards := UL/CSA Safety:UL 121201, 9th Ed., Rev. April 1, 2021, CAN/CSA C22.2 No. 213, 3rd Ed. April 2021
+	REGULATORY/Safety_(Hazardous_Locations)/Hazardous_Environments := Class I, Division 2, Groups A, B, C, D; Class I, Zone 2, \
+	Group IIC; -40°C ≤ Ta ≤ 75°C, T4, IP30;
+endef
