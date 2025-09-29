@@ -77,7 +77,7 @@ define Device/TEMPLATE_teltonika_rut145
 	DEVICE_MODEL := RUT145
 	DEVICE_FEATURES += rs485
 
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.16
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.17.5
 
 	DEVICE_SERIAL_CAPABILITIES := \
 	"rs485"                                                           \

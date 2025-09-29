@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dsa-dot1x-server
 PKG_SOURCE_VERSION:=1.0.2
-PKG_RELEASE:=2025-07-08
+PKG_RELEASE:=2025-09-23
 PKG_LICENSE:=Teltonika-closed
 
 include $(INCLUDE_DIR)/package.mk
@@ -57,7 +57,7 @@ define Package/dsa-dot1x-server/description
 endef
 
 define Package/dsa-dot1x-server/install
-	$(INSTALL_DIR) $(1)/usr/sbin/ $(1)/usr/lib/ $(1)/etc/init.d/ $(1)/lib/config.d/ $(1)/etc/config/ $(1)/usr/share/acl.d/ $(1)/etc/permtab.d/ $(1)/etc/uci-defaults/7.16/
+	$(INSTALL_DIR) $(1)/usr/sbin/ $(1)/usr/lib/ $(1)/etc/init.d/ $(1)/lib/config.d/ $(1)/etc/config/ $(1)/usr/share/acl.d/ $(1)/etc/permtab.d/ $(1)/etc/uci-defaults/7.16/ $(1)/etc/uci-defaults/7.17/
 	$(if $(CONFIG_TARGET_x86_64),\
 		$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/dot1x_x86_64.config $(1)/etc/config/dot1x
 		install -m0700 $(PKG_BUILD_DIR)/dot1xd/platform_scripts/dsa/dot1x_port_blocker $(1)/usr/sbin/dot1x_port_blocker,\
@@ -75,6 +75,7 @@ define Package/dsa-dot1x-server/install
 
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/dot1xd/dot1x_server.json $(1)/usr/share/acl.d/dot1x_server.json
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/defaults/99_add_radius_name $(1)/etc/uci-defaults/7.16/99_add_radius_name
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/defaults/99_add_radius_name $(1)/etc/uci-defaults/7.17/99_add_radius_name
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/dot1x_server.permtab $(1)/etc/permtab.d/dot1x_server
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dot1xd/dot1xd.lua $(1)/usr/sbin/dot1xd
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dot1xd/dot1x_server.init $(1)/etc/init.d/dot1x_server
