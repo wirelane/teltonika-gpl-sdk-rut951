@@ -169,6 +169,12 @@ static const gpio_func gpio_out_func[] = {
 		.mask = (MTK_GPIO_FUNC_1 << MTK_SYSCTL_GPIO1_MODE_SPIS_SHIFT),
 	},
 	{
+		/* SPIS_MODE GPIO15 */
+		.gpio = GPIO15,
+		.reg  = MTK_SYSCTL_GPIO1_MODE,
+		.mask = (MTK_GPIO_FUNC_1 << MTK_SYSCTL_GPIO1_MODE_SPIS_SHIFT),
+	},
+	{
 		/* SD_MODE GPIO24 */
 		.gpio = GPIO24,
 		.reg  = MTK_SYSCTL_GPIO1_MODE,
@@ -183,6 +189,12 @@ static const gpio_func gpio_out_func[] = {
 	{
 		/* SD_MODE GPIO27 */
 		.gpio = GPIO27,
+		.reg  = MTK_SYSCTL_GPIO1_MODE,
+		.mask = (MTK_GPIO_FUNC_1 << MTK_SYSCTL_GPIO1_MODE_SD_SHIFT),
+	},
+	{
+		/* SD_MODE GPIO28 */
+		.gpio = GPIO28,
 		.reg  = MTK_SYSCTL_GPIO1_MODE,
 		.mask = (MTK_GPIO_FUNC_1 << MTK_SYSCTL_GPIO1_MODE_SD_SHIFT),
 	},

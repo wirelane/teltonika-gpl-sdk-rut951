@@ -103,7 +103,7 @@ define Device/TEMPLATE_teltonika_rut906
 	$(Device/template_rut9x_io)
 	DEVICE_MODEL := RUT906
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.2
-	DEVICE_FEATURES += small_flash
+	DEVICE_FEATURES += small_flash usb-port
 
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN)
@@ -193,7 +193,7 @@ define Device/TEMPLATE_teltonika_rut956
 	$(Device/template_rut9x)
 	$(Device/template_rut9x_io)
 	DEVICE_MODEL := RUT956
-	DEVICE_FEATURES += small_flash
+	DEVICE_FEATURES += small_flash usb-port
 
 	HARDWARE/Mobile/3GPP_Release := Release 11
 	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN) (available from HW revision 1600)
@@ -276,6 +276,7 @@ define Device/TEMPLATE_teltonika_rut976
 	$(Device/template_rut9x_io)
 	DEVICE_MODEL := RUT976
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.12.1
+	DEVICE_FEATURES += usb-port
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 17

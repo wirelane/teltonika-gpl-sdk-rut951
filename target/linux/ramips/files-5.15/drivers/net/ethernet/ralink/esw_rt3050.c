@@ -677,10 +677,6 @@ static void esw_apply_hw_cfg(struct rt305x_esw *esw, uint32_t slp)
 		/* reset EPHY */
 		fe_reset(RT5350_RESET_EPHY);
 
-		if (slp) {
-			msleep(1000 * slp);
-		}
-
 		/* set the led polarity */
 		esw_w32(esw, esw->reg_led_polarity & 0x1F,
 			RT5350_EWS_REG_LED_POLARITY);
@@ -700,6 +696,10 @@ static void esw_apply_hw_cfg(struct rt305x_esw *esw, uint32_t slp)
 			rt305x_mii_write(esw, i, 28, 0x6111);
 			rt305x_mii_write(esw, i, 31, 0x2000);
 			rt305x_mii_write(esw, i, 26, 0x0000);
+		}
+
+		if (slp) {
+			msleep(1000 * slp);
 		}
 
 		/* 100Base AOI setting */
@@ -870,7 +870,7 @@ static void esw_handle_dev(struct fe_priv *priv, struct rt305x_esw *esw, u32 cur
 
 	for (vlan_index = 0; vlan_index < RT305X_ESW_NUM_VLANS; vlan_index++) {
 		vlan = &esw->vlans[vlan_index];
-		if (vlan->vid == RT305X_ESW_VLAN_NONE)
+		if (vlan->vid == RT305X_ESW_VLAN_NONE || vlan->ports == RT305X_ESW_PORTS_NONE)
 			continue;
 
 		vlan_ports = vlan->ports & ~RT305X_ESW_PORTS_CPU;

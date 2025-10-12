@@ -1,56 +1,25 @@
-#include "mt7621-teltonika-rutm-common.dtsi"
+#include "common-mt7621/rutm.dtsi"
+#include "common-mt7621/shiftreg.dtsi"
+#include "common-mt7621/tpm-tis.dtsi"
+#include "common-mt7621/modem/5g.dtsi"
 
+// PWR, RST       |G0|G10|
+// IN, OUT, ISOL  |G12|G16|G18|S15|
+// SR CTRL        |G9|G13|G44|G45|
+// ETH            |S0-S7|
+// 5G		      |G14|G17|G46|S9-G14|
+// MISC           |S8|
 / {
-	compatible = "teltonika,rutm", "mediatek,mt7621-soc";
 	model = "Teltonika RUTM55";
 
 	ext_io {
-		compatible = "spi-gpio";
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		gpio-sck = <&gpio 9 GPIO_ACTIVE_HIGH>;	// 74HC595 SRCLK (Serial Clock)
-		gpio-mosi = <&gpio 13 GPIO_ACTIVE_HIGH>;	// 74HC595 SER (Serial)
-		cs-gpios = <&gpio 45 GPIO_ACTIVE_HIGH>;	// 74HC595 RCLK (Register Clock)
-		num-chipselects = <1>;
-
-		shift_io: shift_io@0 {
-			compatible = "fairchild,74hc595";
-			reg = <0>;
-			gpio-controller;
-			#gpio-cells = <2>;
-			registers-number = <2>;
-			spi-max-frequency = <10000000>;
-			enable-gpios = <&gpio 44 GPIO_ACTIVE_LOW>;
-
-		};
-	};
-
-	keys {
-		compatible = "gpio-keys";
-
-		reset {
-			label = "reset";
-			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_RESTART>;
-		};
+		gpio-mosi = <&gpio 13 GPIO_ACTIVE_HIGH>;
+		cs-gpios = <&gpio 45 GPIO_ACTIVE_HIGH>;
 	};
 
 	gpio-export {
 		compatible = "gpio-export";
 		#size-cells = <0>;
-
-		gpio_modem_reset {
-			gpio-export,name = "modem_reset";
-			gpio-export,output = <0>;
-			gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
-		};
-
-		gpio_modem_power {
-			gpio-export,name = "modem_power";
-			gpio-export,output = <1>; // tmp
-			gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
-		};
 
 		gpio_sim_select {
 			gpio-export,name = "sim_sel";
@@ -60,46 +29,28 @@
 	};
 
 	leds {
-		compatible = "gpio-leds";
-
-		led_power {
-			label = "power";
-			gpios = <&gpio 0 GPIO_ACTIVE_LOW>;
-			default-state = "on";
-			retain-state-shutdown;
-		};
-
 		led_gen_3 {
-			label = "mob_gen_3";
 			gpios = <&shift_io 9 GPIO_ACTIVE_HIGH>;
 		};
 
 		led_gen_4 {
-			label = "mob_gen_4";
 			gpios = <&shift_io 10 GPIO_ACTIVE_HIGH>;
 		};
 
 		led_gen_5 {
-			label = "mob_gen_5";
 			gpios = <&shift_io 11 GPIO_ACTIVE_HIGH>;
 		};
 
 		led_ssid_1 {
-			label = "mob_ssid_1";
 			gpios = <&shift_io 12 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "timer"; // only
 		};
 
 		led_ssid_3 {
-			label = "mob_ssid_3";
 			gpios = <&shift_io 13 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "timer"; // only
 		};
 
 		led_ssid_5 {
-			label = "mob_ssid_5";
 			gpios = <&shift_io 14 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "timer"; //only
 		};
 
 		led_eth_y3 {
@@ -143,19 +94,7 @@
 		};
 	};
 
-	tlt_gpios { // Modify according to wiki page "DTS syntax with Libgpiod changes"
-		gpiochip_info {
-			hw_0 {
-				hwver = <0>;
-				gpiochip_count = <4>;
-
-				gpiochip_0 = <32>; // Built-in
-				gpiochip_1 = <32>; // Built-in
-				gpiochip_2 = <32>; // Built-in
-				gpiochip_3 = <16>; // Shift Register
-			};
-		};
-
+	tlt_gpios {
 		ioman {
 			GPIO_16 {
 				line_name = "GPIO_IN_1";
@@ -174,12 +113,6 @@
 		};
 
 		misc {
-			GPIO_14 {
-				line_name = "GPIO_MODEM_RESET_1";
-			};
-			GPIO_17 {
-				line_name = "GPIO_MODEM_POWER_1";
-			};
 			GPIO_46 {
 				line_name = "GPIO_SIM_SELECT";
 			};
@@ -252,7 +185,6 @@
 &state_default {
 	gpio {
 		groups = "wdt", "jtag", "sdhci", "uart2";
-		function = "gpio";
 	};
 };
 
@@ -287,17 +219,8 @@
 };
 
 &i2c {
-	status = "okay";
-
 	hwmon@0x48 {
 		compatible = "ti,tla2021";
 		reg = <0x48>;
 	};
-
-	tpm: tpm@0x2e {
-		compatible = "tpm_tis_i2c";
-		reg = <0x2e>;
-		status = "okay";
-	};
 };
-

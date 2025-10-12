@@ -1,18 +1,14 @@
-#include "mt7621-teltonika-rutm-common.dtsi"
+#include "common-mt7621/rutm.dtsi"
+#include "common-mt7621/eth/1-lan-port.dtsi"
+#include "common-mt7621/tpm.dtsi"
 
+// PWR, RST |G0|G10|
+// IN, OUT  |G5|G9|G14|G17|
+// ETH      |G41|G42|G43|G45|
+// 4G		|G7|G8|G12|G13|G15|G16|G46-G48|
+// MISC     |G6|
 / {
-	compatible = "teltonika,rutm", "mediatek,mt7621-soc";
 	model = "Teltonika RUTM31";
-
-	keys {
-		compatible = "gpio-keys";
-
-		reset {
-			label = "reset";
-			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_RESTART>;
-		};
-	};
 
 	gpio-export {
 		compatible = "gpio-export";
@@ -44,15 +40,6 @@
 	};
 
 	leds {
-		compatible = "gpio-leds";
-
-		led_power {
-			label = "power";
-			gpios = <&gpio 0 GPIO_ACTIVE_LOW>;
-			default-state = "on";
-			retain-state-shutdown;
-		};
-
 		led_gen_red {
 			label = "mob_gen_red";
 			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
@@ -83,39 +70,15 @@
 		led_ssid_blue {
 			label = "mob_ssid_blue";
 			gpios = <&gpio 47 GPIO_ACTIVE_LOW>;
-			linux,default-trigger = "timer"; // only
-		};
-
-		led_eth_g1 {
-			label = "eth_g1";
-			gpios = <&gpio 41 GPIO_ACTIVE_HIGH>;
-		};
-
-		led_eth_g0 {
-			label = "eth_g0";
-			gpios = <&gpio 43 GPIO_ACTIVE_HIGH>;
-		};
-
-		led_eth_y1 {
-			label = "eth_y1";
-			gpios = <&gpio 45 GPIO_ACTIVE_HIGH>;
-		};
-
-		led_eth_y0 {
-			label = "eth_y0";
-			gpios = <&gpio 42 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "timer";
 		};
 	};
 
-	tlt_gpios { // Modify according to wiki page "DTS syntax with Libgpiod changes"
+	tlt_gpios {
 		gpiochip_info {
 			hw_0 {
-				hwver = <0>;
 				gpiochip_count = <3>;
-
-				gpiochip_0 = <32>; // Built-in
-				gpiochip_1 = <32>; // Built-in
-				gpiochip_2 = <32>; // Built-in
+				/delete-property/ gpiochip_3;
 			};
 		};
 
@@ -176,35 +139,9 @@
 	};
 };
 
-&state_default {
-	gpio {
-		groups = "wdt", "jtag", "sdhci", "uart2", "uart3";
-		function = "gpio";
-	};
-};
-
-&switch0 {
-	ports {
-		port@1 {
-			status = "okay";
-			label = "lan";
-		};
-	};
-};
-
 &mnfinfo {
 	sim_cfg {
 		default = "1111000_1112000";
-	};
-};
-
-&i2c {
-	status = "okay";
-
-	tpm: tpm@2e {
-		compatible = "infineon,slb9673";
-		reg = <0x2e>;
-		status = "okay";
 	};
 };
 

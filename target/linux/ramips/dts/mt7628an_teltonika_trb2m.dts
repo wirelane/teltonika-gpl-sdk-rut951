@@ -39,7 +39,15 @@
 			gpio-export,name = "modem_boot";
 			gpio-export,output = <0>;
 			gpios = <&gpio 42 GPIO_ACTIVE_HIGH>;
-			tlt-mnf,device = "TRB236", "TRB247";
+			tlt-mnf,device = "TRB236";
+		};
+
+		gpio_modem_boot@1 {
+			gpio-export,name = "modem_boot";
+			gpio-export,output = <0>;
+			gpios = <&gpio 42 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB247", "TRB256";
+			tlt-mnf,hwver = <500 9999>;
 		};
 
 		gpio_sim_select {
@@ -52,13 +60,32 @@
 			gpio-export,name = "sim_sel2";
 			gpio-export,output = <0>;
 			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
-			tlt-mnf,device = "TRB236", "TRB247";
+			tlt-mnf,device = "TRB236";
+		};
+
+		gpio_sim_select_2@1 {
+			gpio-export,name = "sim_sel2";
+			gpio-export,output = <0>;
+			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB247", "TRB256";
+			tlt-mnf,hwver = <500 9999>;
+
+		};
+
+		gpio_sim_select_2@2 {
+			gpio-export,name = "sim_sel2";
+			gpio-export,output = <0>;
+			gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB246";
+			tlt-mnf,hwver = <500 9999>;
 		};
 
 		gpio_tpm_reset {
 			gpio-export,name = "tpm_reset";
 			gpio-export,output = <1>;
 			gpios = <&gpio 36 GPIO_ACTIVE_HIGH>; // active low, but doesn't work with gpio-export,output = <0> correctly on startup
+			tlt-mnf,device = "TRB247", "TRB256";
+			tlt-mnf,hwver = <500 9999>;
 		};
 	};
 
@@ -92,12 +119,14 @@
 			label = "mob_gen_2";
 			gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB246", "TRB256";
+			tlt-mnf,hwver = <0 499>;
 		};
 
-		led_gen_3@1 {
-			label = "mob_gen_3";
-			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
-			tlt-mnf,device = "TRB246", "TRB256";
+		led_gen_2@1 {
+			label = "mob_gen_2";
+			gpios = <&gpio 15 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB256";
+			tlt-mnf,hwver = <500 9999>;
 		};
 
 		led_gen_3 {
@@ -106,53 +135,73 @@
 			tlt-mnf,device = "TRB236";
 		};
 
-		led_gen_4@2 {
+		led_gen_3@1 {
+			label = "mob_gen_3";
+			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB246", "TRB256";
+			tlt-mnf,hwver = <0 499>;
+		};
+
+		led_gen_3@2 {
+			label = "mob_gen_3";
+			gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB256";
+			tlt-mnf,hwver = <500 9999>;
+		};
+
+		led_gen_4 {
 			label = "mob_gen_4";
 			gpios = <&gpio 28 GPIO_ACTIVE_HIGH>;
-			tlt-mnf,device = "TRB236";
+			tlt-mnf,device = "TRB256";
+			tlt-mnf,hwver = <500 9999>;
 		};
 
 		led_gen_4@1 {
 			label = "mob_gen_4";
 			gpios = <&gpio 42 GPIO_ACTIVE_LOW>;
 			tlt-mnf,device = "TRB246", "TRB256";
+			tlt-mnf,hwver = <0 499>;
 		};
 
-		led_gen_4 {
+		led_gen_4@2 {
 			label = "mob_gen_4";
-			gpios = <&gpio 14 GPIO_ACTIVE_HIGH>; // NB1 LED for EG915Q modem
-			tlt-mnf,device = "TRB247";
+			gpios = <&gpio 28 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB236";
 		};
 
-		// led_gen_2 {
-		// 	label = "mob_gen_2";
-		// 	gpios = <&gpio 15 GPIO_ACTIVE_HIGH>;
-		// 	tlt-mnf,device = "TRB247";
-		// };
-
-		// led_gen_nb1 {
-		// 	label = "mob_gen_nb1";
-		// 	gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
-		// 	tlt-mnf,device = "TRB247";
-		// };
-
-		// led_gen_m1 {
-		// 	label = "mob_gen_m1";
-		// 	gpios = <&gpio 28 GPIO_ACTIVE_HIGH>;
-		// 	tlt-mnf,device = "TRB247";
-		// };
-
-		led_ssid_1@1 {
-			label = "mob_ssid_1";
-			gpios = <&gpio 39 GPIO_ACTIVE_HIGH>;
-			tlt-mnf,device = "TRB246", "TRB256";
-			linux,default-trigger = "timer";
+		led_gen_4@3 {
+			label = "mob_gen_4";
+			gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB247" ;
 		};
 
 		led_ssid_1 {
 			label = "mob_ssid_1";
 			gpios = <&gpio 26 GPIO_ACTIVE_HIGH>;
-			tlt-mnf,device = "TRB236", "TRB247";
+			tlt-mnf,device = "TRB236";
+			linux,default-trigger = "timer";
+		};
+
+		led_ssid_1@1 {
+			label = "mob_ssid_1";
+			gpios = <&gpio 39 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB246", "TRB256";
+			tlt-mnf,hwver = <0 499>;
+			linux,default-trigger = "timer";
+		};
+
+		led_ssid_1@2 {
+			label = "mob_ssid_1";
+			gpios = <&gpio 26 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB247", "TRB256";
+			tlt-mnf,hwver = <500 9999>;
+			linux,default-trigger = "timer";
+		};
+
+		led_ssid_3 {
+			label = "mob_ssid_3";
+			gpios = <&gpio 27 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB236";
 			linux,default-trigger = "timer";
 		};
 
@@ -160,13 +209,22 @@
 			label = "mob_ssid_3";
 			gpios = <&gpio 40 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB246", "TRB256";
+			tlt-mnf,hwver = <0 499>;
 			linux,default-trigger = "timer";
 		};
 
-		led_ssid_3 {
+		led_ssid_3@2 {
 			label = "mob_ssid_3";
 			gpios = <&gpio 27 GPIO_ACTIVE_HIGH>;
-			tlt-mnf,device = "TRB236", "TRB247";
+			tlt-mnf,device = "TRB247", "TRB256";
+			tlt-mnf,hwver = <500 9999>;
+			linux,default-trigger = "timer";
+		};
+
+		led_ssid_5 {
+			label = "mob_ssid_5";
+			gpios = <&gpio 24 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB236";
 			linux,default-trigger = "timer";
 		};
 
@@ -174,15 +232,18 @@
 			label = "mob_ssid_5";
 			gpios = <&gpio 41 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB246", "TRB256";
+			tlt-mnf,hwver = <0 499>;
 			linux,default-trigger = "timer";
 		};
 
-		led_ssid_5 {
+		led_ssid_5@2 {
 			label = "mob_ssid_5";
 			gpios = <&gpio 24 GPIO_ACTIVE_HIGH>;
-			tlt-mnf,device = "TRB236", "TRB247";
+			tlt-mnf,device = "TRB247", "TRB256";
+			tlt-mnf,hwver = <500 9999>;
 			linux,default-trigger = "timer";
 		};
+
 	};
 
 	tlt_gpios { // Modify according to wiki page "DTS syntax with Libgpiod changes"
@@ -199,8 +260,9 @@
 
 		ioman {
 			GPIO_24 {
-				line_name = "GPIO_IN_1";
 				compatible_model = "TRB246", "TRB256";
+				compatible_versions = <0 4>;
+				line_name = "GPIO_IN_1";
 
 				active_low;
 			};
@@ -208,8 +270,9 @@
 				line_name = "GPIO_OUT_1";
 			};
 			GPIO_27 {
-				line_name = "GPIO_IN_2";
 				compatible_model = "TRB246", "TRB256";
+				compatible_versions = <0 4>;
+				line_name = "GPIO_IN_2";
 
 				active_low;
 			};
@@ -217,8 +280,9 @@
 				line_name = "GPIO_OUT_2";
 			};
 			GPIO_14 {
-				line_name = "GPIO_IN_3";
 				compatible_model = "TRB246", "TRB256";
+				compatible_versions = <0 4>;
+				line_name = "GPIO_IN_3";
 
 				active_low;
 			};
@@ -226,16 +290,34 @@
 				line_name = "GPIO_OUT_3";
 			};
 			GPIO_41 {
-				line_name = "GPIO_IN_1";
-				compatible_model = "TRB236", "TRB247";
+				compatible_model_0 = "TRB236";
+				line_name_0 = "GPIO_IN_1";
+
+				compatible_model_1 = "TRB247", "TRB256";
+				compatible_versions_1 = <5 99>;
+				line_name_1 = "GPIO_IN_1";
+
+				active_low;
 			};
 			GPIO_39 {
-				line_name = "GPIO_IN_2";
-				compatible_model = "TRB236", "TRB247";
+				compatible_model_0 = "TRB236";
+				line_name_0 = "GPIO_IN_2";
+
+				compatible_model_1 = "TRB247", "TRB256";
+				compatible_versions_1 = <5 99>;
+				line_name_1 = "GPIO_IN_2";
+
+				active_low;
 			};
 			GPIO_40 {
-				line_name = "GPIO_IN_3";
-				compatible_model = "TRB236", "TRB247";
+				compatible_model_0 = "TRB236";
+				line_name_0 = "GPIO_IN_3";
+
+				compatible_model_1 = "TRB247", "TRB256";
+				compatible_versions_1 = <5 99>;
+				line_name_1 = "GPIO_IN_3";
+
+				active_low;
 			};
 		};
 
@@ -253,30 +335,54 @@
 				line_name = "GPIO_SIM_SELECT";
 			};
 			GPIO_1 {
-				line_name = "GPIO_SIM_SELECT_2";
-				compatible_model = "TRB236", "TRB247";
+				compatible_model_0 = "TRB236";
+				line_name_0 = "GPIO_SIM_SELECT_2";
+
+				compatible_model_1 = "TRB247", "TRB256";
+				compatible_versions_1 = <5 99>;
+				line_name_1 = "GPIO_SIM_SELECT_2";
 			};
 			GPIO_4 {
-				line_name = "GPIO_RS485_D_EN";
 				compatible_model = "TRB246", "TRB256";
+				compatible_versions = <0 4>;
+				line_name = "GPIO_RS485_D_EN";
 			};
 			GPIO_5 {
-				line_name = "GPIO_RS485_RX_EN";
 				compatible_model = "TRB246", "TRB256";
+				compatible_versions = <0 4>;
+				line_name = "GPIO_RS485_RX_EN";
+
 				mode = "output-low";
 			};
 			GPIO_11 {
-				line_name = "GPIO_RS485_RX_EN";
-				compatible_model = "TRB236", "TRB247";
+				compatible_model_0 = "TRB236";
+				line_name_0 = "GPIO_RS485_RX_EN";
+
+				compatible_model_1 = "TRB247", "TRB256";
+				compatible_versions_1 = <5 99>;
+				line_name_1 = "GPIO_RS485_RX_EN";
+
 				mode = "output-low";
 			};
 			GPIO_6 {
-				line_name = "GPIO_RS485_D_EN";
-				compatible_model = "TRB236", "TRB247";
+				compatible_model_0 = "TRB236";
+				line_name_0 = "GPIO_RS485_D_EN";
+
+				compatible_model_1 = "TRB247", "TRB256";
+				compatible_versions_1 = <5 99>;
+				line_name_1 = "GPIO_RS485_D_EN";
+
+				compatible_model_2 = "TRB246";
+				compatible_versions_2 = <5 99>;
+				line_name_2 = "GPIO_SIM_SELECT_2";
 			};
 			GPIO_42 {
-				line_name = "GPIO_MODEM_BOOT";
-				compatible_model = "TRB236", "TRB247";
+				compatible_model_0 = "TRB236";
+				line_name_0 = "GPIO_MODEM_BOOT";
+
+				compatible_model_1 = "TRB247", "TRB256";
+				compatible_versions_1 = <5 99>;
+				line_name_1 = "GPIO_MODEM_BOOT";
 			};
 		};
 	};

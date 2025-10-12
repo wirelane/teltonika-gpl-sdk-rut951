@@ -20,7 +20,7 @@ define Device/TEMPLATE_teltonika_rut301
 
 	DEVICE_USB_JACK_PATH_LOW_SPEED := /usb2/2-1/
 
-	DEVICE_FEATURES := usb ethernet ios nat_offloading port_link xfrm-offload small_flash reset_button 128mb_ram
+	DEVICE_FEATURES := usb ethernet ios nat_offloading port_link xfrm-offload small_flash reset_button 128mb_ram usb-port
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 

@@ -67,9 +67,9 @@ define Device/teltonika_trb2m
 	DEVICE_MODEL := TRB2M
 	DEVICE_BOOT_NAME := tlt-trb2m
 	DEVICE_DTS := mt7628an_teltonika_trb2m
-	DEVICE_FEATURES += gateway pppmobile gps serial \
-			modbus ios single_port dualsim bacnet ntrip mobile ncm dot1x-server \
-	        esim xfrm-offload no-wired-wan tpm
+	DEVICE_FEATURES += gateway pppmobile gps serial modbus rs232 \
+			rs485 ios single_port dualsim bacnet ntrip mobile ncm \
+			dot1x-server xfrm-offload no-wired-wan tpm
 
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.5
@@ -87,8 +87,9 @@ define Device/teltonika_trb2m
 	INCLUDED_DEVICES := \
 		TEMPLATE_teltonika_trb236 \
 		TEMPLATE_teltonika_trb246 \
+		TEMPLATE_teltonika_trb247 \
 		TEMPLATE_teltonika_trb256 \
-		TEMPLATE_teltonika_trb247
+		TEMPLATE_teltonika_ntp001
 
 	DEVICE_MODEM_VENDORS := Quectel
 	DEVICE_MODEM_LIST := EC25 EG915Q BG95 EG95
@@ -276,7 +277,7 @@ define Device/teltonika_rut9m
 	DEVICE_BOOT_NAME := tlt-rut9m
 	DEVICE_FEATURES += gps usb-port serial modbus ios wifi dualsim \
 			rndis ncm bacnet ntrip mobile portlink rs232 rs485 dot1x-server port-mirror \
-	                xfrm-offload poe
+	                xfrm-offload poe ethtool-tiny
 
 	DEVICE_DTS := mt7628an_teltonika_rut9m
 	IMAGE_SIZE := 12480k
@@ -330,7 +331,7 @@ define Device/teltonika_rute
 
 	DEVICE_MODEL := RUTE
 	DEVICE_BOOT_NAME := tlt-mt7628
-	DEVICE_FEATURES := large_flash sw-offload gps usb-port serial modbus ios wifi dualsim \
+	DEVICE_FEATURES := large_flash sw-offload gps serial modbus ios wifi dualsim \
 			rndis ncm bacnet ntrip mobile portlink rs232 rs485 dot1x-server port-mirror \
 	                xfrm-offload usb-sd-card usb-port dot1x-client 128mb_ram poe reset_button
 

@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=poeman
 
-PKG_SOURCE_VERSION:=2.15
+PKG_SOURCE_VERSION:=2.15.1
 PKG_LICENSE:=Teltonika-closed
 
 include $(INCLUDE_DIR)/package.mk
@@ -36,11 +36,12 @@ endef
 
 
 define Package/poeman/install
-	$(INSTALL_DIR) $(1)/etc/init.d $(1)/usr/bin $(1)/lib/config.d $(1)/usr/share/acl.d
+	$(INSTALL_DIR) $(1)/etc/init.d $(1)/usr/bin $(1)/lib/config.d $(1)/usr/share/acl.d $(1)/etc/permtab.d
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/poeman.init $(1)/etc/init.d/poeman
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/poeman $(1)/usr/bin/poeman
 	$(INSTALL_CONF) $(PKG_BUILD_DIR)/files/config.d/600-generate-poe-config $(1)/lib/config.d/
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/acl.d/poeman.json $(1)/usr/share/acl.d/poeman.json
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/permtab.d/poeman $(1)/etc/permtab.d/poeman
 endef
 
 define Package/libpoeman/install

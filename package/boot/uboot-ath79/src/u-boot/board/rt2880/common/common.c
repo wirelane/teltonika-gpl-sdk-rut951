@@ -251,6 +251,20 @@ int reset_button_status(void)
 #endif
 }
 
+int str_to_hwver(char hwver[4]) {
+	int mnf_hwver = 0;
+
+	if (hwver[0] != '0' || hwver[1] != '0') {
+		mnf_hwver = (hwver[0] - '0') * 10 + (hwver[1] - '0');
+	} else if (hwver[2] != '0' || hwver[3] != '0') {
+		mnf_hwver = (hwver[2] - '0') * 10 + (hwver[3] - '0');
+	} else {
+		mnf_hwver = 0;
+	}
+
+	return mnf_hwver;
+}
+
 /*
  * Returns "digital input" status:
  * 1 -> input is set
@@ -270,18 +284,10 @@ int digital_in_status(void)
 	int hwver_list[]     = { CONFIG_HW_VERSIONS };
 	const char mnf_name[12];
 	const char hwver[4];
-	int mnf_hwver;
 
 	mnf_get_field("name", mnf_name);
 	mnf_get_field("hwver", hwver);
-
-	if (hwver[0] != '0' || hwver[1] != '0') {
-		mnf_hwver = (hwver[0] - '0') * 10 + (hwver[1] - '0');
-	} else if (hwver[2] != '0' || hwver[3] != '0') {
-		mnf_hwver = (hwver[2] - '0') * 10 + (hwver[3] - '0');
-	} else {
-		mnf_hwver = 0;
-	}
+	int mnf_hwver = str_to_hwver(hwver);
 
 	int len = sizeof(old_gpio_mask) / sizeof(old_gpio_mask[0]);
 	for (u32 i = 0; i < len; i++) {
@@ -327,7 +333,11 @@ void init_led_animation_array(void)
 
 #if defined (CONFIG_FOR_TELTONIKA_TRB2M)
 	const char mnf_name[12];
+	const char mnf_hwver[4];
+
 	mnf_get_field("name", mnf_name);
+	mnf_get_field("hwver", mnf_hwver);
+	int hwver = str_to_hwver(mnf_hwver);
 
 	if (!strncmp(mnf_name, "TRB236", 6)) {
 		if (CONFIG_MTK_LED_ANIMATION_MASK_TRB236_LEN > ARRAY_MAX_LED_COUNT) {
@@ -351,6 +361,18 @@ void init_led_animation_array(void)
 		global_active_high_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_H_TRB247;
 		global_active_low_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_L_TRB247;
 		set_global_led_animation_cfg((uint64_t[]){CONFIG_MTK_LED_ANIMATION_MASK_TRB247}, global_led_animation_mask);
+
+		return;
+	} else if (!strncmp(mnf_name, "TRB256", 6) && hwver > 4 ) {
+		if (CONFIG_MTK_LED_ANIMATION_MASK_TRB256_LEN > ARRAY_MAX_LED_COUNT) {
+			printf("Error: TRB256 LED animation mask length exceeds max length\n");
+			global_led_animation_mask_len = 0;
+			return;
+		}
+		global_led_animation_mask_len = CONFIG_MTK_LED_ANIMATION_MASK_TRB256_LEN;
+		global_active_high_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_H_TRB256;
+		global_active_low_mask = CONFIG_MTK_GPIO_MASK_LED_ACT_L_TRB256;
+		set_global_led_animation_cfg((uint64_t[]){CONFIG_MTK_LED_ANIMATION_MASK_TRB256}, global_led_animation_mask);
 
 		return;
 	}

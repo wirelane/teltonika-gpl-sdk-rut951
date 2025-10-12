@@ -111,7 +111,7 @@ define Device/TEMPLATE_teltonika_otd144
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.15.1
 
 	DEVICE_FEATURES += large_flash wifi dual_sim mobile ethernet nat_offloading poe \
-		port_link xfrm-offload networks_external 128mb_ram
+		port_link xfrm-offload 128mb_ram
 
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M) $(HW_FLASH_TYPE_NOR_SERIAL)
