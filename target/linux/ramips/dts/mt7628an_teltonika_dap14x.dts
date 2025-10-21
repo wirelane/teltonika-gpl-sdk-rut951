@@ -70,6 +70,7 @@
 			GPIO_38 {
 				line_name = "GPIO_RS485_RX_EN";
 				compatible_model = "DAP145";
+				mode = "output-low";
 			};
 			GPIO_44 {
 				line_name = "GPIO_RS485_D_EN";
@@ -81,7 +82,7 @@
 
 &state_default {
 	gpio {
-		groups = "i2s", "p4led_an", "p3led_an", "p2led_an", "p1led_an", "p0led_an", "gpio", "wled_an";
+		groups = "i2s", "i2c", "p4led_an", "p3led_an", "p2led_an", "p1led_an", "p0led_an", "gpio", "wled_an";
 		function = "gpio";
 	};
 };
@@ -166,6 +167,5 @@
 	linux,rs485-enabled-at-boot-time;
 	rs485-rts-delay = <0 0>;
 	rs485-rx-during-tx;
-	rts-gpios = <&gpio 44 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
