@@ -51,11 +51,11 @@ ucidef_target_defaults() {
 		ucidef_set_interface_default_macaddr "wan" "$(macaddr_add "$(mtd_get_mac_binary config 0x0)" 1)"
 
 		# set up modem
-		[ "${model:5:1}" != "6" ] && \
-			ucidef_add_static_modem_info "$model" "1-1" "1" "primary"
-
-		[ "${model:5:1}" = "6" ] && \
-			ucidef_add_static_modem_info "$model" "1-1.2" "2" "primary"
+		case "${model:5:1}" in
+		4) ucidef_add_static_modem_info "$model" "1-1.2" "2" "primary" "gps_out" ;;
+		6) ucidef_add_static_modem_info "$model" "1-1.2" "2" "primary" ;;
+		*) ucidef_add_static_modem_info "$model" "1-1" "1" "primary" ;;
+		esac
 
 		# set up io
 		[ "${model:6:1}" = "1" ] && ucidef_unset_hwinfo ios
@@ -64,6 +64,10 @@ ucidef_target_defaults() {
 		[ "${model:6:1}" = "2" ] && [ "${model::6}" = "RUT241" ] && {
 			ucidef_set_esim
 			ucidef_set_hwinfo dual_sim
+		}
+
+		[ "${model::6}" = "RUT204" ] && {
+			ucidef_set_hwinfo stm_can
 		}
 
 		# set up dual_sim
@@ -83,8 +87,13 @@ ucidef_target_defaults() {
 		[ "${model:7:1}" = "1" ] && ucidef_unset_hwinfo ios
 		;;
 	TRB2*)
-		# set up modem
-		ucidef_add_static_modem_info "$model" "1-1.4" "primary" "gps_out"
+		if [ "${model::7}" = "TRB236A" ]; then
+			ucidef_unset_hwinfo gps
+			ucidef_add_static_modem_info "$model" "1-1.4" "primary"
+
+		else
+			ucidef_add_static_modem_info "$model" "1-1.4" "primary" "gps_out"
+		fi
 		;;
 	TAP1*)
 		# set up modem

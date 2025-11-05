@@ -40,6 +40,8 @@
 	mnfinfo: mnfinfo {
 		compatible = "sysfs-mnfinfo";
 		status = "okay";
+		#address-cells = <2>;
+		#size-cells = <1>;
 
 		mac {
 			reg = <&config 0x0 0x6>;
@@ -47,6 +49,13 @@
 			type = "mac";
 			default = "001E42013370";
 			log;
+		};
+
+		maceth {
+			reg = <&config 0x0 0x6>;
+			min-res-len = <0xc>;
+			type = "maceth";
+			default = "001E42013371";
 		};
 
 		name {

@@ -47,7 +47,7 @@
 
 		gpio_modem_power {
 			gpio-export,name = "modem_power";
-			gpio-export,output = <1>; // tmp
+			gpio-export,output = <0>;
 			gpios = <&shift_io 23 GPIO_ACTIVE_HIGH>;
 		};
 

@@ -16,7 +16,7 @@ define Device/TEMPLATE_teltonika_tap100
 		lan default_ip 192.168.1.3 device eth0 ipv6 0 fallback 1 proto dhcp, \
 		dhcp6 device br-lan proto dhcpv6
 
-	DEVICE_FEATURES := access_point wifi ethernet sw_rst_on_init single_port small_flash reset_button 64mb_ram
+	DEVICE_FEATURES := access_point wifi ethernet sw_rst_on_init single_port small_flash reset_button 64mb_ram dot1x-client
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 

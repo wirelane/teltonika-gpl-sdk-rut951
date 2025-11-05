@@ -11,7 +11,7 @@ define Device/tlt-mt7628-hw-common
 	TECHNICAL/Power/PoE_Standards  := $(HW_POWER_POE_PASSIVE_30V)
 	TECHNICAL/Physical_Interfaces/Power := $(HW_INTERFACE_POWER_4PIN)
 	TECHNICAL/Physical_Interfaces/Ethernet := 2 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_100)
-	TECHNICAL/Physical_Interfaces/Button := $(HW_INTERFACE_RESET)
+	TECHNICAL/Physical_Interfaces/Button := $(HW_INTERFACE_RESET_BTN)
 	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_4PIN_IN_OUT)
 	TECHNICAL/Operating_Environment/Operating_Temperature := $(HW_OPERATING_TEMP)
 	TECHNICAL/Operating_Environment/Operating_Humidity := $(HW_OPERATING_HUMIDITY)

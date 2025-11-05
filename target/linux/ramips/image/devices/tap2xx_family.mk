@@ -18,7 +18,7 @@ define Device/TEMPLATE_teltonika_tap200
 
 	DEVICE_CHECK_PATH := pcie_check /sys/class/pci_bus/0000:00 reboot
 
-	DEVICE_FEATURES := access_point wifi ethernet sw_rst_on_init dual_band_ssid single_port small_flash reset_button
+	DEVICE_FEATURES := access_point wifi ethernet sw_rst_on_init dual_band_ssid single_port small_flash reset_button dot1x-client
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 

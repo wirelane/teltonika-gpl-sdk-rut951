@@ -36,9 +36,23 @@
 			gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
 		};
 
+		gpio_sim_select_2 {
+			gpio-export,name = "sim_sel2";
+			gpio-export,output = <0>;
+			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,hwver = <500 9999>;
+		};
+
 		gpio_modem_status {
 			gpio-export,name = "modem_status";
 			gpios = <&gpio 36 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,hwver = <0 499>;
+		};
+
+		gpio_modem_status@1 {
+			gpio-export,name = "modem_status";
+			gpios = <&gpio 38 GPIO_ACTIVE_LOW>;
+			tlt-mnf,hwver = <500 9999>;
 		};
 	};
 
@@ -73,6 +87,13 @@
 		led_gen_3 {
 			label = "mob_gen_3";
 			gpios = <&gpio 38 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,hwver = <0 499>;
+		};
+
+		led_gen_3@1 {
+			label = "mob_gen_3";
+			gpios = <&gpio 36 GPIO_ACTIVE_LOW>;
+			tlt-mnf,hwver = <500 9999>;
 		};
 
 		led_gen_4 {
@@ -106,12 +127,13 @@
 		power_led {
 			label = "power_led";
 			gpios = <&gpio 1 GPIO_ACTIVE_LOW>;
+			tlt-mnf,hwver = <0 499>;
 			default-state = "on";
 			retain-state-shutdown;
 		};
 	};
 
-	tlt_gpios { // Modify according to wiki page "DTS syntax with Libgpiod changes"
+	tlt_gpios {
 		gpiochip_info {
 			hw_0 {
 				hwver = <0>;
@@ -127,6 +149,10 @@
 			GPIO_0 {
 				line_name = "GPIO_MODEM_POWER_1";
 			};
+			GPIO_1 {
+				line_name = "GPIO_SIM_SELECT_2";
+				compatible_versions = <5 99>;
+			};
 			GPIO_2 {
 				line_name = "GPIO_MODEM_RESET_1";
 			};
@@ -135,6 +161,12 @@
 			};
 			GPIO_36 {
 				line_name = "GPIO_MODEM_STATUS";
+				compatible_versions = <0 4>;
+			};
+			GPIO_38 {
+				line_name = "GPIO_MODEM_STATUS";
+				compatible_versions = <5 99>;
+				active_low;
 			};
 		};
 	};
@@ -237,4 +269,10 @@
 
 &i2c {
 	status = "okay";
+
+	tpm@2e {
+		compatible = "infineon,slb9673";
+		reg = <0x2e>;
+		status = "okay";
+	};
 };

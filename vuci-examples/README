@@ -12,7 +12,7 @@
    Copy the example API and UI packages to the VUCI directory
 
    ```sh
-   cp "vuci-app-example-api" "vuci-app-example-ui" "RUT9M_R_GPL_00.07.18.3/package/feeds/vuci/"
+   cp "vuci-app-example-api" "vuci-app-example-ui" "RUT9M_R_GPL_00.07.19/package/feeds/vuci/"
    ```
 
    > **Note:** Directory names can be changed, but API and UI names must match.  
@@ -46,7 +46,7 @@
    ```
 
    > After building, both API and UI packages will be available in:  
-   > `RUT9M_R_GPL_00.07.18.3/bin/packages/ramips/vuci`
+   > `RUT9M_R_GPL_00.07.19/bin/packages/ramips/vuci`
 
 ## Manual Installation
 
@@ -55,8 +55,8 @@
    Copy both API and UI packages to the device:
 
    ```sh
-   scp "RUT9M_R_GPL_00.07.18.3/bin/packages/ramips/vuci/vuci-app-example-api_1_ramips.ipk" \
-       "RUT9M_R_GPL_00.07.18.3/bin/packages/ramips/vuci/vuci-app-example-ui_1_ramips.ipk" \
+   scp "RUT9M_R_GPL_00.07.19/bin/packages/ramips/vuci/vuci-app-example-api_1_ramips.ipk" \
+       "RUT9M_R_GPL_00.07.19/bin/packages/ramips/vuci/vuci-app-example-ui_1_ramips.ipk" \
        root@192.168.1.1:/tmp
    ```
 
@@ -73,7 +73,7 @@
 
 1. **Modify Package Configuration**
 
-   Edit `RUT9M_R_GPL_00.07.18.3/ipk_packages.json`:
+   Edit `RUT9M_R_GPL_00.07.19/ipk_packages.json`:
 
    ```json
    {
@@ -105,4 +105,4 @@
    ```
 
    > After compilation, the package will be available as `example_app.tar.gz` in:  
-   > `RUT9M_R_GPL_00.07.18.3/bin/packages/<arch_name>/zipped_packages`
+   > `RUT9M_R_GPL_00.07.19/bin/packages/<arch_name>/zipped_packages`

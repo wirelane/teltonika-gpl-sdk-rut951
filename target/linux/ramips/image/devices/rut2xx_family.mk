@@ -40,12 +40,14 @@ define Device/template_rut2x
 	DEVICE_INTERFACE_CONF := \
 		lan default_ip 192.168.1.1
 
-	DEVICE_FEATURES := mobile wifi ethernet nat_offloading port_link xfrm-offload reset_button 128mb_ram
+	DEVICE_FEATURES := mobile wifi ethernet nat_offloading port_link xfrm-offload reset_button 128mb_ram dot1x-server dot1x-client
 endef
 
 define Device/template_rut2x6_io
 	$(Device/teltonika_rute)
 	$(Device/template_rut2x)
+
+	DEVICE_FEATURES += modbus rs232 rs485
 
 	DEVICE_SERIAL_CAPABILITIES := \
 		"rs232"                                                                                          \
@@ -64,6 +66,23 @@ define Device/template_rut2x6_io
 			"even odd mark space none"                                                                   \
 			"half"                                                                                       \
 			"usb1/1-1/1-1.4/1-1.4:1.0/"
+endef
+
+define Device/template_rut204_io
+	$(Device/teltonika_rute)
+	$(Device/template_rut2x)
+
+	DEVICE_FEATURES += gps rs232
+
+	DEVICE_SERIAL_CAPABILITIES := \
+		"rs232"                                                                                          \
+			"300 600 1200 2400 4800 9600 19200 38400 57600 115200 230400"                                \
+			"5 6 7 8"                                                                                    \
+			"xon/xoff none"                                                                              \
+			"1 2"                                                                                        \
+			"even odd mark space none"                                                                   \
+			"none"                                                                                       \
+			"/tty/ttyS1"
 endef
 
 define Device/TEMPLATE_teltonika_rut200
@@ -90,6 +109,48 @@ define Device/TEMPLATE_teltonika_rut200
 	$(HW_RF_EN_301_908-13-V13.1.1)
 	REGULATORY/Safety/Standards := CE:$(HW_SAFETY_EN_IEC_62368-1), $(HW_SAFETY_EN_IEC_62311), $(HW_SAFETY_EN_5066); RCM:$(HW_SAFETY_AS/NZS_62368); \
 	CB: $(HW_SAFETY_IEC_62368-1);
+endef
+
+define Device/TEMPLATE_teltonika_rut202
+	$(Device/teltonika_rute)
+	$(Device/teltonika_rut2x_common)
+	$(Device/template_rut2x)
+	DEVICE_MODEL := RUT202
+	DEVICE_FEATURES += ios dual_sim tpm
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.19
+
+	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/3GPP_Release := Release 9
+	TECHNICAL/Physical_Interfaces/SIM := 2 $(HW_INTERFACE_SIM_HOLDERS)
+	TECHNICAL/Physical_Interfaces/Status_Leds := 3 x Connection type status LEDs, 3 x Connection strength LEDs, 2 x LAN status LEDs, 1 x Power LED
+endef
+
+define Device/TEMPLATE_teltonika_rut204
+	$(Device/teltonika_rut2x_common)
+	$(Device/template_rut204_io)
+	DEVICE_MODEL := RUT204
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.19
+	DEVICE_FEATURES += dual_sim sd_card modbus
+
+	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/3GPP_Release := Release 10/11
+	HARDWARE/Mobile/3GPP_Release/Tooltip := $(HW_MOBILE_3GPP_TOOLTIP)
+	TECHNICAL/Input_Output/Input :=
+	TECHNICAL/Input_Output/Output :=
+	TECHNICAL/Power/Connector := $(HW_POWER_CONNECTOR_2PIN)
+	TECHNICAL/Power/PoE_Standards := $(HW_POWER_POE_PASSIVE_ACTIVE)
+	TECHNICAL/Physical_Interfaces/SIM := 2 $(HW_INTERFACE_SIM_TRAY)
+	TECHNICAL/Physical_Interfaces/Status_Leds := 3 x Connection type status LEDs, 3 x Connection strength LEDs, 2 x LAN status LEDs, 1 x Power LED
+	TECHNICAL/Physical_Interfaces/Power := $(HW_INTERFACE_POWER_2PIN)
+	TECHNICAL/Physical_Interfaces/IO :=
+	TECHNICAL/Physical_Interfaces/RS232 := 1 $(HW_INTERFACE_RS232_6PIN)
+	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
+	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
+	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
+	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
+	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)
+	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
 endef
 
 define Device/TEMPLATE_teltonika_rut241
@@ -144,7 +205,7 @@ define Device/TEMPLATE_teltonika_rut271
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT271
-	DEVICE_FEATURES += ios
+	DEVICE_FEATURES += ios modbus
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.12.1
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
@@ -172,7 +233,7 @@ define Device/TEMPLATE_teltonika_rut206
 	$(Device/template_rut2x6_io)
 	DEVICE_MODEL := RUT206
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
-	DEVICE_FEATURES += dual_sim sd_card rs232 rs485
+	DEVICE_FEATURES += dual_sim sd_card
 
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/3GPP_Release := Release 10/11
@@ -201,7 +262,7 @@ define Device/TEMPLATE_teltonika_rut276
 	$(Device/template_rut2x6_io)
 	DEVICE_MODEL := RUT276
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13.4
-	DEVICE_FEATURES += dual_sim sd_card rs232 rs485
+	DEVICE_FEATURES += dual_sim sd_card
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 17
@@ -230,7 +291,7 @@ define Device/TEMPLATE_teltonika_rut281
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT281
-	DEVICE_FEATURES += ios
+	DEVICE_FEATURES += ios modbus
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.15
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps

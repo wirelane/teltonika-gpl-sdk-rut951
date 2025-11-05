@@ -33,7 +33,8 @@ define Device/template_dap14x
 	DEVICE_INTERFACE_CONF := \
 		lan default_ip 192.168.1.3, dhcp device br-lan proto dhcp
 
-	DEVICE_FEATURES := industrial_access_point wifi nat_offloading ethernet port_link xfrm-offload small_flash reset_button 128mb_ram
+	DEVICE_FEATURES := industrial_access_point wifi nat_offloading ethernet port_link
+	DEVICE_FEATURES += xfrm-offload small_flash reset_button 128mb_ram modbus dot1x-client
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 endef

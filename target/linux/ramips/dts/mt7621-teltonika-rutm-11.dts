@@ -12,7 +12,7 @@
 // WAN      |G41|G42|G43|G45|
 // WIFI     |G6|G7|
 // ETH      |S0-S7|
-// 4G		|G14|G16|G18|S8-S15|
+// 4G		|G14|G16|G18|S8-S15|G46|
 / {
 	model = "Teltonika RUTM11";
 
@@ -31,6 +31,19 @@
 			gpio-export,output = <0>;
 			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
 		};
+
+		gpio_sim_select_2 {
+			tlt-mnf,hwver = <400 9999>;
+			gpio-export,name = "sim_sel2"; // eSIM_select
+			gpio-export,output = <0>;
+			gpios = <&gpio 46 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	leds {
+		led_gen_2 {
+			tlt-mnf,hwver = <0 399>;
+		};
 	};
 
 	tlt_gpios {
@@ -38,6 +51,11 @@
 			GPIO_18 {
 				line_name = "GPIO_SIM_SELECT";
 				active_low;
+			};
+
+			GPIO_46 {
+				compatible_versions = <4 99>;
+				line_name = "GPIO_SIM_SELECT_2";
 			};
 		};
 	};

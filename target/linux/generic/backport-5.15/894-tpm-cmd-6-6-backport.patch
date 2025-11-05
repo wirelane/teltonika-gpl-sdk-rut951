@@ -1,7 +1,5 @@
-Index: linux-5.15.184/drivers/char/tpm/tpm2-cmd.c
-===================================================================
---- linux-5.15.184.orig/drivers/char/tpm/tpm2-cmd.c
-+++ linux-5.15.184/drivers/char/tpm/tpm2-cmd.c
+--- a/drivers/char/tpm/tpm2-cmd.c
++++ b/drivers/char/tpm/tpm2-cmd.c
 @@ -752,8 +752,24 @@ int tpm2_auto_startup(struct tpm_chip *c
  	}
  

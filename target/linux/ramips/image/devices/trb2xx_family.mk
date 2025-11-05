@@ -41,8 +41,9 @@ define Device/template_trb2m
 	DEVICE_INTERFACE_CONF := \
 		lan device eth0 default_ip 192.168.1.1
 
-	DEVICE_FEATURES := gateway dual_sim mobile gps ethernet ios rs232 rs485 \
-		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button 128mb_ram
+	DEVICE_FEATURES := gateway dual_sim mobile gps ethernet ios modbus rs232 rs485 \
+		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button 128mb_ram \
+		dot1x-server dot1x-client
 
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false single_port
 
@@ -73,9 +74,10 @@ define Device/TEMPLATE_teltonika_trb236
 	DEVICE_MODEL := TRB236
 
 	DEVICE_FEATURES := gateway dual_sim mobile ethernet ios rs232 rs485 \
-		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button 128mb_ram
+		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button \
+		128mb_ram gps
 
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.17
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.18
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps;
 	TECHNICAL/Physical_Interfaces/Status_Leds := 2 x connection status LEDs, 3 x connection strength LEDs, 1 x power LED, 1 x Eth port status LED
 	TECHNICAL/Physical_Interfaces/Antennas := 1 x SMA connector for LTE
@@ -155,4 +157,6 @@ define Device/TEMPLATE_teltonika_ntp001
 	TECHNICAL/Power/Power_Consumption := Idle:< 2 W, Max:< 3.5 W
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, CB, UCRF, EAC, WEEE
 	DEVICE_MODEL := NTP001
+	DEVICE_FEATURES := gateway dual_sim mobile gps ethernet ios modbus rs232 rs485 \
+		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button 128mb_ram
 endef

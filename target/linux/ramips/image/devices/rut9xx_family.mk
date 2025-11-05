@@ -39,13 +39,13 @@ define Device/template_rut9x
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
 
 	DEVICE_FEATURES := dual_sim ios mobile nat_offloading port_link \
-		wifi ethernet xfrm-offload soft_port_mirror reset_button 128mb_ram
+		wifi ethernet xfrm-offload soft_port_mirror reset_button 128mb_ram modbus dot1x-server dot1x-client port-mirror
 endef
 
 define Device/template_rut9x_io
 
 	DEVICE_USB_JACK_PATH := /usb1/1-1/1-1.1/
-	DEVICE_FEATURES += usb gps rs232 rs485
+	DEVICE_FEATURES += usb usb-port gps rs232 rs485
 
 	DEVICE_SERIAL_CAPABILITIES := \
 		"rs232"                                                           \
@@ -103,7 +103,7 @@ define Device/TEMPLATE_teltonika_rut906
 	$(Device/template_rut9x_io)
 	DEVICE_MODEL := RUT906
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.2
-	DEVICE_FEATURES += small_flash usb-port
+	DEVICE_FEATURES += small_flash
 
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN)
@@ -193,7 +193,7 @@ define Device/TEMPLATE_teltonika_rut956
 	$(Device/template_rut9x)
 	$(Device/template_rut9x_io)
 	DEVICE_MODEL := RUT956
-	DEVICE_FEATURES += small_flash usb-port
+	DEVICE_FEATURES += small_flash
 
 	HARDWARE/Mobile/3GPP_Release := Release 11
 	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN) (available from HW revision 1600)
@@ -276,7 +276,6 @@ define Device/TEMPLATE_teltonika_rut976
 	$(Device/template_rut9x_io)
 	DEVICE_MODEL := RUT976
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.12.1
-	DEVICE_FEATURES += usb-port
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 17

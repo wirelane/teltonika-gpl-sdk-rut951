@@ -99,7 +99,7 @@ Cc: David Ahern <dsahern@kernel.org>
  out_nomem:
  	return -ENOMEM;
  }
-@@ -1695,6 +1685,8 @@ static void vrf_setup(struct net_device
+@@ -1697,6 +1687,8 @@ static void vrf_setup(struct net_device
  	dev->min_mtu = IPV6_MIN_MTU;
  	dev->max_mtu = IP6_MAX_MTU;
  	dev->mtu = dev->max_mtu;

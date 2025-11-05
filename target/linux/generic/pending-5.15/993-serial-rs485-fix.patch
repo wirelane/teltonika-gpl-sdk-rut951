@@ -2762,7 +2762,7 @@
  
  	/*
  	 * Now, initialize the UART
-@@ -2611,8 +2606,11 @@ static unsigned char serial8250_compute_
+@@ -2610,8 +2605,11 @@ static unsigned char serial8250_compute_
  
  	if (c_cflag & CSTOPB)
  		cval |= UART_LCR_STOP;
@@ -2775,7 +2775,7 @@
  	if (!(c_cflag & PARODD))
  		cval |= UART_LCR_EPAR;
  #ifdef CMSPAR
-@@ -2715,12 +2713,12 @@ void serial8250_update_uartclk(struct ua
+@@ -2714,12 +2712,12 @@ void serial8250_update_uartclk(struct ua
  	mutex_lock(&tport->mutex);
  
  	if (port->uartclk == uartclk)
@@ -2790,7 +2790,7 @@
  
  	termios = &tty->termios;
  
-@@ -2738,7 +2736,7 @@ void serial8250_update_uartclk(struct ua
+@@ -2737,7 +2735,7 @@ void serial8250_update_uartclk(struct ua
  	spin_unlock_irqrestore(&port->lock, flags);
  	serial8250_rpm_put(up);
  
@@ -2799,7 +2799,7 @@
  	mutex_unlock(&tport->mutex);
  	up_write(&tty->termios_rwsem);
  	tty_kref_put(tty);
-@@ -2775,7 +2773,8 @@ serial8250_do_set_termios(struct uart_po
+@@ -2774,7 +2772,8 @@ serial8250_do_set_termios(struct uart_po
  	up->lcr = cval;					/* Save computed LCR */
  
  	if (up->capabilities & UART_CAP_FIFO && port->fifosize > 1) {
@@ -2809,7 +2809,7 @@
  			up->fcr &= ~UART_FCR_TRIGGER_MASK;
  			up->fcr |= UART_FCR_TRIGGER_1;
  		}
-@@ -2969,10 +2968,8 @@ static int serial8250_request_std_resour
+@@ -2968,10 +2967,8 @@ static int serial8250_request_std_resour
  	case UPIO_MEM32BE:
  	case UPIO_MEM16:
  	case UPIO_MEM:
@@ -2821,7 +2821,7 @@
  
  		if (!request_mem_region(port->mapbase, size, "serial")) {
  			ret = -EBUSY;
-@@ -3101,7 +3098,7 @@ static ssize_t rx_trig_bytes_show(struct
+@@ -3100,7 +3097,7 @@ static ssize_t rx_trig_bytes_show(struct
  	if (rxtrig_bytes < 0)
  		return rxtrig_bytes;
  
@@ -2830,7 +2830,7 @@
  }
  
  static int do_set_rxtrig(struct tty_port *port, unsigned char bytes)
-@@ -3111,7 +3108,8 @@ static int do_set_rxtrig(struct tty_port
+@@ -3110,7 +3107,8 @@ static int do_set_rxtrig(struct tty_port
  	struct uart_8250_port *up = up_to_u8250p(uport);
  	int rxtrig;
  
@@ -2840,7 +2840,7 @@
  		return -EINVAL;
  
  	rxtrig = bytes_to_fcr_rxtrig(up, bytes);
-@@ -3195,6 +3193,9 @@ static void serial8250_config_port(struc
+@@ -3194,6 +3192,9 @@ static void serial8250_config_port(struc
  	if (flags & UART_CONFIG_TYPE)
  		autoconfig(up);
  
@@ -2850,7 +2850,7 @@
  	/* if access method is AU, it is a 16550 with a quirk */
  	if (port->type == PORT_16550A && port->iotype == UPIO_AU)
  		up->bugs |= UART_BUG_NOMSR;
-@@ -3266,7 +3267,6 @@ void serial8250_init_port(struct uart_82
+@@ -3265,7 +3266,6 @@ void serial8250_init_port(struct uart_82
  	struct uart_port *port = &up->port;
  
  	spin_lock_init(&port->lock);
@@ -2858,7 +2858,7 @@
  	port->ops = &serial8250_pops;
  	port->has_sysrq = IS_ENABLED(CONFIG_SERIAL_8250_CONSOLE);
  
-@@ -3321,13 +3321,8 @@ static void serial8250_console_restore(s
+@@ -3320,13 +3320,8 @@ static void serial8250_console_restore(s
  	unsigned int baud, quot, frac = 0;
  
  	termios.c_cflag = port->cons->cflag;

@@ -43,7 +43,8 @@ define Device/template_otd1xx
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
 
 	DEVICE_FEATURES := dual_sim mobile ethernet nat_offloading poe \
-		port_link xfrm-offload networks_external reset_button 128mb_ram
+		port_link xfrm-offload networks_external reset_button 128mb_ram \
+		dot1x-client dot1x-server
 endef
 
 define Device/TEMPLATE_teltonika_otd140
@@ -66,7 +67,7 @@ define Device/TEMPLATE_teltonika_otd140
 	DEVICE_POE_CHIP := 0X77 0:_lan1, 0X2F 1:_lan1
 
 	DEVICE_FEATURES := dual_sim mobile ethernet nat_offloading poe \
-		port_link xfrm-offload networks_external small_flash reset_button
+		port_link xfrm-offload networks_external small_flash reset_button dot1x-client dot1x-server
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 
@@ -111,7 +112,7 @@ define Device/TEMPLATE_teltonika_otd144
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.15.1
 
 	DEVICE_FEATURES += large_flash wifi dual_sim mobile ethernet nat_offloading poe \
-		port_link xfrm-offload 128mb_ram
+		port_link xfrm-offload 128mb_ram modbus dot1x-client dot1x-server tpm
 
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M) $(HW_FLASH_TYPE_NOR_SERIAL)
