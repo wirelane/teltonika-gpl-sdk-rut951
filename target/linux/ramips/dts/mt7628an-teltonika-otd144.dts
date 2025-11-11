@@ -189,6 +189,11 @@
 	sim_count {
 		default =  "2";
 	};
+
+	blver {
+		reg = <&boot 0x3f000 0xa>;
+		trailling-data;
+	};
 };
 
 &state_default {

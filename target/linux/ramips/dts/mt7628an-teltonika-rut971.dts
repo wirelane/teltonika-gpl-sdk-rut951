@@ -260,6 +260,11 @@
 		tlt-mnf,hwver = <600 9999>;
 		default = "2111110_2112010_2121210";
 	};
+
+	blver {
+		reg = <&boot 0x3f000 0xa>;
+		trailling-data;
+	};
 };
 
 &state_default {

@@ -176,9 +176,6 @@
 	blver {
 		reg = <&boot 0x3f000 0xa>;
 		trailling-data;
-		strip-whitespaces;
-		type = "ascii";
-		log;
 	};
 };
 
