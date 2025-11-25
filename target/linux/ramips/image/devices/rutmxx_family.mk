@@ -169,7 +169,7 @@ define Device/TEMPLATE_teltonika_rutm16
 	$(Device/teltonika_rutm_common)
 	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM16
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.18
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.19.2
 	DEVICE_FEATURES := gps usb ethernet ios mobile wifi dual_band_ssid \
 		dual_sim at_sim dsa hw_nat nat_offloading multi_tag soft_port_mirror \
 		port_link gigabit_port m2_modem xfrm-offload tpm reset_button usb-port \
