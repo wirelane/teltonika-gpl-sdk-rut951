@@ -75,7 +75,7 @@ define Device/TEMPLATE_teltonika_trb236
 
 	DEVICE_FEATURES := gateway dual_sim mobile ethernet ios rs232 rs485 \
 		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button \
-		128mb_ram gps
+		128mb_ram
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.18
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps;

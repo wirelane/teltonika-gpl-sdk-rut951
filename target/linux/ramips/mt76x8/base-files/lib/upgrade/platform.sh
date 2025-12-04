@@ -63,6 +63,12 @@ platform_check_hw_support() {
 		{ ! compatible_to_ala440; } && return 1
 	}
 
+	exp="^TRB2(46)"
+	[[ $board =~ $exp ]] && {
+		{ ! prepare_metadata_hw_mods "$1"; } && return 1
+		{ ! check_hw_mod "246" 5 "246v5"; } && return 1
+	}
+
 	exp="^RUT9(51|56|01|06)"
 	[[ ! $board =~ $exp ]] && return 0
 

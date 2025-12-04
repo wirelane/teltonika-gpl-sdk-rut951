@@ -84,6 +84,8 @@ define Device/teltonika_trb2m
 			kmod-usb-serial-pl2303 kmod-cypress-serial
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+	HW_MODS += 246v5
+
 	INCLUDED_DEVICES := \
 		TEMPLATE_teltonika_trb236 \
 		TEMPLATE_teltonika_trb246 \

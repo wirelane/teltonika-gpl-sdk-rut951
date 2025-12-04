@@ -87,7 +87,7 @@ ucidef_target_defaults() {
 		[ "${model:7:1}" = "1" ] && ucidef_unset_hwinfo ios
 		;;
 	TRB2*)
-		if [ "${model::7}" = "TRB236A" ]; then
+		if [ "${model::6}" = "TRB236" ]; then
 			ucidef_unset_hwinfo gps
 			ucidef_add_static_modem_info "$model" "1-1.4" "primary"
 
