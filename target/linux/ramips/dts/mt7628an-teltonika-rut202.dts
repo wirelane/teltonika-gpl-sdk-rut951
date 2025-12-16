@@ -193,7 +193,7 @@
 
 &state_default {
 	gpio {
-		groups = "i2s", "uart1", "p4led_an", "p3led_an", "p2led_an", "p1led_an", "p0led_an", "gpio", "wled_an", "perst", "spi cs1";
+		groups = "i2s", "uart1", "p4led_an", "p3led_an", "p2led_an", "p1led_an", "p0led_an", "gpio", "wled_an", "perst", "spi cs1", "wdt";
 		function = "gpio";
 	};
 };

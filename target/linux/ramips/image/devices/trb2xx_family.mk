@@ -31,8 +31,6 @@ endef
 define Device/template_trb2m
 	$(Device/teltonika_trb2m)
 
-	DEVICE_CHECK_PATH := usb_check /sys/bus/usb/drivers/usb/1-1/1-1.4 reboot
-
 	DEVICE_NET_CONF :=       \
 		vlans          16,   \
 		max_mtu        1500, \
@@ -43,27 +41,9 @@ define Device/template_trb2m
 
 	DEVICE_FEATURES := gateway dual_sim mobile gps ethernet ios modbus rs232 rs485 \
 		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button 128mb_ram \
-		dot1x-server dot1x-client
+		dot1x-server dot1x-client single_port
 
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false single_port
-
-	DEVICE_SERIAL_CAPABILITIES := \
-		"rs232"                                                           \
-			"300 600 1200 2400 4800 9600 19200 38400 57600 115200"        \
-			"7 8"                                                         \
-			"rts/cts xon/xoff none"                                       \
-			"1 2"                                                         \
-			"even odd mark space none"                                    \
-			"none"                                                        \
-			"/usb1/1-1/1-1.3/",                                           \
-		"rs485"                                                           \
-			"300 600 1200 2400 4800 9600 19200 38400 57600 115200 230400" \
-			"5 6 7 8"                                                     \
-			"xon/xoff none"                                               \
-			"1 2"                                                         \
-			"even odd mark space none"                                    \
-			"half full"                                                   \
-			"/tty/ttyS1"
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 endef

@@ -246,6 +246,13 @@ define KernelPackage/mt7981-firmware
   TITLE:=MediaTek MT7981 firmware
 endef
 
+define KernelPackage/mt7986-firmware_515
+$(KernelPackage/mt76-default_515)
+  $(KernelPackage/mt76-default)
+  DEPENDS+=+kmod-mt7915e_515
+  TITLE:=MediaTek MT7986 firmware
+endef
+
 define KernelPackage/mt7921-firmware_515
   $(KernelPackage/mt76-default_515)
   TITLE:=MediaTek MT7921 firmware
@@ -574,6 +581,7 @@ define KernelPackage/mt7986-firmware_515/install
 		$(PKG_BUILD_DIR)/firmware/mt7986_wm.bin \
 		$(PKG_BUILD_DIR)/firmware/mt7986_rom_patch_mt7975.bin \
 		$(PKG_BUILD_DIR)/firmware/mt7986_rom_patch.bin \
+		$(PKG_BUILD_DIR)/firmware/mt7986_eeprom_mt7975_dual.bin \
 		$(1)/lib/firmware/mediatek
 endef
 
@@ -615,6 +623,7 @@ $(eval $(call KernelPackage,mt7915-firmware_515))
 $(eval $(call KernelPackage,mt7915e_515))
 $(eval $(call KernelPackage,mt7916-firmware_515))
 $(eval $(call KernelPackage,mt7981-firmware))
+$(eval $(call KernelPackage,mt7986-firmware_515))
 $(eval $(call KernelPackage,mt7921-firmware_515))
 $(eval $(call KernelPackage,mt792x-common_515))
 $(eval $(call KernelPackage,mt792x-usb_515))

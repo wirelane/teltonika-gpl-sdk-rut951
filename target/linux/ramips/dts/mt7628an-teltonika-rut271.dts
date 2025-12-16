@@ -145,6 +145,9 @@
 			GPIO_3 {
 				line_name = "GPIO_MODEM_POWER_1";
 			};
+			GPIO_6 {
+				line_name = "GPIO_SIM_SELECT_1";
+			};
 		};
 	};
 

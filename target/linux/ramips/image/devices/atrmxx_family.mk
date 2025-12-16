@@ -18,7 +18,7 @@ define Device/TEMPLATE_teltonika_atrm50
 
 	DEVICE_CHECK_PATH := pcie_check /sys/class/pci_bus/0000:00 reboot
 
-	DEVICE_FEATURES := usb ethernet power_ios gps mobile wifi dual_band_ssid \
+	DEVICE_FEATURES := usb usb-port ethernet power_ios gps mobile wifi dual_band_ssid \
 		dual_sim at_sim dsa hw_nat nat_offloading multi_tag power-control\
 		port_link soft_port_mirror gigabit_port sd_card xfrm-offload tpm reset_button itxpt modbus \
 		dot1x-server port-mirror

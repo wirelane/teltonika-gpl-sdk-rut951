@@ -66,10 +66,6 @@ ucidef_target_defaults() {
 			ucidef_set_hwinfo dual_sim
 		}
 
-		[ "${model::6}" = "RUT204" ] && {
-			ucidef_set_hwinfo stm_can
-		}
-
 		# set up dual_sim
 		ucidef_check_dual_sim
 		;;
@@ -87,12 +83,38 @@ ucidef_target_defaults() {
 		[ "${model:7:1}" = "1" ] && ucidef_unset_hwinfo ios
 		;;
 	TRB2*)
-		if [ "${model::6}" = "TRB236" ]; then
+		#Serials are defined here instead of family.mk as they depend on device's hardware branch
+		ucidef_add_serial_capabilities "rs485"\
+		"300 600 1200 2400 4800 9600 19200 38400 57600 115200 230400"\
+		"5 6 7 8"\
+		"xon/xoff none"\
+		"1 2"\
+		"even odd mark space none"\
+		"half full"\
+		"/tty/ttyS1"
+		
+		if [ "${model::6}" = "TRB246" ] && [ "$branch" = "S" ]; then
+			ucidef_add_static_modem_info "$model" "1-1" "primary"
 			ucidef_unset_hwinfo gps
-			ucidef_add_static_modem_info "$model" "1-1.4" "primary"
-
+			ucidef_unset_hwinfo rs232
+			# This device has a unique path since it does not have a USB hub
+			ucidef_check_path usb_check /sys/bus/usb/drivers/usb/1-1/1-1:1.3 reboot
 		else
-			ucidef_add_static_modem_info "$model" "1-1.4" "primary" "gps_out"
+			ucidef_check_path usb_check /sys/bus/usb/drivers/usb/1-1/1-1.4 reboot
+			ucidef_add_serial_capabilities "rs232"\
+			"300 600 1200 2400 4800 9600 19200 38400 57600 115200"\
+			"7 8"\
+			"rts/cts xon/xoff none"\
+			"1 2"\
+			"even odd mark space none"\
+			"none"\
+			"/usb1/1-1/1-1.3/"
+
+			if [ "${model::6}" = "TRB236" ]; then
+				ucidef_add_static_modem_info "$model" "1-1.4" "primary"
+			else
+				ucidef_add_static_modem_info "$model" "1-1.4" "primary" "gps_out"
+			fi
 		fi
 		;;
 	TAP1*)

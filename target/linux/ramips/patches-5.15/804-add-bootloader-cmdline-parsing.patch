@@ -8,7 +8,7 @@
  /* Untouched command line saved by arch-specific code. */
  char __initdata boot_command_line[COMMAND_LINE_SIZE];
  /* Untouched saved command line (eg. for /proc) */
-@@ -650,22 +651,23 @@ static void __init mangle_bootargs(char
+@@ -664,22 +665,23 @@ static void __init mangle_bootargs(char
   */
  static void __init setup_command_line(char *command_line)
  {
@@ -35,7 +35,7 @@
  	if (!static_command_line)
  		panic("%s: Failed to allocate %zu bytes\n", __func__, len);
  
-@@ -679,7 +681,9 @@ static void __init setup_command_line(ch
+@@ -693,7 +695,9 @@ static void __init setup_command_line(ch
  		strcpy(static_command_line, extra_command_line);
  	}
  	strcpy(saved_command_line + xlen, boot_command_line);

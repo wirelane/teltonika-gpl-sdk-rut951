@@ -107,6 +107,14 @@
 			log;
 		};
 
+		mob_vidpid_1 {
+			reg = <&config 0x80 0x4>;
+			min-res-len = <0xa>;
+			type = "vidpid";
+			default = "";
+			log;
+		};
+
 		wpass {
 			reg = <&config 0x90 0x10>;
 			type = "ascii";

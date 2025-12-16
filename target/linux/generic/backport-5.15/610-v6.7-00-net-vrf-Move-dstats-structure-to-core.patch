@@ -90,7 +90,7 @@ Cc: David Ahern <dsahern@kernel.org>
  	return ret;
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -2697,6 +2697,16 @@ struct pcpu_sw_netstats {
+@@ -2706,6 +2706,16 @@ struct pcpu_sw_netstats {
  	struct u64_stats_sync   syncp;
  } __aligned(4 * sizeof(u64));
  

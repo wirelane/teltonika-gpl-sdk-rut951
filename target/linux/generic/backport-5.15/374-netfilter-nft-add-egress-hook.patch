@@ -88,7 +88,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -1886,6 +1886,7 @@ enum netdev_ml_priv_type {
+@@ -1895,6 +1895,7 @@ enum netdev_ml_priv_type {
   *	@xps_maps:	XXX: need comments on this one
   *	@miniq_egress:		clsact qdisc specific data for
   *				egress processing
@@ -96,7 +96,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
   *	@qdisc_hash:		qdisc hash table
   *	@watchdog_timeo:	Represents the timeout that is used by
   *				the watchdog (see dev_watchdog())
-@@ -2183,6 +2184,9 @@ struct net_device {
+@@ -2192,6 +2193,9 @@ struct net_device {
  #ifdef CONFIG_NET_CLS_ACT
  	struct mini_Qdisc __rcu	*miniq_egress;
  #endif

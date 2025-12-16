@@ -84,7 +84,7 @@ define Device/teltonika_trb2m
 			kmod-usb-serial-pl2303 kmod-cypress-serial
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	HW_MODS += 246v5
+	HW_MODS += 246v5 246hwS
 
 	INCLUDED_DEVICES := \
 		TEMPLATE_teltonika_trb236 \
@@ -128,7 +128,7 @@ define Device/teltonika_otd140
 	DEVICE_MODEL := OTD140
 	DEVICE_BOOT_NAME := tlt-otd140
 	DEVICE_DTS := mt7628an_teltonika_otd140
-	DEVICE_FEATURES += ncm rndis poe mobile dualsim portlink dot1x-server xfrm-offload \
+	DEVICE_FEATURES += ncm rndis poe mobile dualsim port_link dot1x-server xfrm-offload \
 					   networks_external no-wired-wan tpm
 
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
@@ -151,7 +151,7 @@ define Device/teltonika_rut14x
 	DEVICE_MODEL := RUT14X
 	DEVICE_BOOT_NAME := tlt-rut14x
 	DEVICE_DTS := mt7628an_teltonika_rut14x
-	DEVICE_FEATURES += small_flash rs232 rs485 modbus wifi ledman-lite sw-offload portlink \
+	DEVICE_FEATURES += small_flash rs232 rs485 modbus wifi ledman-lite sw-offload port_link \
 	                   dot1x-server xfrm-offload
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.6
@@ -175,7 +175,7 @@ define Device/teltonika_dap14x
 	DEVICE_MODEL := DAP14X
 	DEVICE_BOOT_NAME := tlt-dap14x
 	DEVICE_DTS := mt7628an_teltonika_dap14x
-	DEVICE_FEATURES += small_flash rs232 rs485 modbus wifi ledman-lite sw-offload portlink \
+	DEVICE_FEATURES += small_flash rs232 rs485 modbus wifi ledman-lite sw-offload port_link \
 	                   xfrm-offload industrial_access_point no-wired-wan
 
 	# Default common packages for DAP14X series
@@ -197,7 +197,7 @@ define Device/teltonika_rut2m
 	DEVICE_MODEL := RUT2M
 	DEVICE_BOOT_NAME := tlt-rut2m
 	DEVICE_DTS := mt7628an_teltonika_rut2m
-	DEVICE_FEATURES += ios wifi rndis mobile portlink dualsim dot1x-server xfrm-offload
+	DEVICE_FEATURES += ios wifi rndis mobile port_link dualsim dot1x-server xfrm-offload
 
 	GPL_PREFIX := GPL
 	# Default common packages for RUT241, RUT200 series
@@ -234,7 +234,7 @@ define Device/teltonika_rut301
 	DEVICE_MODEL := RUT301
 	DEVICE_BOOT_NAME := tlt-rut301
 	DEVICE_DTS := mt7628an_teltonika_rut301
-	DEVICE_FEATURES += usb-port ios basic-router ledman-lite portlink dot1x-server \
+	DEVICE_FEATURES += usb-port ios basic-router ledman-lite port_link dot1x-server \
 	                   xfrm-offload ntrip
 
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
@@ -254,7 +254,7 @@ define Device/teltonika_rut361
 	DEVICE_MODEL := RUT361
 	DEVICE_BOOT_NAME := tlt-rut361
 	DEVICE_DTS := mt7628an_teltonika_rut361
-	DEVICE_FEATURES += ios wifi rndis mobile portlink dot1x-server xfrm-offload
+	DEVICE_FEATURES += ios wifi rndis mobile port_link dot1x-server xfrm-offload
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.1
 	GPL_PREFIX := GPL
@@ -279,7 +279,7 @@ define Device/teltonika_rut9m
 	DEVICE_MODEL := RUT9M
 	DEVICE_BOOT_NAME := tlt-rut9m
 	DEVICE_FEATURES += gps usb-port modbus ios wifi dualsim \
-			rndis ncm mobile portlink rs232 rs485 dot1x-server port-mirror \
+			rndis ncm mobile port_link rs232 rs485 dot1x-server port-mirror \
 	                xfrm-offload poe ethtool-tiny
 
 	DEVICE_DTS := mt7628an_teltonika_rut9m
@@ -318,6 +318,7 @@ define Device/teltonika_rute
 		mt7628an-teltonika-rut202 \
 		mt7628an-teltonika-rut204 \
 		mt7628an-teltonika-rut206 \
+		mt7628an-teltonika-rut261 \
 		mt7628an-teltonika-rut271 \
 		mt7628an-teltonika-rut276 \
 		mt7628an-teltonika-rut281 \
@@ -337,7 +338,7 @@ define Device/teltonika_rute
 	DEVICE_MODEL := RUTE
 	DEVICE_BOOT_NAME := tlt-mt7628
 	DEVICE_FEATURES := large_flash sw-offload gps modbus ios wifi dualsim \
-			rndis ncm mobile portlink rs232 rs485 dot1x-server port-mirror \
+			rndis ncm mobile port_link rs232 rs485 dot1x-server port-mirror \
 			xfrm-offload usb-sd-card usb-port dot1x-client 128mb_ram poe \
 			reset_button can-stm tpm
 
@@ -367,6 +368,7 @@ define Device/teltonika_rute
 		TEMPLATE_teltonika_rut202 \
 		TEMPLATE_teltonika_rut204 \
 		TEMPLATE_teltonika_rut206 \
+		TEMPLATE_teltonika_rut261 \
 		TEMPLATE_teltonika_rut271 \
 		TEMPLATE_teltonika_rut276 \
 		TEMPLATE_teltonika_rut281 \
@@ -376,10 +378,11 @@ define Device/teltonika_rute
 		TEMPLATE_teltonika_rut986 \
 		TEMPLATE_teltonika_otd144
 
-	SUPPORTED_DEVICES := teltonika,rute teltonika,rut976 teltonika,rut204 teltonika,rut206 teltonika,rut271 teltonika,rut276 teltonika,rut281 \
-			     teltonika,rut971 teltonika,rut981 teltonika,rut986 teltonika,otd144
+	SUPPORTED_DEVICES := teltonika,rute teltonika,rut202 teltonika,rut204 teltonika,rut206 teltonika,rut261 \
+						 teltonika,rut271 teltonika,rut276 teltonika,rut281 teltonika,rut971 teltonika,rut976 \
+						 teltonika,rut981 teltonika,rut986 teltonika,otd144
 
 	DEVICE_MODEM_VENDORS := Quectel Telit Teltonika
-	DEVICE_MODEM_LIST := EC200A EC25 RG255C LE910C4 ALA440
+	DEVICE_MODEM_LIST := EC200A EC25 EG060W RG255C LE910C4 ALA440
 endef
 

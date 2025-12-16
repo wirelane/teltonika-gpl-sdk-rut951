@@ -110,7 +110,7 @@ Cc: David Ahern <dsahern@kernel.org>
  static int vrf_validate(struct nlattr *tb[], struct nlattr *data[],
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -1713,6 +1713,13 @@ enum netdev_ml_priv_type {
+@@ -1722,6 +1722,13 @@ enum netdev_ml_priv_type {
  	ML_PRIV_CAN,
  };
  
@@ -124,7 +124,7 @@ Cc: David Ahern <dsahern@kernel.org>
  /**
   *	struct net_device - The DEVICE structure.
   *
-@@ -1910,10 +1917,14 @@ enum netdev_ml_priv_type {
+@@ -1919,10 +1926,14 @@ enum netdev_ml_priv_type {
   *
   * 	@ml_priv:	Mid-layer private
   *	@ml_priv_type:  Mid-layer private type
@@ -143,7 +143,7 @@ Cc: David Ahern <dsahern@kernel.org>
   *
   *	@garp_port:	GARP
   *	@mrp_port:	MRP
-@@ -2235,6 +2246,7 @@ struct net_device {
+@@ -2244,6 +2255,7 @@ struct net_device {
  	void				*ml_priv;
  	enum netdev_ml_priv_type	ml_priv_type;
  

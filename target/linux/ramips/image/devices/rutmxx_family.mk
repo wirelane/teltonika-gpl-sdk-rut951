@@ -170,7 +170,7 @@ define Device/TEMPLATE_teltonika_rutm16
 	$(Device/template_rutm_common)
 	DEVICE_MODEL := RUTM16
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.19.2
-	DEVICE_FEATURES := gps usb ethernet ios mobile wifi dual_band_ssid \
+	DEVICE_FEATURES := gps usb usb-port ethernet ios mobile wifi dual_band_ssid \
 		dual_sim at_sim dsa hw_nat nat_offloading multi_tag soft_port_mirror \
 		port_link gigabit_port m2_modem xfrm-offload tpm reset_button usb-port \
 		dot1x-client dot1x-server port-mirror
@@ -200,7 +200,7 @@ define Device/TEMPLATE_teltonika_rutm20
 	DEVICE_POE_CHIP := 0X2F 4:_lan
 	DEVICE_FEATURES := wifi ethernet mobile dual_band_ssid dual_sim \
 		at_sim dsa hw_nat nat_offloading multi_tag port_link \
-		gigabit_port m2_modem poe tpm reset_button modbus usb-port \
+		gigabit_port m2_modem poe tpm reset_button modbus \
 		dot1x-client dot1x-server port-mirror soft_port_mirror
 
 	DEVICE_LAN_OPTION := "lan "
@@ -233,7 +233,7 @@ define Device/TEMPLATE_teltonika_rutm30
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13.1
 	DEVICE_FEATURES := wifi ethernet ios mobile dual_band_ssid dual_sim \
 		at_sim dsa hw_nat nat_offloading multi_tag port_link \
-		gigabit_port tpm reset_button usb-port modbus \
+		gigabit_port tpm reset_button modbus \
 		dot1x-client dot1x-server port-mirror soft_port_mirror
 
 	DEVICE_LAN_OPTION := "lan "
@@ -266,7 +266,7 @@ define Device/TEMPLATE_teltonika_rutm31
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13.4
 	DEVICE_FEATURES := wifi ethernet ios mobile dual_band_ssid dual_sim \
 		at_sim dsa hw_nat nat_offloading multi_tag port_link \
-		gigabit_port tpm reset_button modbus usb-port \
+		gigabit_port tpm reset_button modbus \
 		dot1x-client dot1x-server port-mirror soft_port_mirror
 
 	DEVICE_LAN_OPTION := "lan "
@@ -350,7 +350,7 @@ define Device/TEMPLATE_teltonika_rutm52
 	DEVICE_FEATURES := gps ethernet ios mobile wifi dual_band_ssid dual_sim \
 		at_sim dsa hw_nat nat_offloading multi_tag soft_port_mirror port_link \
 		gigabit_port dual_modem custom_usbcfg sd_card xfrm-offload tpm reset_button \
-		usb-port modbus dot1x-client dot1x-server port-mirror
+		modbus dot1x-client dot1x-server port-mirror
 
 	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
 	DEVICE_WAN_OPTION := wan
@@ -458,7 +458,7 @@ define Device/TEMPLATE_teltonika_rutm56
 	DEVICE_FEATURES := gps ethernet ios mobile wifi dual_band_ssid \
 		at_sim dsa hw_nat nat_offloading multi_tag soft_port_mirror \
 		port_link gigabit_port dual_modem custom_usbcfg xfrm-offload \
-		dual_sim tpm reset_button usb-port modbus dot1x-client dot1x-server port-mirror
+		dual_sim tpm reset_button modbus dot1x-client dot1x-server port-mirror
 
 	DEVICE_LAN_OPTION := "lan1 lan2 lan3 lan4"
 	DEVICE_WAN_OPTION := wan

@@ -130,7 +130,7 @@ define Device/TEMPLATE_teltonika_rut204
 	$(Device/template_rut204_io)
 	DEVICE_MODEL := RUT204
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.19
-	DEVICE_FEATURES += dual_sim sd_card modbus
+	DEVICE_FEATURES += dual_sim sd_card modbus stm_can
 
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/3GPP_Release := Release 10/11
@@ -198,6 +198,22 @@ define Device/TEMPLATE_teltonika_rut260
 	TECHNICAL/Physical_Specification/Weight := 130 g
 	TECHNICAL/Physical_Specification/Mounting_Options:= $(HW_PHYSICAL_MOUNTING)
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE/RED, UKCA, UCRF, RCM, EAC, WEEE, RCM, R118
+endef
+
+define Device/TEMPLATE_teltonika_rut261
+	$(Device/teltonika_rute)
+	$(Device/teltonika_rut2x_common)
+	$(Device/template_rut2x)
+	DEVICE_MODEL := RUT261
+	DEVICE_FEATURES += ios dual_sim tpm
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.20
+
+	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/3GPP_Release := Release 10
+	HARDWARE/LAN/Standard := $(HW_ETH_LAN_2_STANDARD)
+	TECHNICAL/Power/Power_Consumption := Idle:< 2 W, Max:< 6.5 W
+	TECHNICAL/Physical_Interfaces/Status_Leds := 2 x Connection type status, 5 x Mobile connection strength, 1 x LAN status, 1 x WAN status, 1 x Power
+	TECHNICAL/Physical_Specification/Mounting_Options:= $(HW_PHYSICAL_MOUNTING)
 endef
 
 define Device/TEMPLATE_teltonika_rut271

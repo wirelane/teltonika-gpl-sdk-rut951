@@ -340,6 +340,14 @@
 		default = "";
 		sec;
 	};
+	
+	mob_vidpid_2 {
+		reg = <&config 0x80 0x4>;
+		min-res-len = <0xa>;
+		type = "vidpid";
+		default = "";
+		log;
+	};
 
 	sim_cfg {
 		default = "1111020_0000000_1211020_0000000";

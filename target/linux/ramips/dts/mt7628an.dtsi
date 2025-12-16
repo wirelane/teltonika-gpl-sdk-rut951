@@ -139,6 +139,14 @@
 			default = "0000";
 			sec;
 		};
+
+		mob_vidpid_1 {
+			reg = <&config 0x220 0x4>;
+			min-res-len = <0xa>;
+			type = "vidpid";
+			default = "";
+			log;
+		};
 	};
 
 	cpuintc: cpuintc {

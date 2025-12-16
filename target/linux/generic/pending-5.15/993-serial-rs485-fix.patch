@@ -587,7 +587,7 @@
  
 --- a/drivers/tty/serial/8250/8250_exar.c
 +++ b/drivers/tty/serial/8250/8250_exar.c
-@@ -86,15 +86,6 @@
+@@ -88,15 +88,6 @@
  #define PCI_DEVICE_ID_EXAR_XR17V254		0x0254
  #define PCI_DEVICE_ID_EXAR_XR17V258		0x0258
  
@@ -603,7 +603,7 @@
  #define UART_EXAR_INT0		0x80
  #define UART_EXAR_8XMODE	0x88	/* 8X sampling rate select */
  #define UART_EXAR_SLEEP		0x8b	/* Sleep mode */
-@@ -688,14 +679,7 @@ exar_pci_probe(struct pci_dev *pcidev, c
+@@ -690,14 +681,7 @@ exar_pci_probe(struct pci_dev *pcidev, c
  
  	maxnr = pci_resource_len(pcidev, bar) >> (board->reg_shift + 3);
  
@@ -619,7 +619,7 @@
  
  	priv = devm_kzalloc(&pcidev->dev, struct_size(priv, line, nr_ports), GFP_KERNEL);
  	if (!priv)
-@@ -791,6 +775,22 @@ static int __maybe_unused exar_resume(st
+@@ -793,6 +777,22 @@ static int __maybe_unused exar_resume(st
  
  static SIMPLE_DEV_PM_OPS(exar_pci_pm, exar_suspend, exar_resume);
  
@@ -642,7 +642,7 @@
  static const struct exar8250_board pbn_fastcom335_2 = {
  	.num_ports	= 2,
  	.setup		= pci_fastcom335_setup,
-@@ -874,23 +874,14 @@ static const struct exar8250_board pbn_e
+@@ -882,23 +882,14 @@ static const struct exar8250_board pbn_e
  		(kernel_ulong_t)&bd			\
  	}
  
@@ -673,7 +673,7 @@
  
  	CONNECT_DEVICE(XR17C152, UART_2_232, pbn_connect),
  	CONNECT_DEVICE(XR17C154, UART_4_232, pbn_connect),
-@@ -907,10 +898,6 @@ static const struct pci_device_id exar_p
+@@ -915,10 +906,6 @@ static const struct pci_device_id exar_p
  
  	IBM_DEVICE(XR17C152, SATURN_SERIAL_ONE_PORT, pbn_exar_ibm_saturn),
  
@@ -681,10 +681,10 @@
 -	USR_DEVICE(XR17C152, 2980, pbn_exar_XR17C15x),
 -	USR_DEVICE(XR17C152, 2981, pbn_exar_XR17C15x),
 -
- 	/* Exar Corp. XR17C15[248] Dual/Quad/Octal UART */
- 	EXAR_DEVICE(EXAR, XR17C152, pbn_exar_XR17C15x),
- 	EXAR_DEVICE(EXAR, XR17C154, pbn_exar_XR17C15x),
-@@ -930,12 +917,6 @@ static const struct pci_device_id exar_p
+ 	/* ADVANTECH devices */
+ 	EXAR_DEVICE(ADVANTECH, XR17V352, pbn_adv_XR17V352),
+ 
+@@ -941,12 +928,6 @@ static const struct pci_device_id exar_p
  	EXAR_DEVICE(COMMTECH, 4224PCI335, pbn_fastcom335_4),
  	EXAR_DEVICE(COMMTECH, 2324PCI335, pbn_fastcom335_4),
  	EXAR_DEVICE(COMMTECH, 2328PCI335, pbn_fastcom335_8),

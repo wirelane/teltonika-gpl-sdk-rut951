@@ -48,6 +48,7 @@ platform_check_hw_support() {
 
 	board="$(cat /sys/mnf_info/name)"
 	hwver="$(cat /sys/mnf_info/hwver)"
+	hwbranch="$(cat /sys/mnf_info/branch)"
 
 	eval "$( jsonfilter -q -i "/etc/board.json" \
 		-e "vendor=@['modems'][@.builtin=true].vendor" \
@@ -67,7 +68,9 @@ platform_check_hw_support() {
 	[[ $board =~ $exp ]] && {
 		{ ! prepare_metadata_hw_mods "$1"; } && return 1
 		{ ! check_hw_mod "246" 5 "246v5"; } && return 1
+		[ "$hwbranch" = "S" ] && { ! find_hw_mod "246hwS"; } && return 1
 	}
+
 
 	exp="^RUT9(51|56|01|06)"
 	[[ ! $board =~ $exp ]] && return 0
