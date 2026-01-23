@@ -29,7 +29,7 @@
 			reg = <0>;
 			gpio-controller;
 			#gpio-cells = <2>;
-			registers-number = <2>;
+			registers-number = <1>;
 			spi-max-frequency = <10000000>;
 		};
 	};
@@ -131,7 +131,7 @@
 				gpiochip_0 = <32>; // Built-in
 				gpiochip_1 = <32>; // Built-in
 				gpiochip_2 = <32>; // Built-in
-				gpiochip_3 = <16>; // Shift Register
+				gpiochip_3 = <8>; // Shift Register
 			};
 		};
 

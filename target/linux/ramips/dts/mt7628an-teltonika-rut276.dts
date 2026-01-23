@@ -29,7 +29,7 @@
 			reg = <0>;
 			gpio-controller;
 			#gpio-cells = <2>;
-			registers-number = <2>;
+			registers-number = <1>;
 			spi-max-frequency = <10000000>;
 		};
 	};
@@ -80,8 +80,8 @@
 			gpios = <&gpio 43 GPIO_ACTIVE_LOW>;
 		};
 
-		led_gen_3 {
-			label = "mob_gen_3";
+		led_opt { // Assembled but not used, must be kept in dts to not shine
+			label = "led_opt";
 			gpios = <&gpio 39 GPIO_ACTIVE_HIGH>;
 		};
 
@@ -131,7 +131,7 @@
 				gpiochip_0 = <32>; // Built-in
 				gpiochip_1 = <32>; // Built-in
 				gpiochip_2 = <32>; // Built-in
-				gpiochip_3 = <16>; // Shift Register
+				gpiochip_3 = <8>; // Shift Register
 			};
 		};
 

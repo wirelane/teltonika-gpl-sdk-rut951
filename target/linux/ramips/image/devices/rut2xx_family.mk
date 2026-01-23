@@ -315,3 +315,32 @@ define Device/TEMPLATE_teltonika_rut281
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
 endef
+
+define Device/TEMPLATE_teltonika_rut286
+	$(Device/teltonika_rut2x_common)
+	$(Device/template_rut2x6_io)
+	DEVICE_MODEL := RUT286
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.20.2
+	DEVICE_FEATURES += dual_sim sd_card
+
+	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/3GPP_Release := Release 10
+	TECHNICAL/Input_Output/Input :=
+	TECHNICAL/Input_Output/Output :=
+	TECHNICAL/Power/Connector := $(HW_POWER_CONNECTOR_2PIN)
+	TECHNICAL/Power/PoE_Standards := $(HW_POWER_POE_PASSIVE_ACTIVE)
+	TECHNICAL/Physical_Interfaces/SIM := 2 $(HW_INTERFACE_SIM_TRAY)
+	TECHNICAL/Physical_Interfaces/Status_Leds := 3 x Connection type status LEDs, 3 x Connection strength LEDs, 2 x LAN status LEDs, 1 x Power LED
+	TECHNICAL/Physical_Interfaces/Power := $(HW_INTERFACE_POWER_2PIN)
+	TECHNICAL/Physical_Interfaces/IO :=
+	TECHNICAL/Physical_Interfaces/RS232 := 1 $(HW_INTERFACE_RS232_6PIN)
+	TECHNICAL/Physical_Interfaces/RS485 := 1 $(HW_INTERFACE_RS485_6PIN)
+	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
+	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485_HALF)
+	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
+	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
+	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
+	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)
+	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
+endef
