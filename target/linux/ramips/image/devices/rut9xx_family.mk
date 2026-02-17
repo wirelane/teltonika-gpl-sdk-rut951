@@ -39,7 +39,7 @@ define Device/template_rut9x
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
 
 	DEVICE_FEATURES := dual_sim ios mobile nat_offloading port_link \
-		wifi ethernet xfrm-offload soft_port_mirror reset_button 128mb_ram modbus dot1x-server dot1x-client port-mirror
+		wifi ethernet xfrm-offload soft_port_mirror reset_button 128mb_ram modbus dot1x-server dot1x-client port-mirror multi_tag
 endef
 
 define Device/template_rut9x_io
@@ -367,7 +367,7 @@ define Device/TEMPLATE_teltonika_rut986
 	DEVICE_MODEL := RUT986
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.17.2
 
-	DEVICE_FEATURES += usb-port
+	DEVICE_FEATURES += usb-port sd_card
 
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)

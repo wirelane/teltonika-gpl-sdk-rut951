@@ -213,13 +213,21 @@
 
 		led_ssid_1@1 {
 			label = "mob_ssid_1";
+			gpios = <&gpio 41 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB246";
+			tlt-mnf,branch = "S";
+			linux,default-trigger = "timer";
+		};
+
+		led_ssid_1@2 {
+			label = "mob_ssid_1";
 			gpios = <&gpio 39 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB246", "TRB256";
 			tlt-mnf,hwver = <0 499>;
 			linux,default-trigger = "timer";
 		};
 
-		led_ssid_1@2 {
+		led_ssid_1@3 {
 			label = "mob_ssid_1";
 			gpios = <&gpio 26 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB247", "TRB256";
@@ -227,7 +235,7 @@
 			linux,default-trigger = "timer";
 		};
 
-		led_ssid_1@3 {
+		led_ssid_1@4 {
 			label = "mob_ssid_1";
 			gpios = <&gpio 39 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB246";
@@ -245,12 +253,20 @@
 		led_ssid_3@1 {
 			label = "mob_ssid_3";
 			gpios = <&gpio 40 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB246";
+			tlt-mnf,branch = "S";
+			linux,default-trigger = "timer";
+		};
+
+		led_ssid_3@2 {
+			label = "mob_ssid_3";
+			gpios = <&gpio 40 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB246", "TRB256";
 			tlt-mnf,hwver = <0 499>;
 			linux,default-trigger = "timer";
 		};
 
-		led_ssid_3@2 {
+		led_ssid_3@3 {
 			label = "mob_ssid_3";
 			gpios = <&gpio 27 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB247", "TRB256";
@@ -258,7 +274,7 @@
 			linux,default-trigger = "timer";
 		};
 
-		led_ssid_3@3 {
+		led_ssid_3@4 {
 			label = "mob_ssid_3";
 			gpios = <&gpio 40 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB246";
@@ -275,13 +291,21 @@
 
 		led_ssid_5@1 {
 			label = "mob_ssid_5";
+			gpios = <&gpio 39 GPIO_ACTIVE_HIGH>;
+			tlt-mnf,device = "TRB246";
+			tlt-mnf,branch = "S";
+			linux,default-trigger = "timer";
+		};
+
+		led_ssid_5@2 {
+			label = "mob_ssid_5";
 			gpios = <&gpio 41 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB246", "TRB256";
 			tlt-mnf,hwver = <0 499>;
 			linux,default-trigger = "timer";
 		};
 
-		led_ssid_5@2 {
+		led_ssid_5@3 {
 			label = "mob_ssid_5";
 			gpios = <&gpio 24 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB247", "TRB256";
@@ -289,7 +313,7 @@
 			linux,default-trigger = "timer";
 		};
 
-		led_ssid_5@3 {
+		led_ssid_5@4 {
 			label = "mob_ssid_5";
 			gpios = <&gpio 41 GPIO_ACTIVE_HIGH>;
 			tlt-mnf,device = "TRB246";

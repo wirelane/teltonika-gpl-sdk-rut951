@@ -128,7 +128,7 @@ operations to be done in a seperate thread, as well as allows for GRO
  	/* start any status interrupt transfer */
  	if (dev->interrupt) {
  		retval = usbnet_status_start(dev, GFP_KERNEL);
-@@ -1677,6 +1763,10 @@ void usbnet_disconnect (struct usb_inter
+@@ -1679,6 +1765,10 @@ void usbnet_disconnect (struct usb_inter
  	if (dev->driver_info->unbind)
  		dev->driver_info->unbind(dev, intf);
  
@@ -139,7 +139,7 @@ operations to be done in a seperate thread, as well as allows for GRO
  	usb_kill_urb(dev->interrupt);
  	usb_free_urb(dev->interrupt);
  	kfree(dev->padding_pkt);
-@@ -1868,6 +1958,13 @@ usbnet_probe (struct usb_interface *udev
+@@ -1870,6 +1960,13 @@ usbnet_probe (struct usb_interface *udev
  		}
  	}
  

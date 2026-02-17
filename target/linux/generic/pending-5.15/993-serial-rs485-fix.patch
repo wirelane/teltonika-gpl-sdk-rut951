@@ -527,7 +527,7 @@
  
  	} else if (acpi_dev_present("APMC0D08", NULL, -1)) {
  		p->iotype = UPIO_MEM32;
-@@ -703,6 +698,7 @@ static const struct of_device_id dw8250_
+@@ -704,6 +699,7 @@ static const struct of_device_id dw8250_
  	{ .compatible = "cavium,octeon-3860-uart" },
  	{ .compatible = "marvell,armada-38x-uart" },
  	{ .compatible = "renesas,rzn1-uart" },

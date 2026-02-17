@@ -34,7 +34,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 
 --- a/net/sched/act_mirred.c
 +++ b/net/sched/act_mirred.c
-@@ -204,18 +204,14 @@ release_idr:
+@@ -203,18 +203,14 @@ release_idr:
  	return err;
  }
  
@@ -56,7 +56,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  		err = netif_rx(skb);
  	else
  		err = netif_receive_skb(skb);
-@@ -312,7 +308,7 @@ static int tcf_mirred_act(struct sk_buff
+@@ -311,7 +307,7 @@ static int tcf_mirred_act(struct sk_buff
  		/* let's the caller reinsert the packet, if possible */
  		if (use_reinsert) {
  			res->ingress = want_ingress;
@@ -65,7 +65,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  			if (err)
  				tcf_action_inc_overlimit_qstats(&m->common);
  			__this_cpu_dec(mirred_nest_level);
-@@ -320,7 +316,7 @@ static int tcf_mirred_act(struct sk_buff
+@@ -319,7 +315,7 @@ static int tcf_mirred_act(struct sk_buff
  		}
  	}
  

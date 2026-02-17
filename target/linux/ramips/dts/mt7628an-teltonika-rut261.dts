@@ -183,16 +183,13 @@
 	};
 
 	sim_cfg {
-		default = "1111010";
+		default = "0110010"; // despite schematics, EG060W has only 1 AT port
 		keep-sim-presence;
 	};
 
 	blver {
 		reg = <&boot 0x3f000 0xa>;
 		trailling-data;
-		strip-whitespaces;
-		type = "ascii";
-		log;
 	};
 };
 

@@ -79,12 +79,12 @@
 				read-only;
 			};
 
-			partition@d0000 {
+			partition@c0000 {
 				label = "event-log";
 				reg = <0xc0000 0x90000>;
 			};
 
-			partition@400000 {
+			partition@200000 {
 				label = "recovery";
 				reg = <0x200000 0xe00000>;
 			};

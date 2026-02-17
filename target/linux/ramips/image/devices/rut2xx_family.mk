@@ -40,7 +40,7 @@ define Device/template_rut2x
 	DEVICE_INTERFACE_CONF := \
 		lan default_ip 192.168.1.1
 
-	DEVICE_FEATURES := mobile wifi ethernet nat_offloading port_link xfrm-offload reset_button 128mb_ram dot1x-server dot1x-client
+	DEVICE_FEATURES := mobile wifi ethernet nat_offloading port_link xfrm-offload reset_button 128mb_ram dot1x-server dot1x-client multi_tag
 endef
 
 define Device/template_rut2x6_io
@@ -206,7 +206,7 @@ define Device/TEMPLATE_teltonika_rut261
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT261
 	DEVICE_FEATURES += ios dual_sim tpm
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.20
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.21
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
 	HARDWARE/Mobile/3GPP_Release := Release 10

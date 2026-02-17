@@ -10,7 +10,7 @@ $(TARGET): $(OBJECTS)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 lua_code.o: mt76x8.lua
-	$(LD) -s -r -b binary -o lua_code.o mt76x8.lua
+	$(LD) -s -r -b binary -z noexecstack -o lua_code.o mt76x8.lua
 
 clean:
 	$(RM) $(TARGET) $(OBJECTS)

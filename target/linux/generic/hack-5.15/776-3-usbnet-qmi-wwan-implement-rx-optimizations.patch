@@ -16,7 +16,7 @@ Implement zerocopy and napi/GRO optimizations for qmimux driver
  
  	if (dev->driver_info->data & QMI_WWAN_V5_HEAD) {
  		qmimux_hdr_sz += sizeof(struct rmnet_map_v5_csum_header);
-@@ -445,30 +446,43 @@ static int qmimux_rx_fixup(struct usbnet
+@@ -445,36 +446,43 @@ static int qmimux_rx_fixup(struct usbnet
  			goto skip;
  		pkt_len = len - pad_len;
  
@@ -27,6 +27,12 @@ Implement zerocopy and napi/GRO optimizations for qmimux driver
 -		if (!skbn)
 -			return 0;
 -		skbn->dev = net;
+-
+-	       /* Raw IP packets don't have a MAC header, but other subsystems
+-		* (like xfrm) may still access MAC header offsets, so they must
+-		* be initialized.
+-		*/
+-		skb_reset_mac_header(skbn);
 -
  		switch (skb->data[offset + qmimux_hdr_sz] & 0xf0) {
  		case 0x40:
@@ -74,7 +80,7 @@ Implement zerocopy and napi/GRO optimizations for qmimux driver
  			net->stats.rx_errors++;
  			return 0;
  		} else {
-@@ -1296,7 +1310,8 @@ err:
+@@ -1302,7 +1310,8 @@ err:
  
  static const struct driver_info	qmi_wwan_info = {
  	.description	= "WWAN/QMI device",
@@ -84,7 +90,7 @@ Implement zerocopy and napi/GRO optimizations for qmimux driver
  	.bind		= qmi_wwan_bind,
  	.unbind		= qmi_wwan_unbind,
  	.manage_power	= qmi_wwan_manage_power,
-@@ -1305,7 +1320,8 @@ static const struct driver_info	qmi_wwan
+@@ -1311,7 +1320,8 @@ static const struct driver_info	qmi_wwan
  
  static const struct driver_info	qmi_wwan_info_quirk_dtr = {
  	.description	= "WWAN/QMI device",
@@ -94,7 +100,7 @@ Implement zerocopy and napi/GRO optimizations for qmimux driver
  	.bind		= qmi_wwan_bind,
  	.unbind		= qmi_wwan_unbind,
  	.manage_power	= qmi_wwan_manage_power,
-@@ -1315,7 +1331,9 @@ static const struct driver_info	qmi_wwan
+@@ -1321,7 +1331,9 @@ static const struct driver_info	qmi_wwan
  
  static const struct driver_info qmi_wwan_info_quirk_dtr_sdx55 = {
  	.description    = "WWAN/QMI device",

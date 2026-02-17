@@ -391,7 +391,7 @@
 				reg = <0x080000 0x1ED0000>;
 			};
 
-			partition@f70000 {
+			partition@1f50000 {
 				label = "event-log";
 				reg = <0x1F50000 0xB0000>;
 			};

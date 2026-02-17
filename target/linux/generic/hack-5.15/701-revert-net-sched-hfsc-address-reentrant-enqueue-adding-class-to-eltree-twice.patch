@@ -13,7 +13,7 @@
  /*
   * eligible tree holds backlogged classes being sorted by their eligible times.
   * there is one eligible tree per hfsc instance.
-@@ -1046,8 +1040,6 @@ hfsc_change_class(struct Qdisc *sch, u32
+@@ -1030,8 +1024,6 @@ hfsc_change_class(struct Qdisc *sch, u32
  	if (cl == NULL)
  		return -ENOBUFS;
  
@@ -22,7 +22,7 @@
  	err = tcf_block_get(&cl->block, &cl->filter_list, sch, extack);
  	if (err) {
  		kfree(cl);
-@@ -1586,7 +1578,7 @@ hfsc_enqueue(struct sk_buff *skb, struct
+@@ -1570,7 +1562,7 @@ hfsc_enqueue(struct sk_buff *skb, struct
  	sch->qstats.backlog += len;
  	sch->q.qlen++;
  

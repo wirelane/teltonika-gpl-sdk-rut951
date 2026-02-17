@@ -1,7 +1,5 @@
-Index: linux-5.15.196/drivers/net/usb/rndis_host.c
-===================================================================
---- linux-5.15.196.orig/drivers/net/usb/rndis_host.c
-+++ linux-5.15.196/drivers/net/usb/rndis_host.c
+--- a/drivers/net/usb/rndis_host.c
++++ b/drivers/net/usb/rndis_host.c
 @@ -601,10 +601,50 @@ static const struct driver_info	rndis_po
  	.tx_fixup =	rndis_tx_fixup,
  };
@@ -53,10 +51,8 @@ Index: linux-5.15.196/drivers/net/usb/rndis_host.c
  	/* 2Wire HomePortal 1000SW */
  	USB_DEVICE_AND_INTERFACE_INFO(0x1630, 0x0042,
  				      USB_CLASS_COMM, 2 /* ACM */, 0x0ff),
-Index: linux-5.15.196/drivers/usb/serial/option.c
-===================================================================
---- linux-5.15.196.orig/drivers/usb/serial/option.c
-+++ linux-5.15.196/drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
 @@ -293,6 +293,7 @@ static void option_instat_callback(struc
  #define QUECTEL_PRODUCT_EC200U			0x0901
  #define QUECTEL_PRODUCT_EG912Y			0x6001

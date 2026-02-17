@@ -44,7 +44,7 @@ define Device/template_otd1xx
 
 	DEVICE_FEATURES := dual_sim mobile ethernet nat_offloading poe \
 		port_link xfrm-offload networks_external reset_button 128mb_ram \
-		dot1x-client dot1x-server
+		dot1x-client dot1x-server multi_tag
 endef
 
 define Device/TEMPLATE_teltonika_otd140
@@ -67,7 +67,7 @@ define Device/TEMPLATE_teltonika_otd140
 	DEVICE_POE_CHIP := 0X77 0:_lan1, 0X2F 1:_lan1
 
 	DEVICE_FEATURES := dual_sim mobile ethernet nat_offloading poe \
-		port_link xfrm-offload networks_external small_flash reset_button dot1x-client dot1x-server
+		port_link xfrm-offload networks_external small_flash reset_button dot1x-client dot1x-server multi_tag
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 

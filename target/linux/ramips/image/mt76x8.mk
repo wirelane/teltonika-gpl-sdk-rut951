@@ -69,7 +69,7 @@ define Device/teltonika_trb2m
 	DEVICE_DTS := mt7628an_teltonika_trb2m
 	DEVICE_FEATURES += gateway pppmobile gps rs232 rs485 \
 			modbus ios single_port dualsim mobile ncm \
-			dot1x-server xfrm-offload no-wired-wan tpm
+			dot1x-server xfrm-offload no-wired-wan tpm port_link
 
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.5
@@ -94,7 +94,7 @@ define Device/teltonika_trb2m
 		TEMPLATE_teltonika_ntp001
 
 	DEVICE_MODEM_VENDORS := Quectel
-	DEVICE_MODEM_LIST := EC25 EG915Q BG95 EG95 EG912N EG950A
+	DEVICE_MODEM_LIST := EC25 EG915Q BG95 EG95 EG912N EG950A EG916Q
 endef
 
 define Device/teltonika_tap100
@@ -218,7 +218,7 @@ define Device/teltonika_rut2m
 		TEMPLATE_teltonika_rut260
 
 	DEVICE_MODEM_VENDORS := Quectel Meiglink Teltonika
-	DEVICE_MODEM_LIST := SLM750 EC200A EC25 EG25 SLM828 RG255C ALA440
+	DEVICE_MODEM_LIST := SLM750 EC200A EC25 EG25 SLM828 RG255C ALA440 EG060K
 endef
 
 define Device/teltonika_rut301
