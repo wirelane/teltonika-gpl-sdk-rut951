@@ -57,7 +57,7 @@ define Device/TEMPLATE_teltonika_trb236
 		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button \
 		128mb_ram port_link
 
-	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.18
+	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.21.1
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps;
 	TECHNICAL/Physical_Interfaces/Status_Leds := 2 x connection status LEDs, 3 x connection strength LEDs, 1 x power LED, 1 x Eth port status LED
 	TECHNICAL/Physical_Interfaces/Antennas := 1 x SMA connector for LTE
