@@ -528,7 +528,7 @@
 					devices =  "TRB236";
 					hwver = "1,99";
 					port = "0";
-					multiplier = "0.054209919"; // 47/867
+					multiplier = "0.018832392"; // Corrected after testing with formula  (Input V / (ADC Vmax-Vmin)) / 1000. Old value K=47/867
 				};
 				adc_cof@1 {
 					devices =  "TRB246";
