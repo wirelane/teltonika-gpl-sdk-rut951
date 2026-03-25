@@ -23,6 +23,21 @@
 		bootargs = "console=ttyS0,57600";
 	};
 
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		/* 64 KiB reserved for ramoops/pstore */
+		ramoops_reserved: ramoops@7f00000 {
+			compatible = "ramoops";
+			reg = <0x7f00000 0x10000>;
+			record-size = <0x2000>;
+			console-size = <0x3800>;
+			pmsg-size = <0x800>;
+		};
+	};
+
 	aliases {
 		serial0 = &uartlite;
 	};
@@ -62,7 +77,7 @@
 		};
 
 		serial {
-			reg = <&config 0x30 0xa>;
+			reg = <&config 0x30 0x10>;
 			type = "alnum";
 			default = "0000000000";
 			log;

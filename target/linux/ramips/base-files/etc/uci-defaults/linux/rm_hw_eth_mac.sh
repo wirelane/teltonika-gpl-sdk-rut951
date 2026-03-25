@@ -8,15 +8,15 @@
 ifaces() {
 	local section="$1" mac ifname bjson_mac
 
-	mac="$(uci -q get network.$section.macaddr)" || return 0
-	ifname="$(uci -q get network.$section.$IFVAR)" || return 0 # network conf too malformed for config_get
+	mac="$(uci_get "network" "$section" "macaddr")" || return 0
+	ifname="$(uci_get "network" "$section" "$IFVAR")" || return 0 # network conf too malformed for config_get
 
 	json_select "$ifname" || return 0
 		json_get_var bjson_mac 'macaddr' || return 0
 	json_select ..
 
 	[ "$(to_lower $bjson_mac)" != "$(to_lower $mac)" ] && return 0
-	uci -q del network.$section.macaddr
+	uci_remove "network" "$section" "macaddr"
 }
 
 json_load_file /etc/board.json
@@ -29,4 +29,4 @@ config_foreach ifaces "interface"
 IFVAR=name
 config_foreach ifaces "device"
 
-uci commit "network"
+uci_commit "network"

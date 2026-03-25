@@ -94,6 +94,7 @@ define Device/TEMPLATE_teltonika_rut200
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/Modem := Quectel EC200-EU, Quectel EC200-AU, Quectel EC200A-CN, Teltonika ALA440
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, EAC, Anatel, ANRT, Kenya, ICASA, NCC, \
 	ETA-WPC, SIRIM, IMDA, NTC, NBTC, MTC NOM, E-mark, CB, RoHS, REACH, R118
@@ -116,10 +117,11 @@ define Device/TEMPLATE_teltonika_rut202
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT202
-	DEVICE_FEATURES += ios dual_sim tpm
+	DEVICE_FEATURES += ios dual_sim tpm modbus
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.19
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/Modem := Teltonika ALA440
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	TECHNICAL/Physical_Interfaces/SIM := 2 $(HW_INTERFACE_SIM_HOLDERS)
 	TECHNICAL/Physical_Interfaces/Status_Leds := 3 x Connection type status LEDs, 3 x Connection strength LEDs, 2 x LAN status LEDs, 1 x Power LED
@@ -133,6 +135,7 @@ define Device/TEMPLATE_teltonika_rut204
 	DEVICE_FEATURES += dual_sim sd_card modbus stm_can
 
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/Modem := Quectel EC200A-EU, Meiglink SLM770A-CE
 	HARDWARE/Mobile/3GPP_Release := Release 10/11
 	HARDWARE/Mobile/3GPP_Release/Tooltip := $(HW_MOBILE_3GPP_TOOLTIP)
 	TECHNICAL/Input_Output/Input :=
@@ -162,6 +165,7 @@ define Device/TEMPLATE_teltonika_rut241
 	DEVICE_FEATURES += esim-p ios small_flash
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/Modem := Quectel EC25-EC, Quectel EC25-E, Quectel EC25-EC, Quectel EC25-G, Quectel EC25-J, Quectel EC25-AF, Quectel EC25-AUX, Meiglink SLM750
 	HARDWARE/Mobile/3GPP_Release := Release 10/11
 	HARDWARE/Mobile/3GPP_Release/Tooltip := $(HW_MOBILE_3GPP_TOOLTIP)
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, ANRT, Kenya, ICASA, FCC, IC, PTCRB, NOM, RCM, KC, Giteki, \
@@ -191,6 +195,7 @@ define Device/TEMPLATE_teltonika_rut260
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.1
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/Modem := Meiglink SLM828G-EU
 	HARDWARE/Mobile/3GPP_Release := Release 12
 	HARDWARE/LAN/Standard := $(HW_ETH_LAN_2_STANDARD)
 	TECHNICAL/Power/Power_Consumption := Idle:< 2 W, Max:< 6.5 W
@@ -205,10 +210,11 @@ define Device/TEMPLATE_teltonika_rut261
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT261
-	DEVICE_FEATURES += ios dual_sim tpm
+	DEVICE_FEATURES += ios dual_sim tpm modbus
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.21
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/Modem := Quectel EG060W-EA
 	HARDWARE/Mobile/3GPP_Release := Release 10
 	HARDWARE/LAN/Standard := $(HW_ETH_LAN_2_STANDARD)
 	TECHNICAL/Power/Power_Consumption := Idle:< 2 W, Max:< 6.5 W
@@ -225,6 +231,7 @@ define Device/TEMPLATE_teltonika_rut271
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.12.1
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
+	HARDWARE/Mobile/Modem := Quectel RG255C-GL
 	HARDWARE/Mobile/3GPP_Release := Release 17
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, ANRT, Kenya, ICASA, FCC, IC, PTCRB, NOM, RCM, KC, Giteki, \
@@ -252,6 +259,7 @@ define Device/TEMPLATE_teltonika_rut206
 	DEVICE_FEATURES += dual_sim sd_card
 
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/Modem := Quectel EC200A-EU, Quectel EC25-AF, Quectel EC200A-AU
 	HARDWARE/Mobile/3GPP_Release := Release 10/11
 	HARDWARE/Mobile/3GPP_Release/Tooltip := $(HW_MOBILE_3GPP_TOOLTIP)
 	TECHNICAL/Input_Output/Input :=
@@ -281,6 +289,7 @@ define Device/TEMPLATE_teltonika_rut276
 	DEVICE_FEATURES += dual_sim sd_card
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
+	HARDWARE/Mobile/Modem := Quectel RG255C-GL
 	HARDWARE/Mobile/3GPP_Release := Release 17
 	TECHNICAL/Input_Output/Input :=
 	TECHNICAL/Input_Output/Output :=
@@ -311,6 +320,7 @@ define Device/TEMPLATE_teltonika_rut281
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.15
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/Modem := Telit LE910C4-WWXD
 	HARDWARE/Mobile/3GPP_Release := Release 10
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
@@ -324,6 +334,7 @@ define Device/TEMPLATE_teltonika_rut286
 	DEVICE_FEATURES += dual_sim sd_card
 
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/Modem := Telit LE910C4-WWXD
 	HARDWARE/Mobile/3GPP_Release := Release 10
 	TECHNICAL/Input_Output/Input :=
 	TECHNICAL/Input_Output/Output :=

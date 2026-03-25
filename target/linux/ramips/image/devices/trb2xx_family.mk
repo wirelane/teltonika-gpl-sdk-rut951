@@ -59,6 +59,7 @@ define Device/TEMPLATE_teltonika_trb236
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.21.1
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps;
+	HARDWARE/Mobile/Modem := Quectel EG912NENAA, Quectel EG950AENLAA
 	TECHNICAL/Physical_Interfaces/Status_Leds := 2 x connection status LEDs, 3 x connection strength LEDs, 1 x power LED, 1 x Eth port status LED
 	TECHNICAL/Physical_Interfaces/Antennas := 1 x SMA connector for LTE
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, CB, WEEE
@@ -70,6 +71,7 @@ define Device/TEMPLATE_teltonika_trb246
 	DEVICE_MODEL := TRB246
 
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 42 DL/5.76 UL Mbps; 2G up to 296 DL/236.8 UL Kbps
+	HARDWARE/Mobile/Modem := Quectel EC25-EUX, Quectel EC25-AUX, Quectel EC25-AF
 	TECHNICAL/Power/Power_Consumption := Idle:< 1.5 W, Max:< 3.5 W
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, CB, EAC, UCRF, WEEE
 endef
@@ -81,6 +83,7 @@ define Device/TEMPLATE_teltonika_trb247
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13
 	HARDWARE/Mobile/Module := 4G LTE Cat 1 up to 10 DL/5 UL Mbps
+	HARDWARE/Mobile/Modem := Quectel EG915Q
 	HARDWARE/Mobile/3GPP_Release := Release 14
 endef
 
@@ -91,6 +94,7 @@ define Device/TEMPLATE_teltonika_trb256
 
 	HARDWARE/Mobile/Module := 4G LTE Cat M1 up to 588 DL/ 1119 UL Kbps, Cat NB2 up to 127 DL/158.5 UL Kbps, Cat NB1 up to 32 DL/70 UL Kbps \
 							(simultaneous operation of cellular and GNSS connectivity is not supported)
+	HARDWARE/Mobile/Modem := Quectel BG95M4
 	HARDWARE/Mobile/3GPP_Release := Release 14
 	TECHNICAL/Power/Power_Consumption := Idle:< 2 W, Max:< 35 W
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, EAC, CB
@@ -109,6 +113,7 @@ endef
 define Device/TEMPLATE_teltonika_ntp001
 	$(Device/tlt-mt7628-hw-common)
 	$(Device/teltonika_trb2m)
+	HARDWARE/Mobile/Modem := Quectel BG95M4
 	HARDWARE/Wireless/Wireless_Mode :=
 	HARDWARE/Wireless/Wi\-Fi_Users :=
 	TECHNICAL/Power/PoE_Standards :=

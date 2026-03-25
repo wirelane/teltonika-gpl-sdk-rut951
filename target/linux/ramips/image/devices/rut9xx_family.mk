@@ -74,6 +74,7 @@ define Device/TEMPLATE_teltonika_rut901
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.3.1
 	DEVICE_FEATURES += small_flash
 
+	HARDWARE/Mobile/Modem := Quectel EC200A-EU, Quectel EC200A-AU, Teltonika ALA440
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi antenna connectors
 	TECHNICAL/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
@@ -105,6 +106,7 @@ define Device/TEMPLATE_teltonika_rut906
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4.2
 	DEVICE_FEATURES += small_flash
 
+	HARDWARE/Mobile/Modem := Meiglink SLM770A-CE
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN)
 	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS
@@ -158,6 +160,7 @@ define Device/TEMPLATE_teltonika_rut951
 	TECHNICAL/PoE_Out_(Optional)/PoE_Standards := 802.3af and 802.3at Alternative B
 	TECHNICAL/PoE_Out_(Optional)/PoE_Max_Power_per_Port_(at_PSE) := 24 W Max (power supply unit dependent)
 	TECHNICAL/Power/PoE_Standards  := Optional: $(HW_POWER_POE_PASSIVE_30V)
+	HARDWARE/Mobile/Modem := Quectel EC25-EC, Quectel EC25-G, Quectel EC25-AUX, Quectel EC25-J, Quectel EC25-AF, Quectel EC25-EUX, Meiglink SLM750
 	HARDWARE/Mobile/3GPP_Release := Release 10/11
 	HARDWARE/Mobile/3GPP_Release/Tooltip := $(HW_MOBILE_3GPP_TOOLTIP)
 	TECHNICAL/Input_Output/Input := 1 $(HW_INPUT_DI_30V) (Not available with active PoE)
@@ -195,6 +198,7 @@ define Device/TEMPLATE_teltonika_rut956
 	DEVICE_MODEL := RUT956
 	DEVICE_FEATURES += small_flash
 
+	HARDWARE/Mobile/Modem := Quectel EC25-EUX, Quectel EC25-E, Quectel EC25-G, Quectel EC25-AUX, Quectel EC25-J, Quectel EC25-AF, Meiglink SLM750
 	HARDWARE/Mobile/3GPP_Release := Release 11
 	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN) (available from HW revision 1600)
 	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS
@@ -247,6 +251,7 @@ define Device/TEMPLATE_teltonika_rut971
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
+	HARDWARE/Mobile/Modem :=
 	HARDWARE/Mobile/3GPP_Release := Release 17
 	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi antenna connectors
 	TECHNICAL/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
@@ -278,6 +283,7 @@ define Device/TEMPLATE_teltonika_rut976
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.12.1
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
+	HARDWARE/Mobile/Modem := Quectel RG255C-GL
 	HARDWARE/Mobile/3GPP_Release := Release 17
 	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN)
 	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS
@@ -332,6 +338,7 @@ define Device/TEMPLATE_teltonika_rut981
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
 	HARDWARE/Power/PoE_Standards  := Optional: $(HW_POWER_POE_PASSIVE_30V)
+	HARDWARE/Mobile/Modem := Telit LE910C4-WWXD
 	HARDWARE/Mobile/3GPP_Release := Release 10
 	HARDWARE/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
 	HARDWARE/Input_Output/Output := 1 $(HW_OUTPUT_DO_30V)
@@ -372,6 +379,7 @@ define Device/TEMPLATE_teltonika_rut986
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
 	HARDWARE/Power/PoE_Standards  := Optional: $(HW_POWER_POE_PASSIVE_30V)
+	HARDWARE/Mobile/Modem := Telit LE910C4-WWXD
 	HARDWARE/Mobile/3GPP_Release := Release 10
 	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN) (available from HW revision 1600)
 	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS

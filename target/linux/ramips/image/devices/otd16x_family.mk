@@ -29,6 +29,7 @@ define Device/TEMPLATE_teltonika_otd164
 	DEVICE_WLAN_BSSID_LIMIT := wlan0 8, wlan1 8
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/Modem := Quectel EG060W-EA
 	HARDWARE/Mobile/3GPP_Release := Release 10
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/Wireless/Wireless_Mode := $(HW_WIFI_5)

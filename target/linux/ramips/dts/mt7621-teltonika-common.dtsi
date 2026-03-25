@@ -2,6 +2,23 @@
 #include "mt7621.dtsi"
 #include "platform_name.dtsi"
 
+/ {
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		/* 64 KiB reserved for ramoops/pstore */
+		ramoops_reserved: ramoops@fe00000 {
+			compatible = "ramoops";
+			reg = <0xfe00000 0x10000>;
+			record-size = <0x2000>;
+			console-size = <0x3800>;
+			pmsg-size = <0x800>;
+		};
+	};
+};
+
 &pcie {
     status = "okay";
 };

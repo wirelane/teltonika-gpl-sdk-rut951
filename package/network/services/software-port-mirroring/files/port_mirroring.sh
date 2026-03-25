@@ -24,7 +24,7 @@ setup() {
 
 	[ -s "$STATUS_PATH" ] && {
 		local old_md5="$(cat "$STATUS_PATH" | md5sum)"
-		local new_md5="$(echo "$mirror_monitor_port $mirror_source_port $enable_mirror_rx $enable_mirror_tx" | md5sum)"
+		local new_md5="$(printf "%s\n%s\n%s\n%s\n" "$mirror_monitor_port" "$mirror_source_port" "$enable_mirror_rx" "$enable_mirror_tx" | md5sum)"
 		[ "$old_md5" != "$new_md5" ] && teardown
 	}
 	[ -z "$mirror_source_port" ] || [ -z "$mirror_monitor_port" ] && return
@@ -35,8 +35,7 @@ setup() {
 	else
 		setup_sw "$mirror_monitor_port" "$mirror_source_port" "$enable_mirror_rx" "$enable_mirror_tx"
 	fi
-
-	echo "$mirror_monitor_port $mirror_source_port $enable_mirror_rx $enable_mirror_tx" > "$STATUS_PATH"
+	printf "%s\n%s\n%s\n%s\n" "$mirror_monitor_port" "$mirror_source_port" "$enable_mirror_rx" "$enable_mirror_tx" > "$STATUS_PATH"
 }
 
 setup_dsa() {
@@ -44,13 +43,17 @@ setup_dsa() {
 	local mirror_source_port="$2"
 	local enable_mirror_rx="$3"
 	local enable_mirror_tx="$4"
+	set -- $mirror_source_port
 
 	ip link set up dev "$mirror_monitor_port"
-	tc qdisc add dev "$mirror_source_port" clsact
-	[ "$enable_mirror_rx" == "1" ] && \
-		tc filter add dev "$mirror_source_port" ingress matchall skip_sw action mirred egress mirror dev "$mirror_monitor_port"
-	[ "$enable_mirror_tx" == "1" ] && \
-		tc filter add dev "$mirror_source_port" egress matchall skip_sw action mirred egress mirror dev "$mirror_monitor_port"
+	while [ "$#" -gt 0 ]; do
+		tc qdisc add dev "$1" clsact
+		[ "$enable_mirror_rx" == "1" ] && 
+			tc filter add dev "$1" ingress matchall skip_sw action mirred egress mirror dev "$mirror_monitor_port"
+		[ "$enable_mirror_tx" == "1" ] && 
+			tc filter add dev "$1" egress matchall skip_sw action mirred egress mirror dev "$mirror_monitor_port"
+		shift
+	done
 }
 
 config_sw_cpu_port() {
@@ -94,6 +97,29 @@ config_sw_mac_learning() {
 	}
 }
 
+setup_cross_source_port_mirror_ignore() {
+	local port="$1"
+	set -- $2
+	while [ "$#" -gt 0 ] ; do
+		[ "$1" == "$port" ] || {
+			ebtables -A FORWARD -i "$port" -o "$1" -j mark --set-mark 1 > /dev/null 2>&1
+		}
+		shift
+	done
+}
+
+teardown_cross_source_port_mirror_ignore() {
+	local port="$1"
+	set -- $2
+	while [ "$#" -gt 0 ] ; do
+		[ "$1" == "$port" ] || {
+			ebtables -D FORWARD -i "$port" -o "$1" -j mark --set-mark 1 > /dev/null 2>&1
+		}
+		shift
+	done
+}
+
+
 setup_sw() {
 	local mirror_monitor_port="$1"
 	local mirror_source_port="$2"
@@ -104,27 +130,40 @@ setup_sw() {
 		config_sw_mac_learning "1"
 
 	ip link set up dev "$mirror_monitor_port"
-	tc qdisc add dev "$mirror_source_port" clsact
 	tc qdisc add dev "$mirror_monitor_port" clsact
 
-	[ "$enable_mirror_rx" == "1" ] && {
-		ebtables -A FORWARD -i "$mirror_source_port" -o "$mirror_monitor_port" -j mark --set-mark 1
-		tc filter add dev "$mirror_monitor_port" egress prio 1 handle 1 fw action drop
-		tc filter add dev "$mirror_source_port" ingress prio 1 matchall action mirred egress mirror dev "$mirror_monitor_port"
-	}
+	set -- $mirror_source_port
 
-	[ "$enable_mirror_tx" == "1" ] && {
-		ebtables -A FORWARD -i "$mirror_monitor_port" -o "$mirror_source_port" -j mark --set-mark 2
-		tc filter add dev "$mirror_source_port" egress prio 1 handle 2 fw action pass
-		tc filter add dev "$mirror_source_port" egress prio 2 matchall action mirred egress mirror dev "$mirror_monitor_port"
-	}
+	while [ "$#" -gt 0 ]; do
+		tc qdisc add dev "$1" clsact
+		[ "$enable_mirror_rx" == "1" ] && {
+			ebtables -A FORWARD -i "$1" -o "$mirror_monitor_port" -j mark --set-mark 1
+			tc filter add dev "$mirror_monitor_port" egress prio 1 handle 1 fw action drop
+			tc filter add dev "$1" ingress prio 1 matchall action mirred egress mirror dev "$mirror_monitor_port"
+		}
+		[ "$enable_mirror_tx" == "1" ] && {
+			ebtables -A FORWARD -i "$mirror_monitor_port" -o "$1" -j mark --set-mark 2
+			tc filter add dev "$1" egress prio 1 handle 2 fw action pass
+			tc filter add dev "$1" egress prio 2 matchall action mirred egress mirror dev "$mirror_monitor_port"
+		}
+		[ "$enable_mirror_rx" == "1" -a "$enable_mirror_tx" == "1" ] && {
+			setup_cross_source_port_mirror_ignore "$1" "$mirror_source_port"
+		}
+		shift
+	done
 }
 
 teardown() {
 	local mirror_monitor_port mirror_source_port enable_mirror_rx enable_mirror_tx
 
 	[ -s "$STATUS_PATH" ] || return
-	read mirror_monitor_port mirror_source_port enable_mirror_rx enable_mirror_tx < "$STATUS_PATH"
+
+	{
+		IFS= read -r mirror_monitor_port
+		IFS= read -r mirror_source_port
+		IFS= read -r enable_mirror_rx
+		IFS= read -r enable_mirror_tx
+	} < "$STATUS_PATH"
 
 	if [ "$HAS_DSA" = "true" ]; then
 		teardown_dsa "$mirror_monitor_port" "$mirror_source_port"
@@ -139,24 +178,33 @@ teardown_dsa() {
 	local mirror_monitor_port="$1"
 	local mirror_source_port="$2"
 
-	tc filter del dev "$mirror_source_port" ingress > /dev/null 2>&1
-	tc filter del dev "$mirror_source_port" egress > /dev/null 2>&1
-	tc qdisc del dev "$mirror_source_port" clsact > /dev/null 2>&1
+	set -- $mirror_source_port
+	while [ "$#" -gt 0 ]; do
+		tc filter del dev "$1" ingress > /dev/null 2>&1
+		tc filter del dev "$1" egress > /dev/null 2>&1
+		tc qdisc del dev "$1" clsact > /dev/null 2>&1
+		shift
+	done
 }
 
 teardown_sw() {
 	local mirror_monitor_port="$1"
 	local mirror_source_port="$2"
 
-	tc filter del dev "$mirror_source_port" ingress > /dev/null 2>&1
-	tc filter del dev "$mirror_source_port" egress > /dev/null 2>&1
-	tc qdisc del dev "$mirror_source_port" clsact > /dev/null 2>&1
+
+	set -- $mirror_source_port
+	while [ "$#" -gt 0 ]; do
+		tc filter del dev "$1" ingress > /dev/null 2>&1
+		tc filter del dev "$1" egress > /dev/null 2>&1
+		tc qdisc del dev "$1" clsact > /dev/null 2>&1
+		ebtables -D FORWARD -i "$1" -o "$mirror_monitor_port" -j mark --set-mark 1 > /dev/null 2>&1
+		ebtables -D FORWARD -i "$mirror_monitor_port" -o "$1" -j mark --set-mark 2 > /dev/null 2>&1
+		teardown_cross_source_port_mirror_ignore "$1" "$mirror_source_port"
+		shift
+	done
 
 	tc filter del dev "$mirror_monitor_port" egress > /dev/null 2>&1
 	tc qdisc del dev "$mirror_monitor_port" clsact > /dev/null 2>&1
-
-	ebtables -D FORWARD -i "$mirror_source_port" -o "$mirror_monitor_port" -j mark --set-mark 1 > /dev/null 2>&1
-	ebtables -D FORWARD -i "$mirror_monitor_port" -o "$mirror_source_port" -j mark --set-mark 2 > /dev/null 2>&1
 
 	[ -n "$HAS_DISABLE_LEARN" ] && [ -n "$CPU_PORT" ] && \
 		config_sw_mac_learning "0"

@@ -1,0 +1,32 @@
+
+if PACKAGE_frr8
+comment "SSL support"
+
+choice
+        prompt "Selected SSL MD5 library"
+        default FRR8_INTERNAL
+
+        config FRR8_OPENSSL
+                bool "OpenSSL"
+
+        config FRR8_INTERNAL
+                bool "internal SSL support"
+endchoice
+
+comment "SNMP support"
+
+choice
+        prompt "Enable SNMP support"
+        default FRR8_NO_SNMP
+
+        config FRR8_SNMP
+                bool "SNMP enable"
+
+        config FRR8_NO_SNMP
+                bool "SNMP disable"
+endchoice
+
+
+comment "Packages"
+
+endif

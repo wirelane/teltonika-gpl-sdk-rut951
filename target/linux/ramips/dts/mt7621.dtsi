@@ -72,7 +72,7 @@
 		};
 
 		serial {
-			reg = <&config 0x30 0xa>;
+			reg = <&config 0x30 0x10>;
 			type = "alnum";
 			default = "0000000000";
 			log;

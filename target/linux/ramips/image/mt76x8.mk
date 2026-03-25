@@ -381,8 +381,8 @@ define Device/teltonika_rute
 		TEMPLATE_teltonika_otd144
 
 	SUPPORTED_DEVICES := teltonika,rute teltonika,rut202 teltonika,rut204 teltonika,rut206 teltonika,rut261 \
-						 teltonika,rut271 teltonika,rut276 teltonika,rut281 teltonika,rut286 teltonika,rut971 \
-						 teltonika,rut976 teltonika,rut981 teltonika,rut986 teltonika,otd144
+						 teltonika,rut271 teltonika,rut276 teltonika,rut281 teltonika,rut286 teltonika,rut971 teltonika,rut976 \
+						 teltonika,rut981 teltonika,rut986 teltonika,otd144
 
 	DEVICE_MODEM_VENDORS := Quectel Telit Teltonika
 	DEVICE_MODEM_LIST := EC200A EC25 EG060W RG255C LE910C4 ALA440

@@ -79,6 +79,7 @@ define Device/TEMPLATE_teltonika_rut361
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/Modem := Quectel EG060K-EA, Quectel EG060K-NA
 	HARDWARE/Mobile/3GPP_Release := Release 12
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M) $(HW_FLASH_TYPE_NOR_SERIAL)
 	HARDWARE/Wireless/Wireless_Mode := 802.11 b/g/n, 2x2 MIMO

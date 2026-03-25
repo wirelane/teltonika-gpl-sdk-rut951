@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 APP_TITLE:=VuCI UI Support for Wireless Reboot
 
-ifeq (m, $(CONFIG_PACKAGE_vuci-app-wireless-reboot-ui))
+ifneq (,$(filter m,$(CONFIG_PACKAGE_vuci-app-wireless-reboot-ui))$(DUMP))
 	APP_TLT_NAME:=Wireless Reboot
 	APP_APP_NAME:=wireless_reboot
 	APP_ROUTER:=$(TLT_PLATFORM_NAME)

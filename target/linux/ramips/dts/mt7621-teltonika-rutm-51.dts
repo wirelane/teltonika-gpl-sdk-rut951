@@ -5,6 +5,7 @@
 #include "common-mt7621/leds/wan.dtsi"
 #include "common-mt7621/leds/wifi.dtsi"
 #include "common-mt7621/modem/5g.dtsi"
+#include "mt7621-teltonika-rutm51a.dtsi"
 
 // PWR, RST |G0|G10|
 // IN, OUT  |G8|G12|
@@ -18,17 +19,25 @@
 
 	leds {
 		led_wifi_24 {
+			tlt-mnf,incompatible_branch = "A";
+			label = "wifi_gen_2";
 			gpios = <&shift_io 10 GPIO_ACTIVE_HIGH>;
 		};
 
 		led_wifi_50 {
+			tlt-mnf,incompatible_branch = "A";
+			label = "wifi_gen_5";
 			gpios = <&shift_io 11 GPIO_ACTIVE_HIGH>;
 		};
+
 	};
 };
 
 &mnfinfo {
+
 	sim_cfg {
+		tlt-mnf,incompatible_branch = "A";
 		default = "1111020_1112020";
 	};
+
 };

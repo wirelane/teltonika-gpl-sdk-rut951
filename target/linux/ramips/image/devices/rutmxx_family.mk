@@ -80,6 +80,7 @@ define Device/TEMPLATE_teltonika_rutm09
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/Modem := Quectel EG060K-EA
 	HARDWARE/Mobile/3GPP_Release := Release 12
 	HARDWARE/Wireless/Wireless_Mode :=
 	HARDWARE/Wireless/Wi\-Fi_Users :=
@@ -128,6 +129,7 @@ define Device/TEMPLATE_teltonika_rutm11
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/Modem := Quectel EG060K-EA
 	HARDWARE/Mobile/3GPP_Release := Release 12
 	TECHNICAL/Physical_Interfaces/Status_Leds := 4 x WAN type LEDs, 2 x Mobile connection type, 5 x Mobile connection strength, 8 x LAN status, 1 x Power, 2 x 2.4G and 5G Wi-Fi
 	TECHNICAL/Power/Power_Consumption := Idle < 3.9 W, Max < 12.3 W
@@ -152,6 +154,7 @@ define Device/TEMPLATE_teltonika_rutm12
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Mobile/Module := 2 x 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/Modem := 2 x Quectel EG060K-EA
 	HARDWARE/Mobile/3GPP_Release := Release 12
 	TECHNICAL/Physical_Interfaces/USB :=
 	HARDWARE/USB/Data_Rate :=
@@ -181,6 +184,7 @@ define Device/TEMPLATE_teltonika_rutm16
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
+	HARDWARE/Mobile/Modem := Telit LE910C6-WW
 	HARDWARE/Mobile/3GPP_Release := Release 12
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
@@ -201,8 +205,15 @@ define Device/TEMPLATE_teltonika_rutm20
 	DEVICE_FEATURES := wifi ethernet mobile dual_band_ssid dual_sim \
 		at_sim dsa hw_nat nat_offloading multi_tag port_link \
 		gigabit_port m2_modem poe tpm reset_button modbus \
-		dot1x-client dot1x-server port-mirror soft_port_mirror
+		dot1x-client dot1x-server port-mirror soft_port_mirror esim-p \
+		framed-routing
 
+	TECHNICAL/PoE_In/PoE_Ports := 1 x PoE In
+	TECHNICAL/PoE_In/PoE_Standards := 802.3af/at Alternative A and B
+	TECHNICAL/PoE_Out/PoE_Ports := 1 x PoE Out
+	TECHNICAL/PoE_Out/PoE_Standards := 802.3af/at and 802.3af
+	TECHNICAL/PoE_Out/PoE_Max_Power_per_Port_(at_PSE) := 30 W Max
+	TECHNICAL/Power/PoE_Standards := $(HW_POWER_POE_PASSIVE_50V)
 	DEVICE_LAN_OPTION := "lan "
 	DEVICE_WAN_OPTION := wan
 	DEVICE_USB_JACK_PATH :=
@@ -210,6 +221,7 @@ define Device/TEMPLATE_teltonika_rutm20
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650 Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
+	HARDWARE/Mobile/Modem := Quectel RM520N, Telit FN990A8
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	TECHNICAL/Physical_Interfaces/USB :=
@@ -218,12 +230,15 @@ define Device/TEMPLATE_teltonika_rutm20
 	HARDWARE/USB/External_Devices :=
 	HARDWARE/USB/Storage_Formats :=
 	HARDWARE/LAN/Port := 1 $(HW_ETH_LAN_PORTS)
-	TECHNICAL/Physical_Interfaces/Status_Leds := 3 x connection status LEDs, 3 x connection strength LEDs, 2 x Ethernet port status LEDs, 2 x WAN status LEDs and 1 x Power LED
+	TECHNICAL/Physical_Interfaces/Status_Leds := 1 x connection status LEDs, 1 x connection strength LEDs, 4 x Ethernet port status LEDs, and 1 x Power LED
 	TECHNICAL/Physical_Interfaces/Ethernet := 2 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)
-	TECHNICAL/Power/Power_Consumption := Idle <5 W, Max <18 W
+	TECHNICAL/Input_Output/Input := 
+	TECHNICAL/Input_Output/Output := 
+	TECHNICAL/Power/Power_Consumption := Idle <4.5 W, Max <8.5 W
+	TECHNICAL/Physical_Interfaces/SIM := 2 x SIM slot (Mini SIM - 2FF), 1.8 V/3 V, internal SIM holder
 	TECHNICAL/Physical_Interfaces/Antennas := 4 x SMA for Mobile, 2 x RP-SMA for Wi-Fi
-	TECHNICAL/Physical_Specification/Dimensions := 132 x 44.2 x 95.1 mm
-	TECHNICAL/Physical_Specification/Weight := 519 g
+	TECHNICAL/Physical_Specification/Dimensions := 100 x 30 x 93.7 mm
+	TECHNICAL/Physical_Specification/Weight := 319 g
 endef
 
 define Device/TEMPLATE_teltonika_rutm30
@@ -242,6 +257,7 @@ define Device/TEMPLATE_teltonika_rutm30
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6Gbps, UL 650 Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
+	HARDWARE/Mobile/Modem := Quectel RG520N-EB
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	TECHNICAL/Physical_Interfaces/USB :=
@@ -274,6 +290,7 @@ define Device/TEMPLATE_teltonika_rutm31
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Mobile/Module := 5G Sub-6GHz SA: 2 Gbps DL, 1 Gbps UL; NSA: 2.6 Gbps DL, 650 Mbps UL; 4G (LTE) - Cat 12: 600 Mbps DL, Cat 13: 150 Mbps UL; 3G - 42.2 Mbps DL, 11 Mbps UL
+	HARDWARE/Mobile/Modem := Quectel RG500U-EB
 	HARDWARE/Mobile/3GPP_Release := Release 15
 	TECHNICAL/Physical_Interfaces/USB :=
 	HARDWARE/USB/Data_Rate :=
@@ -306,6 +323,7 @@ define Device/TEMPLATE_teltonika_rutm50
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4 Gbps DL (4x4 MIMO) 900, 550 Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6 Gbps (4x4 MIMO), UL Cat 18 200 Mbps
+	HARDWARE/Mobile/Modem := Quectel RG520NNADB, Quectel RM520N, Quectel RG520N-EU
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
 	TECHNICAL/Physical_Interfaces/Status_Leds := 3 x connection status LEDs, 3 x connection strength LEDs, 10 x Ethernet port status LEDs, 4 x WAN status LEDs, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
@@ -332,6 +350,7 @@ define Device/TEMPLATE_teltonika_rutm51
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Mobile/Module := 5G SA: DL 2Gbps,UL 1Gbps; NSA: DL 2.6 Gbps, UL 650 Mbps; 4G LTE: DL 600 Mbps, UL 150 Mbps;
+	HARDWARE/Mobile/Modem := Quectel RG500U-EB, Quectel RG620UA-EU
 	HARDWARE/Mobile/3GPP_Release := Release 15
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
 	TECHNICAL/Physical_Interfaces/Status_Leds := 3 x connection status LEDs, 3 x connection strength LEDs, 10 x Ethernet port status LEDs, 4 x WAN status LEDs, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
@@ -358,6 +377,7 @@ define Device/TEMPLATE_teltonika_rutm52
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550 Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200 Mbps
+	HARDWARE/Mobile/Modem := 2 x Quectel RG520N-EB, 2 x Quectel RG520NNADB
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	TECHNICAL/Physical_Interfaces/USB :=
@@ -393,8 +413,8 @@ define Device/TEMPLATE_teltonika_rutm54
 	DEVICE_USB_JACK_PATH := /usb1/1-2/
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
-	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 3.4Gbps DL, 0.55Gbps UL, SA 2.5Gbps DL, 0.9Gbps UL; 4G LTE CAT 19 DL 1.6Gbps on DL, CAT. 18 UL 211 Mbps, \
-	3G HSPA+ Rel9 DL/UL 42/5.7 Mbps
+	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 3.4Gbps DL, 0.55Gbps UL, SA 2.5Gbps DL, 0.9Gbps UL; 4G LTE CAT 19 DL 1.6Gbps on DL, CAT. 18 UL 211 Mbps, 3G HSPA+ Rel9 DL/UL 42/5.7 Mbps
+	HARDWARE/Mobile/Modem := Telit FN990A28
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
@@ -440,6 +460,7 @@ define Device/TEMPLATE_teltonika_rutm55
 			"/usb1/1-1/1-1\:1.0/"
 
 	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550 Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200 Mbps
+	HARDWARE/Mobile/Modem := Quectel RG520N-EB
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/LAN/Port := 3 $(HW_ETH_LAN_PORTS)
 	TECHNICAL/Physical_Interfaces/Status_Leds := 3 x connection status LEDs, 3 x connection strength LEDs, 8 x Ethernet port status LEDs, 1 x Power LED
@@ -467,6 +488,7 @@ define Device/TEMPLATE_teltonika_rutm56
 
 	HARDWARE/Mobile/Module := 1 x 5G Sub-6Ghz SA/NSA 2.4/3.4Gbps DL (4x4 MIMO), 900/550 Mbps UL (2x2); 4G (LTE) – LTE Cat 20 2.0Gbps DL, 210 Mbps UL; 3G – 42 Mbps DL, 5.76 Mbps UL, \
 	1 x 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/Modem := Quectel RG520N-EB, Quectel EC200A-EU
 	HARDWARE/Mobile/3GPP_Release := Release 16, Release 9
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
 	TECHNICAL/Physical_Interfaces/USB :=
@@ -502,6 +524,7 @@ define Device/TEMPLATE_teltonika_rutm59
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550 Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200 Mbps
+	HARDWARE/Mobile/Modem := Quectel RG520NNADB
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Wireless/Wireless_Mode :=
 	HARDWARE/Wireless/Wi\-Fi_Users :=
