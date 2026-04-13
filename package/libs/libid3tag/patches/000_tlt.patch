@@ -1,6 +1,6 @@
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/id3tag.pc src/id3tag.pc
 --- upstream/id3tag.pc	1970-01-01 00:00:00.000000000 +0000
-+++ src/id3tag.pc	2026-03-20 18:51:38.396250629 +0000
++++ src/id3tag.pc	2026-04-09 10:32:28.249326597 +0000
 @@ -0,0 +1,11 @@
 +prefix=/usr
 +exec_prefix=/usr
