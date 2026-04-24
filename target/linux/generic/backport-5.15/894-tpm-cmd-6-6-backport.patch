@@ -1,6 +1,6 @@
 --- a/drivers/char/tpm/tpm2-cmd.c
 +++ b/drivers/char/tpm/tpm2-cmd.c
-@@ -752,8 +752,24 @@ int tpm2_auto_startup(struct tpm_chip *c
+@@ -750,8 +750,24 @@ int tpm2_auto_startup(struct tpm_chip *c
  	}
  
  	rc = tpm2_get_cc_attrs_tbl(chip);
@@ -25,7 +25,7 @@
  	if (rc > 0)
  		rc = -ENODEV;
  	return rc;
-@@ -761,10 +777,12 @@ out:
+@@ -759,10 +775,12 @@ out:
  
  int tpm2_find_cc(struct tpm_chip *chip, u32 cc)
  {

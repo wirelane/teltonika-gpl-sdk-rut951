@@ -52,8 +52,8 @@ define Device/TEMPLATE_teltonika_rutm08
 	DEVICE_CHECK_PATH :=
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
-	HARDWARE/Wireless/Wireless_Mode :=
-	HARDWARE/Wireless/Wi\-Fi_Users :=
+	HARDWARE/WiFi/Wireless_Mode :=
+	HARDWARE/WiFi/Wi\-Fi_Users :=
 	TECHNICAL/Physical_Interfaces/SIM :=
 	TECHNICAL/Physical_Interfaces/Status_Leds := 8 x LAN status LEDs, 1 x Power LEDs
 	TECHNICAL/Power/Power_Consumption := Idle < 1.8 W / Max < 5.5 W
@@ -82,8 +82,8 @@ define Device/TEMPLATE_teltonika_rutm09
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
 	HARDWARE/Mobile/Modem := Quectel EG060K-EA
 	HARDWARE/Mobile/3GPP_Release := Release 12
-	HARDWARE/Wireless/Wireless_Mode :=
-	HARDWARE/Wireless/Wi\-Fi_Users :=
+	HARDWARE/WiFi/Wireless_Mode :=
+	HARDWARE/WiFi/Wi\-Fi_Users :=
 	TECHNICAL/Physical_Interfaces/Status_Leds := 3 x WAN type LEDs, 3 x Mobile connection type, 5 x Mobile connection strength, 8 x LAN status, 1 x Power
 	TECHNICAL/Power/Power_Consumption := Idle < 2.65 W, Max < 9.82 W
 	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for Mobile, 1 x SMA for GNSS
@@ -106,7 +106,7 @@ define Device/TEMPLATE_teltonika_rutm10
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
 	TECHNICAL/Physical_Interfaces/SIM :=
-	HARDWARE/Wireless/Wireless_Mode := $(HW_WIFI_5)
+	HARDWARE/WiFi/Wireless_Mode := $(HW_WIFI_5)
 	TECHNICAL/Physical_Interfaces/Status_Leds := 8 x LAN status, 1 x Power LED, 2 x 2.4G and 5G Wi-Fi LEDs
 	TECHNICAL/Power/Power_Consumption := Idle < 3.51 W, Max < 8.65 W
 	TECHNICAL/Physical_Interfaces/Antennas := 2 x RP-SMA for Wi-Fi
@@ -386,7 +386,7 @@ define Device/TEMPLATE_teltonika_rutm52
 	HARDWARE/USB/External_Devices :=
 	HARDWARE/USB/Storage_Formats :=
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
-	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)
@@ -413,7 +413,7 @@ define Device/TEMPLATE_teltonika_rutm54
 	DEVICE_USB_JACK_PATH := /usb1/1-2/
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false dsa_isolate
 
-	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 3.4Gbps DL, 0.55Gbps UL, SA 2.5Gbps DL, 0.9Gbps UL; 4G LTE CAT 19 DL 1.6Gbps on DL, CAT. 18 UL 211 Mbps, 3G HSPA+ Rel9 DL/UL 42/5.7 Mbps
+	HARDWARE/Mobile/Module := 5G Sub-6GHz SA/NSA 2.5/3.4Gbps DL (4x4 MIMO), 900/460Mbps UL (2x2 MIMO); 4G LTE CAT 19 DL 1.6Gbps, CAT18 UL 211Mbps; 3G HSPA+ Rel8 DL/UL 42/11Mbps
 	HARDWARE/Mobile/Modem := Telit FN990A28
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
@@ -526,8 +526,8 @@ define Device/TEMPLATE_teltonika_rutm59
 	HARDWARE/Mobile/Module := 5G Sub-6 GHz SA, NSA 2.4, 3.4Gbps DL (4x4 MIMO) 900, 550 Mbps UL (2x2 MIMO); 4G LTE: DL Cat 19 1.6Gbps (4x4 MIMO), UL Cat 18 200 Mbps
 	HARDWARE/Mobile/Modem := Quectel RG520NNADB
 	HARDWARE/Mobile/3GPP_Release := Release 16
-	HARDWARE/Wireless/Wireless_Mode :=
-	HARDWARE/Wireless/Wi\-Fi_Users :=
+	HARDWARE/WiFi/Wireless_Mode :=
+	HARDWARE/WiFi/Wi\-Fi_Users :=
 	HARDWARE/LAN/Port := 4 $(HW_ETH_LAN_PORTS)
 	TECHNICAL/Physical_Interfaces/Status_Leds := 3 x connection status LEDs, 3 x connection strength LEDs, 10 x Ethernet port status LEDs, 3 x WAN status LEDs, 1 x Power LED
 	TECHNICAL/Physical_Interfaces/Ethernet := 5 $(HW_ETH_RJ45_PORTS), $(HW_ETH_SPEED_1000)

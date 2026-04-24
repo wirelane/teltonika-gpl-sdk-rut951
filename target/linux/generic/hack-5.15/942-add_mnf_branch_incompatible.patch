@@ -1,6 +1,6 @@
 --- a/drivers/of/base.c
 +++ b/drivers/of/base.c
-@@ -499,6 +499,46 @@ bool __of_mnf_branch_is_compatible(const
+@@ -663,6 +663,46 @@ bool __of_mnf_branch_is_compatible(const
  	return false;
  }
  
@@ -47,7 +47,7 @@
  bool __of_mnf_hwver_is_compatible(const struct device_node *device) {
  	int cur_hwver = 0, i, len;
  	const __be32 *val;
-@@ -560,6 +600,9 @@ static bool __of_device_is_mnf_compatibl
+@@ -724,6 +764,9 @@ static bool __of_device_is_mnf_compatibl
  	if (!__of_mnf_hwver_is_compatible(device))
  		goto err;
  

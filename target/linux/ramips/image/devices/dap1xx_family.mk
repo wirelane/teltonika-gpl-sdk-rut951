@@ -3,8 +3,8 @@ define Device/teltonika_dap14x_common
 	HARDWARE/LAN/Port := 2 $(HW_ETH_LAN_PORT)
 	HARDWARE/LAN/Speed := $(HW_ETH_SPEED_100)
 	HARDWARE/LAN/Standard := $(HW_ETH_LAN_2_STANDARD)
-	HARDWARE/Wireless/Wi\-Fi_Users  := $(HW_WIFI_50_USERS)
-	HARDWARE/Wireless/Wireless_Mode := $(HW_WIFI_4)
+	HARDWARE/WiFi/Wi\-Fi_Users  := $(HW_WIFI_50_USERS)
+	HARDWARE/WiFi/Wireless_Mode := $(HW_WIFI_4)
 	TECHNICAL/Power/Connector := $(HW_POWER_CONNECTOR_3PIN)
 	TECHNICAL/Power/Power_Consumption := Idle:< 1 W / Max:< 2 W
 	TECHNICAL/Physical_Interfaces/IO :=

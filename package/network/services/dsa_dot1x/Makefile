@@ -5,8 +5,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dsa-dot1x-server
-PKG_SOURCE_VERSION:=1.0.4
-PKG_RELEASE:=2026-03-16
+PKG_VERSION:=2026-04-09
+PKG_SOURCE_VERSION:=1.0.5
+PKG_RELEASE:=1
 PKG_LICENSE:=Teltonika-closed
 
 include $(INCLUDE_DIR)/package.mk
@@ -22,11 +23,13 @@ define Package/dsa-dot1x-server
 		+!(HAS_SINGLE_ETH_PORT||DSA_SUPPORT||TARGET_x86_64):kmod-sched-core \
 		+!(HAS_SINGLE_ETH_PORT||DSA_SUPPORT||TARGET_x86_64):kmod-dummy \
 		+TARGET_x86_64:kmod-veth +!(WIFI_SUPPORT||PACKAGE_dot1x-client):hostapd-micro-nac-openssl \
-		+libcap +libuci +liblua
+		+libcap +libuci +luajit2
 	FATTRS:=/usr/sbin/dot1x_port_blocker:dot1x_server:::cap_net_admin=eip;/usr/sbin/eap_sender::::cap_net_raw=eip
 	USERID:=dot1x_server=596:dot1x=596
 	USER_GROUPS:=dot1x_server:lock dot1x_server:network
 endef
+
+TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include/luajit-2.1
 
 ifeq ($(CONFIG_PACKAGE_dsa-dot1x-server),m)
 define Package/dsa-dot1x-server/postinst

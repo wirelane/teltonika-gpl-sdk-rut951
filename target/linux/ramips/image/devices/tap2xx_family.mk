@@ -26,7 +26,7 @@ define Device/TEMPLATE_teltonika_tap200
 	HARDWARE/Ethernet/Port :=1 $(HW_ETH_RJ45_PORT)
 	HARDWARE/Ethernet/Speed := $(HW_ETH_SPEED_1000)
 	HARDWARE/Ethernet/Standard := $(HW_ETH_LAN_2_STANDARD)
-	HARDWARE/Wireless/Wi\-Fi_Users := $(HW_WIFI_100_USERS)
+	HARDWARE/WiFi/Wi\-Fi_Users := $(HW_WIFI_100_USERS)
 	TECHNICAL/Power/Connector := $(HW_POWER_CONNECTOR_RJ45)
 	TECHNICAL/Power/Input_Voltage_Range := $(HW_POWER_VOLTAGE_POE_2)
 	TECHNICAL/Power/PoE_Standards := $(HW_POE_STD_80203AF)

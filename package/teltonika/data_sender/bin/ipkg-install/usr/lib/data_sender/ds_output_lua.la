@@ -17,7 +17,7 @@ old_library=''
 inherited_linker_flags=''
 
 # Libraries that this one depends upon.
-dependency_libs=' -llua -L/toolchain/target/usr/lib -L/toolchain/target/lib'
+dependency_libs=' -L/builds/teltonika/rutx_open/staging_dir/target-mipsel_24kc_musl/usr/lib -lluajit-5.1 -L/toolchain/target/usr/lib -L/toolchain/target/lib'
 
 # Names of additional weak libraries provided by this library
 weak_library_names=''

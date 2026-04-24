@@ -2,7 +2,7 @@
 
 ## Building with Docker Environment (recommended)
 
-The helper script is available at: `RUT9M_R_GPL_00.07.22.1/scripts/dockerbuild`.
+The helper script is available at: `RUT9M_R_GPL_00.07.23/scripts/dockerbuild`.
 
 The first invocation of the helper script will take longer, because it needs to build the compilation image. Subsequent runs will use the built image.
 
@@ -11,9 +11,9 @@ The first invocation of the helper script will take longer, because it needs to 
 2. Extract the  archive to an empty folder
 
    ```sh
-   mkdir RUT9M_R_GPL_00.07.22.1
-   tar -xzf ~/Downloads/RUT9M_R_GPL_00.07.22.1.tar.gz -C RUT9M_R_GPL_00.07.22.1
-   cd RUT9M_R_GPL_00.07.22.1
+   mkdir RUT9M_R_GPL_00.07.23
+   tar -xzf ~/Downloads/RUT9M_R_GPL_00.07.23.tar.gz -C RUT9M_R_GPL_00.07.23
+   cd RUT9M_R_GPL_00.07.23
    ```
 
 3. Update feeds (optional)
@@ -34,7 +34,7 @@ The first invocation of the helper script will take longer, because it needs to 
    ./scripts/dockerbuild make pm
    ```
 
-   After this you can find packages in "RUT9M_R_GPL_00.07.22.1/bin/packages/<arch_name>/zipped_packages".
+   After this you can find packages in "RUT9M_R_GPL_00.07.23/bin/packages/<arch_name>/zipped_packages".
 
 6. Sign the image with local keys (optional):
 
@@ -78,20 +78,21 @@ You might succeed with other distributions.
      libzstd-dev make ocaml ocaml-findlib ocaml-nox patch pkg-config      \
      psmisc python-is-python3 python3.11 python3.11-dev                   \
      python3-setuptools python3-yaml rsync ruby sharutils subversion swig \
-     u-boot-tools unzip uuid-dev vim-common wget zip zlib1g-dev
+     u-boot-tools unzip uuid-dev vim-common wget zip zlib1g-dev           \
+     gcc-multilib g++-multilib
    ```
 
 3. Extract the  archive to an empty folder
 
    ```sh
-   mkdir RUT9M_R_GPL_00.07.22.1
-   tar -xzf ~/Downloads/RUT9M_R_GPL_00.07.22.1.tar.gz -C RUT9M_R_GPL_00.07.22.1
+   mkdir RUT9M_R_GPL_00.07.23
+   tar -xzf ~/Downloads/RUT9M_R_GPL_00.07.23.tar.gz -C RUT9M_R_GPL_00.07.23
    ```
 
 4. Update feeds
 
    ```sh
-   cd RUT9M_R_GPL_00.07.22.1
+   cd RUT9M_R_GPL_00.07.23
    ./scripts/feeds update -a
    ```
 
@@ -107,7 +108,7 @@ You might succeed with other distributions.
    make pm
    ```
 
-   After this you can find packages in `RUT9M_R_GPL_00.07.22.1/bin/packages/<arch_name>/zipped_packages`.
+   After this you can find packages in `RUT9M_R_GPL_00.07.23/bin/packages/<arch_name>/zipped_packages`.
 
 7. Sign the image with local keys (optional)
 
@@ -119,7 +120,7 @@ You might succeed with other distributions.
 
 ## Installation
 
-After successful build you will get the firmware file in `RUT9M_R_GPL_00.07.22.1/bin/targets/ramips/generic/tltFws`.
+After successful build you will get the firmware file in `RUT9M_R_GPL_00.07.23/bin/targets/ramips/generic/tltFws`.
 
 Update the new firmware via the web interface on your device.
 
@@ -156,7 +157,7 @@ By default, on some devices all kernel packages (even those selected as modules 
 All changes should be done in:
 
 ```text
-RUT9M_R_GPL_00.07.22.1/package/feeds/vuci/vuci-ui-core/bin/dist
+RUT9M_R_GPL_00.07.23/package/feeds/vuci/vuci-ui-core/bin/dist
 ```
 
 **File Locations:**
@@ -182,7 +183,7 @@ RUT9M_R_GPL_00.07.22.1/package/feeds/vuci/vuci-ui-core/bin/dist
 2. Generate banner text:
 
    ```sh
-   figlet YOUR_TEXT > "RUT9M_R_GPL_00.07.22.1/package/base-files/files/etc/banner.logo"
+   figlet YOUR_TEXT > "RUT9M_R_GPL_00.07.23/package/base-files/files/etc/banner.logo"
    ```
 
 ### Firmware Version Change
@@ -194,7 +195,7 @@ Edit `gpl_version` file to change the prefix and/or version of the compiled firm
 1. Open the device family file:
 
    ```text
-   RUT9M_R_GPL_00.07.22.1/target/linux/ramips/image/devices/rut9xx_family.mk
+   RUT9M_R_GPL_00.07.23/target/linux/ramips/image/devices/rut9xx_family.mk
    ```
 
 2. Locate the `DEVICE_INTERFACE_CONF` variable with `lan default_ip` option
@@ -209,7 +210,7 @@ Edit `gpl_version` file to change the prefix and/or version of the compiled firm
 4. Regenerate tmpinfo files:
 
    ```sh
-   rm -rf "RUT9M_R_GPL_00.07.22.1/tmp"
+   rm -rf "RUT9M_R_GPL_00.07.23/tmp"
    ```
 
 ### Default Password Change
@@ -217,7 +218,7 @@ Edit `gpl_version` file to change the prefix and/or version of the compiled firm
 Edit the password configuration file:
 
 ```text
-RUT9M_R_GPL_00.07.22.1/package/base-files/files/lib/preinit/84_set_password
+RUT9M_R_GPL_00.07.23/package/base-files/files/lib/preinit/84_set_password
 ```
 
 Change `admin01` to your desired password in this line:

@@ -1,7 +1,7 @@
 define Device/teltonika_rut2x_common
 	$(Device/tlt-mt7628-hw-common)
-	HARDWARE/Wireless/Wi\-Fi_Users := $(HW_WIFI_50_USERS)
-	HARDWARE/Wireless/Wireless_Mode := $(HW_WIFI_4)
+	HARDWARE/WiFi/Wi\-Fi_Users := $(HW_WIFI_50_USERS)
+	HARDWARE/WiFi/Wireless_Mode := $(HW_WIFI_4)
 	HARDWARE/WAN/Port := 1 $(HW_ETH_WAN_PORT)
 	HARDWARE/WAN/Speed := $(HW_ETH_SPEED_100)
 	HARDWARE/WAN/Standard := $(HW_ETH_WAN_STANDARD)
@@ -149,7 +149,7 @@ define Device/TEMPLATE_teltonika_rut204
 	TECHNICAL/Physical_Interfaces/RS232 := 1 $(HW_INTERFACE_RS232_6PIN)
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
 	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
-	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)
@@ -275,7 +275,7 @@ define Device/TEMPLATE_teltonika_rut206
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485_HALF)
 	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
-	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)
@@ -304,7 +304,7 @@ define Device/TEMPLATE_teltonika_rut276
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485_HALF)
 	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
-	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)
@@ -349,7 +349,7 @@ define Device/TEMPLATE_teltonika_rut286
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485_HALF)
 	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
-	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)

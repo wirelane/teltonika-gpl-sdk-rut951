@@ -153,7 +153,7 @@ Cc: David Ahern <dsahern@kernel.org>
  		struct pcpu_sw_netstats __percpu	*tstats;
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -10129,6 +10129,46 @@ sync_lower:
+@@ -10142,6 +10142,46 @@ sync_lower:
  	return err < 0 ? 0 : 1;
  }
  
@@ -200,7 +200,7 @@ Cc: David Ahern <dsahern@kernel.org>
  /**
   *	netdev_update_features - recalculate device features
   *	@dev: the device to check
-@@ -10358,11 +10398,15 @@ int register_netdevice(struct net_device
+@@ -10371,11 +10411,15 @@ int register_netdevice(struct net_device
  		goto err_uninit;
  	}
  
@@ -217,7 +217,7 @@ Cc: David Ahern <dsahern@kernel.org>
  
  	/* Transfer changeable features to wanted_features and enable
  	 * software offloads (GSO and GRO).
-@@ -10409,14 +10453,14 @@ int register_netdevice(struct net_device
+@@ -10422,14 +10466,14 @@ int register_netdevice(struct net_device
  	ret = call_netdevice_notifiers(NETDEV_POST_INIT, dev);
  	ret = notifier_to_errno(ret);
  	if (ret)
@@ -234,7 +234,7 @@ Cc: David Ahern <dsahern@kernel.org>
  
  	__netdev_update_features(dev);
  
-@@ -10461,6 +10505,8 @@ int register_netdevice(struct net_device
+@@ -10474,6 +10518,8 @@ int register_netdevice(struct net_device
  out:
  	return ret;
  

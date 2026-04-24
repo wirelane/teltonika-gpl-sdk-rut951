@@ -1,7 +1,5 @@
-Index: linux-5.15.197/net/sched/act_connmark.c
-===================================================================
---- linux-5.15.197.orig/net/sched/act_connmark.c
-+++ linux-5.15.197/net/sched/act_connmark.c
+--- a/net/sched/act_connmark.c
++++ b/net/sched/act_connmark.c
 @@ -234,6 +234,23 @@ static void tcf_connmark_cleanup(struct
  		kfree_rcu(parms, rcu);
  }

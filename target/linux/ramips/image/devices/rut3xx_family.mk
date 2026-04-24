@@ -25,8 +25,8 @@ define Device/TEMPLATE_teltonika_rut301
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M) $(HW_FLASH_TYPE_NOR_SERIAL)
-	HARDWARE/Wireless/Wireless_Mode :=
-	HARDWARE/Wireless/Wi\-Fi_Users :=
+	HARDWARE/WiFi/Wireless_Mode :=
+	HARDWARE/WiFi/Wi\-Fi_Users :=
 	HARDWARE/WAN/Port := 1 $(HW_ETH_WAN_PORT)
   	HARDWARE/WAN/Speed := $(HW_ETH_SPEED_100)
   	HARDWARE/WAN/Standard := $(HW_ETH_WAN_STANDARD)
@@ -82,8 +82,8 @@ define Device/TEMPLATE_teltonika_rut361
 	HARDWARE/Mobile/Modem := Quectel EG060K-EA, Quectel EG060K-NA
 	HARDWARE/Mobile/3GPP_Release := Release 12
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M) $(HW_FLASH_TYPE_NOR_SERIAL)
-	HARDWARE/Wireless/Wireless_Mode := 802.11 b/g/n, 2x2 MIMO
-	HARDWARE/Wireless/Wi\-Fi_Users := $(HW_WIFI_50_USERS)
+	HARDWARE/WiFi/Wireless_Mode := 802.11 b/g/n, 2x2 MIMO
+	HARDWARE/WiFi/Wi\-Fi_Users := $(HW_WIFI_50_USERS)
 	HARDWARE/WAN/Port := 1 $(HW_ETH_WAN_PORT)
 	HARDWARE/WAN/Speed := $(HW_ETH_SPEED_100)
 	HARDWARE/WAN/Standard := $(HW_ETH_WAN_STANDARD)

@@ -1664,7 +1664,7 @@
  #define	PCI_DEVICE_ID_MOXA_CP102E	0x1024
  #define	PCI_DEVICE_ID_MOXA_CP102EL	0x1025
  #define	PCI_DEVICE_ID_MOXA_CP104EL_A	0x1045
-@@ -2375,7 +2059,6 @@ static struct pci_serial_quirk pci_seria
+@@ -2380,7 +2064,6 @@ static struct pci_serial_quirk pci_seria
  		.subdevice	= PCI_ANY_ID,
  		.init		= pci_quatech_init,
  		.setup		= pci_quatech_setup,
@@ -1672,7 +1672,7 @@
  	},
  	/*
  	 * Panacom
-@@ -2399,16 +2082,6 @@ static struct pci_serial_quirk pci_seria
+@@ -2404,16 +2087,6 @@ static struct pci_serial_quirk pci_seria
  		.exit		= pci_plx9050_exit,
  	},
  	/*
@@ -1689,7 +1689,7 @@
  	 * PLX
  	 */
  	{
-@@ -2438,125 +2111,7 @@ static struct pci_serial_quirk pci_seria
+@@ -2443,125 +2116,7 @@ static struct pci_serial_quirk pci_seria
  		.setup		= pci_default_setup,
  		.exit		= pci_plx9050_exit,
  	},
@@ -1816,7 +1816,7 @@
  	 * SBS Technologies, Inc., PMC-OCTALPRO 232
  	 */
  	{
-@@ -2691,7 +2246,7 @@ static struct pci_serial_quirk pci_seria
+@@ -2696,7 +2251,7 @@ static struct pci_serial_quirk pci_seria
  		.device		= PCI_ANY_ID,
  		.subvendor	= PCI_ANY_ID,
  		.subdevice	= PCI_ANY_ID,
@@ -1825,7 +1825,7 @@
  		.setup		= pci_default_setup,
  	},
  	/*
-@@ -2703,7 +2258,7 @@ static struct pci_serial_quirk pci_seria
+@@ -2708,7 +2263,7 @@ static struct pci_serial_quirk pci_seria
  		.subvendor	= PCI_ANY_ID,
  		.subdevice	= PCI_ANY_ID,
  		.init		= pci_oxsemi_tornado_init,
@@ -1834,7 +1834,7 @@
  	},
  	{
  		.vendor		= PCI_VENDOR_ID_MAINPINE,
-@@ -2711,7 +2266,7 @@ static struct pci_serial_quirk pci_seria
+@@ -2716,7 +2271,7 @@ static struct pci_serial_quirk pci_seria
  		.subvendor	= PCI_ANY_ID,
  		.subdevice	= PCI_ANY_ID,
  		.init		= pci_oxsemi_tornado_init,
@@ -1843,7 +1843,7 @@
  	},
  	{
  		.vendor		= PCI_VENDOR_ID_DIGI,
-@@ -2719,7 +2274,7 @@ static struct pci_serial_quirk pci_seria
+@@ -2724,7 +2279,7 @@ static struct pci_serial_quirk pci_seria
  		.subvendor		= PCI_SUBVENDOR_ID_IBM,
  		.subdevice		= PCI_ANY_ID,
  		.init			= pci_oxsemi_tornado_init,
@@ -1852,7 +1852,7 @@
  	},
  	/*
  	 * Brainboxes devices - all Oxsemi based
-@@ -3049,6 +2604,16 @@ static struct pci_serial_quirk pci_seria
+@@ -3054,6 +2609,16 @@ static struct pci_serial_quirk pci_seria
  		.setup          = pci_wch_ch38x_setup,
  	},
  	/*
@@ -1869,7 +1869,7 @@
  	 * Broadcom TruManage (NetXtreme)
  	 */
  	{
-@@ -3189,7 +2754,7 @@ enum pci_board_num_t {
+@@ -3194,7 +2759,7 @@ enum pci_board_num_t {
  	pbn_b0_2_1843200,
  	pbn_b0_4_1843200,
  
@@ -1878,7 +1878,7 @@
  
  	pbn_b0_bt_1_115200,
  	pbn_b0_bt_2_115200,
-@@ -3267,11 +2832,12 @@ enum pci_board_num_t {
+@@ -3272,11 +2837,12 @@ enum pci_board_num_t {
  	pbn_panacom2,
  	pbn_panacom4,
  	pbn_plx_romulus,
@@ -1895,7 +1895,7 @@
  	pbn_intel_i960,
  	pbn_sgi_ioc3,
  	pbn_computone_4,
-@@ -3300,10 +2866,6 @@ enum pci_board_num_t {
+@@ -3305,10 +2871,6 @@ enum pci_board_num_t {
  	pbn_wch382_2,
  	pbn_wch384_4,
  	pbn_wch384_8,
@@ -1906,7 +1906,7 @@
  	pbn_sunix_pci_1s,
  	pbn_sunix_pci_2s,
  	pbn_sunix_pci_4s,
-@@ -3418,10 +2980,10 @@ static struct pciserial_board pci_boards
+@@ -3423,10 +2985,10 @@ static struct pciserial_board pci_boards
  		.uart_offset	= 8,
  	},
  
@@ -1919,7 +1919,7 @@
  		.uart_offset	= 8,
  	},
  
-@@ -3793,6 +3355,20 @@ static struct pciserial_board pci_boards
+@@ -3798,6 +3360,20 @@ static struct pciserial_board pci_boards
  	},
  
  	/*
@@ -1940,7 +1940,7 @@
  	 * This board uses the size of PCI Base region 0 to
  	 * signal now many ports are available
  	 */
-@@ -3802,31 +3378,31 @@ static struct pciserial_board pci_boards
+@@ -3807,31 +3383,31 @@ static struct pciserial_board pci_boards
  		.base_baud	= 115200,
  		.uart_offset	= 8,
  	},
@@ -1980,7 +1980,7 @@
  		.uart_offset	= 0x200,
  		.first_offset	= 0x1000,
  	},
-@@ -4034,33 +3610,6 @@ static struct pciserial_board pci_boards
+@@ -4039,33 +3615,6 @@ static struct pciserial_board pci_boards
  		.uart_offset    = 8,
  		.first_offset   = 0x00,
  	},
@@ -2014,7 +2014,7 @@
  	[pbn_sunix_pci_1s] = {
  		.num_ports	= 1,
  		.base_baud      = 921600,
-@@ -4172,6 +3721,10 @@ static const struct pci_device_id blackl
+@@ -4177,6 +3726,10 @@ static const struct pci_device_id blackl
  	{ PCI_VDEVICE(EXAR, PCI_ANY_ID), },
  	{ PCI_VDEVICE(COMMTECH, PCI_ANY_ID), },
  
@@ -2025,7 +2025,7 @@
  	/* End of the black list */
  	{ }
  };
-@@ -4304,9 +3857,7 @@ pciserial_init_ports(struct pci_dev *dev
+@@ -4309,9 +3862,7 @@ pciserial_init_ports(struct pci_dev *dev
  			nr_ports = rc;
  	}
  
@@ -2036,7 +2036,7 @@
  	if (!priv) {
  		priv = ERR_PTR(-ENOMEM);
  		goto err_deinit;
-@@ -4541,9 +4092,6 @@ static SIMPLE_DEV_PM_OPS(pciserial_pm_op
+@@ -4546,9 +4097,6 @@ static SIMPLE_DEV_PM_OPS(pciserial_pm_op
  			 pciserial_resume_one);
  
  static const struct pci_device_id serial_pci_tbl[] = {
@@ -2046,7 +2046,7 @@
  	/* Advantech use PCI_DEVICE_ID_ADVANTECH_PCI3620 (0x3620) as 'PCI_SUBVENDOR_ID' */
  	{	PCI_VENDOR_ID_ADVANTECH, PCI_DEVICE_ID_ADVANTECH_PCI3620,
  		PCI_DEVICE_ID_ADVANTECH_PCI3620, 0x0001, 0, 0,
-@@ -4727,6 +4275,13 @@ static const struct pci_device_id serial
+@@ -4732,6 +4280,13 @@ static const struct pci_device_id serial
  		0x10b5, 0x106a, 0, 0,
  		pbn_plx_romulus },
  	/*
@@ -2060,7 +2060,7 @@
  	 * Quatech cards. These actually have configurable clocks but for
  	 * now we just use the default.
  	 *
-@@ -4835,165 +4390,158 @@ static const struct pci_device_id serial
+@@ -4840,165 +4395,158 @@ static const struct pci_device_id serial
  	 */
  	{	PCI_VENDOR_ID_OXSEMI, 0xc101,    /* OXPCIe952 1 Legacy UART */
  		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
@@ -2275,7 +2275,7 @@
  
  	/*
  	 * SBS Technologies, Inc. P-Octal and PMC-OCTPRO cards,
-@@ -5371,127 +4919,6 @@ static const struct pci_device_id serial
+@@ -5376,127 +4924,6 @@ static const struct pci_device_id serial
  		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
  		pbn_b3_8_115200 },
  	/*
@@ -2403,7 +2403,7 @@
  	 * Topic TP560 Data/Fax/Voice 56k modem (reported by Evan Clarke)
  	 */
  	{	PCI_VENDOR_ID_TOPIC, PCI_DEVICE_ID_TOPIC_TP560,
-@@ -5777,157 +5204,6 @@ static const struct pci_device_id serial
+@@ -5782,157 +5209,6 @@ static const struct pci_device_id serial
  		PCI_ANY_ID, PCI_ANY_ID,
  		0, 0,
  		pbn_b2_2_115200 },

@@ -2,7 +2,7 @@ SOURCES = $(wildcard *.c)
 OBJECTS = lua_code.o $(SOURCES:.c=.o) 
 TARGET = runner
 
-LDFLAGS += -lcap -llua -lm
+LDFLAGS += -lcap -lluajit-5.1 -lm
 
 RM = rm -f
 
@@ -15,3 +15,4 @@ lua_code.o: mt76x8.lua
 clean:
 	$(RM) $(TARGET) $(OBJECTS)
 
+.PHONY: clean

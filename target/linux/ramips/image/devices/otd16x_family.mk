@@ -32,7 +32,7 @@ define Device/TEMPLATE_teltonika_otd164
 	HARDWARE/Mobile/Modem := Quectel EG060W-EA
 	HARDWARE/Mobile/3GPP_Release := Release 10
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
-	HARDWARE/Wireless/Wireless_Mode := $(HW_WIFI_5)
+	HARDWARE/WiFi/Wireless_Mode := $(HW_WIFI_5)
 	HARDWARE/Ethernet/Port := 2 $(HW_ETH_ETH_PORTS)
 	HARDWARE/Ethernet/Speed := $(HW_ETH_SPEED_1000)
 	HARDWARE/Ethernet/Standard := (can be configured as WAN), $(HW_ETH_LAN_2_STANDARD)

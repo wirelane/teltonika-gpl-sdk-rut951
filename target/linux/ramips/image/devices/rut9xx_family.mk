@@ -127,7 +127,7 @@ define Device/TEMPLATE_teltonika_rut906
 	HARDWARE/USB/Applications := $(HW_USB_APPLICATIONS)
 	HARDWARE/USB/External_Devices := $(HW_USB_EXTERNAL_DEV)
 	HARDWARE/USB/Storage_Formats := $(HW_USB_STORAGE_FORMATS)
-	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)
@@ -217,7 +217,7 @@ define Device/TEMPLATE_teltonika_rut956
 	HARDWARE/USB/Applications := $(HW_USB_APPLICATIONS)
 	HARDWARE/USB/External_Devices := $(HW_USB_EXTERNAL_DEV)
 	HARDWARE/USB/Storage_Formats := $(HW_USB_STORAGE_FORMATS)
-	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)
@@ -302,7 +302,7 @@ define Device/TEMPLATE_teltonika_rut976
 	HARDWARE/USB/Applications := $(HW_USB_APPLICATIONS)
 	HARDWARE/USB/External_Devices := $(HW_USB_EXTERNAL_DEV)
 	HARDWARE/USB/Storage_Formats := $(HW_USB_STORAGE_FORMATS)
-	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)
@@ -398,7 +398,7 @@ define Device/TEMPLATE_teltonika_rut986
 	HARDWARE/USB/Applications := $(HW_USB_APPLICATIONS)
 	HARDWARE/USB/External_Devices := $(HW_USB_EXTERNAL_DEV)
 	HARDWARE/USB/Storage_Formats := $(HW_USB_STORAGE_FORMATS)
-	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)

@@ -1,2 +1,7 @@
 dot1x_port_blocker: dsa.c
-	$(CC) dsa.c -lcap -luci -o dot1x_port_blocker
+	$(CC) $(CFLAGS) $(LDFLAGS) dsa.c -lcap -luci -o dot1x_port_blocker
+
+clean:
+	$(RM) dot1x_port_blocker
+
+.PHONY: clean

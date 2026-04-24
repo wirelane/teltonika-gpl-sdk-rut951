@@ -1,7 +1,7 @@
 define Device/teltonika_trb2m_common
 	$(Device/tlt-mt7628-hw-common)
-	HARDWARE/Wireless/Wireless_Mode :=
-	HARDWARE/Wireless/Wi\-Fi_Users :=
+	HARDWARE/WiFi/Wireless_Mode :=
+	HARDWARE/WiFi/Wi\-Fi_Users :=
 	HARDWARE/Ethernet/Port :=1 $(HW_ETH_ETH_PORT)
 	HARDWARE/Ethernet/Speed := $(HW_ETH_SPEED_100)
 	HARDWARE/Ethernet/Standard := $(HW_ETH_LAN_2_STANDARD)
@@ -114,8 +114,8 @@ define Device/TEMPLATE_teltonika_ntp001
 	$(Device/tlt-mt7628-hw-common)
 	$(Device/teltonika_trb2m)
 	HARDWARE/Mobile/Modem := Quectel BG95M4
-	HARDWARE/Wireless/Wireless_Mode :=
-	HARDWARE/Wireless/Wi\-Fi_Users :=
+	HARDWARE/WiFi/Wireless_Mode :=
+	HARDWARE/WiFi/Wi\-Fi_Users :=
 	TECHNICAL/Power/PoE_Standards :=
 	TECHNICAL/Physical_Interfaces/SIM :=
 	HARDWARE/Ethernet/Port :=1 $(HW_ETH_ETH_PORT)

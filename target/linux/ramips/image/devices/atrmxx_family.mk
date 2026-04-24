@@ -33,11 +33,11 @@ define Device/TEMPLATE_teltonika_atrm50
 	HARDWARE/Mobile/Modem := Quectel RG520N-EB
 	HARDWARE/Mobile/3GPP_Release := Release 16
 	HARDWARE/Mobile/eSIM := $(HW_MOBILE_ESIM_CONSTANT)
-	HARDWARE/SD_card/Physical_Size := $(HW_SD_PHYSICAL_SIZE)
+	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
 	HARDWARE/SD_card/Storage_Formats := $(HW_SD_STORAGE_FORMATS)
-	HARDWARE/Wireless/Wireless_Mode := $(HW_WIFI_5)
+	HARDWARE/WiFi/Wireless_Mode := $(HW_WIFI_5)
 	TECHNICAL/Power/Connector := A-coded M12 power connector
 	TECHNICAL/Power/Input_Voltage_Range := 9 - 50 VDC, overvoltage protection (70V), reverse polarity protection, surge protection >69 VDC 10us max
 	TECHNICAL/Physical_Interfaces/Power := 1 x A-coded M12 power connector

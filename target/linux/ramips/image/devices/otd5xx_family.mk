@@ -1,7 +1,7 @@
 define Device/teltonika_otd5_common
 	$(Device/tlt-mt7621-hw-common)
-	HARDWARE/Wireless/Wireless_Mode :=
-	HARDWARE/Wireless/Wi\-Fi_Users :=
+	HARDWARE/WiFi/Wireless_Mode :=
+	HARDWARE/WiFi/Wi\-Fi_Users :=
 	HARDWARE/Ethernet/Port := 2 $(HW_ETH_ETH_PORTS)
 	HARDWARE/Ethernet/Speed := $(HW_ETH_SPEED_1000)
 	HARDWARE/Ethernet/Standard := (can be configured as WAN), $(HW_ETH_LAN_2_STANDARD)
