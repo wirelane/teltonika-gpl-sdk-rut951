@@ -54,8 +54,8 @@ cleanup() {
 while [ $# -gt 0 ]; do
 	case $1 in
 	--cleanup | -c)
-		days=$((2))
-		[ $days -lt 1 ] && days=
+		days=$2
+		[[ $days -lt 1 ]] && days=
 		shift 1
 		;;
 	--production | -p)
@@ -84,8 +84,11 @@ show_url() {
 	# shellcheck disable=SC2155
 	local variant=$(echo "$2" | grep -o '3rd_party')
 
-	local version=${CI_COMMIT_TAG:-$TLT_VERSION}
+	local version=$TLT_VERSION
 	[[ -z $version ]] && version=$("$TOPDIR/scripts/get_tlt_version.sh")
+
+	local short_version=${CI_COMMIT_TAG:-$FW_TAG}
+	[[ -z $short_version ]] && short_version=$("$TOPDIR/scripts/get_tlt_version.sh" --short)
 
 	# shellcheck disable=SC2155
 	local client=$(echo "$version" | grep -Po '_\K\d+(?=\.)')
@@ -96,10 +99,12 @@ show_url() {
 
 	case "$prefix" in
 	PRODUCTION)
-		echo "http://opkg.teltonika-networks.com/$(echo -n "${client}/${version}/${target}${variant:+-$variant}" | sha256sum | awk '{print $1}')"
+		local hash_input="${client}/${short_version}/${target}${variant:+-$variant}"
+		echo "$hash_input" >&2 # debug
+		echo "https://opkg.teltonika-networks.com/$(echo -n "$hash_input" | sha256sum | awk '{print $1}')"
 		;;
 	TEST)
-		echo "http://test.opkg.teltonika-networks.com/$client/$fw_type/$version/packages${variant:+-$variant}"
+		echo "https://test.opkg.teltonika-networks.com/$client/$fw_type/$version/packages${variant:+-$variant}"
 		;;
 	esac
 }
@@ -160,7 +165,7 @@ eval "$(ssh-agent -s)"
 trap "ssh-agent -k" exit
 ssh-add <(echo "${!SSH_PRIVATE_KEY}")
 mkdir -p ~/.ssh
-echo "${!SSH_HOST_KEY}" >~/.ssh/known_hosts
+echo "${!SSH_HOST_KEY}" >>~/.ssh/known_hosts
 
 [[ -n $days ]] && {
 	[[ $prefix == PRODUCTION ]] && {
@@ -175,9 +180,9 @@ url=$(show_url "$prefix" "")
 
 FOLDER="$PACKAGES_ROOT/${url#*opkg.teltonika-networks.com/}"
 
-version=${CI_COMMIT_TAG:-$(git describe | awk -F "-pm" '{print $1}')-$(git -C "$TOPDIR/feeds/vuci" rev-parse --short HEAD)}
+short_version=${CI_COMMIT_TAG:-$(git describe | awk -F "-pm" '{print $1}')-$(git -C "$TOPDIR/feeds/vuci" rev-parse --short HEAD)}
 client=$(grep 'CONFIG_TLT_VERSIONING_CLIENT' .config | cut -d'=' -f2 | tr -d '"')
-LINK="$PACKAGES_ROOT/packages/${client}/${version}"
+LINK="$PACKAGES_ROOT/packages/${client}/${short_version}"
 
 echo "OPKG URL: $url"
 
