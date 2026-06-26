@@ -1,3 +1,14 @@
+# 2026-06-23 00.07.23.7
+
+### Fix
+
+* API Core: fixed regression which didn't allow saving options with unicode characters (ID: 36204)
+* Mobile: fixed 'Status -> Mobile' page to correctly display band and carrier aggregation information (ID: 37600)
+
+### Updates
+
+* openssl: updated version to  3.0.21 (ID: 37965)
+
 # 2026-06-12 00.07.23.6
 
 ### Improvements
