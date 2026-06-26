@@ -120,7 +120,7 @@ index 6ab1a85..dfc0e23 100644
  
 -	if (ctx->enforce_unique_section_names && uci_lookup_list(&p->sections, ptr->value) != NULL) {
 +	const char *new_section_name = ptr->value;
-+	if (!uci_validate_str(new_section_name, UCI_STR_SECTION_TYPE)) {
++	if (!uci_validate_str(new_section_name, UCI_STR_NAME)) {
 +		UCI_THROW(ctx, UCI_ERR_INVAL);
 +	}
 +
@@ -286,7 +286,7 @@ index d61545d..19ab7d7 100644
  
 -	for (; *str; str++) {
 -		unsigned char c = *str;
-+static bool uci_is_control_code(char c)
++static bool uci_is_control_code(unsigned char c)
 +{
 +	return c < 32;
 +}
