@@ -989,6 +989,8 @@ typedef enum {
 	LGSM_UBUS_SET_S_NSSAI,
 	LGSM_UBUS_SET_EXTERNAL_ANTENNA_MODE,
 	LGSM_UBUS_GET_EXTERNAL_ANTENNA_MODE,
+	LGSM_UBUS_GET_SIM_SLOT_CFG,
+	LGSM_UBUS_SET_SIM_SLOT_CFG,
 	//------
 	__LGSM_UBUS_MAX,
 } lgsm_method_t;
@@ -4234,6 +4236,13 @@ void handle_get_pplmn_list(struct blob_attr *info, lgsm_structed_info_t *parsed)
 void handle_get_sim_sleep_mode(struct blob_attr *info, lgsm_structed_info_t *parsed);
 
 /**
+   * Parse sim cfg cfg method response
+   * @param[ptr]   info      Blob from gsmd.
+   * @param[ptr]   parsed    Parsed union readable information.
+   */
+void handle_get_sim_cfg_mode(struct blob_attr *info, lgsm_structed_info_t *parsed);
+
+/**
  * Parse MBN specific configuration method response
  * @param[ptr]   info      Blob from gsmd.
  * @param[ptr]   parsed    Parsed union readable information.
@@ -4548,6 +4557,8 @@ lgsm_err_t lgsm_set_sleep_mode(struct ubus_context *ctx, bool enable, bool save,
  * @return lgsm_err_t. Return function status code.
  */
 lgsm_err_t lgsm_set_autoapn_mode(struct ubus_context *ctx, bool enabled, func_t *resp, uint32_t modem_num);
+
+lgsm_err_t lgsm_set_sim_slot_cfg(struct ubus_context *ctx, func_t *resp, bool mode, uint32_t modem_num);
 
 #ifdef __cplusplus
 }
