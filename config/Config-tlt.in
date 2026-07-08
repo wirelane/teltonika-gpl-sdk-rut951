@@ -261,6 +261,7 @@ config MODEM_LOGGER_SUPPORT
 
 config APP_MODEM_CONTROL
 	visible_in_feature_list
+	bool
 	tristate "Modem Control"
 	maintainer "Apps/Apps2"
 	label "Serial Utilities"
@@ -636,7 +637,6 @@ config FIREWALL_SUPPORT
 	imply PACKAGE_kmod-nf-nathelper
 	imply PACKAGE_kmod-ipt-raw6
 	imply PACKAGE_ip6tables-mod-nat
-	imply PACKAGE_vuci-app-conn-limits-ui if DSA_SUPPORT
 	detail
 		Firewall: IPv4, IPv6, connection tracking, routing/NAT offloading, statefull firewall, logging, zone based firewall, custom rules, DMZ, firewall statistics, rules list, tables list
 		Port Forward: By port/protocol/IP address, NAT loopback
@@ -829,18 +829,6 @@ config QOS_SUPPORT
 	detail
 		Traffic control does packet prioritizing, traffic shaping, bandwidth limiting, AQM (Active Queue Management) and QoS (Quality of Service)
 
-config WFQ_SUPPORT
-	visible_in_feature_list
-	tristate "Weighted Fair Queue"
-	maintainer "Networks/Networks1"
-	label "Network Utilities"
-	depends on PKG_SUPPORT && !BYPASS_OFFLOAD_FEATURE
-	default y if TEST_IMAGE
-	default m
-	imply PACKAGE_vuci-app-wfq-ui
-	detail
-		Weighted Fair Queue performs bandwidth distribution by class weights and priorities for network traffic
-
 config SQM_SUPPORT
 	visible_in_feature_list
 	tristate "Smart Queue Management"
@@ -993,30 +981,11 @@ config STRONGSWAN_SUPPORT
 	bool "IPsec"
 	label "VPN"
 	maintainer "Networks/Networks2"
-	depends on !SMALL_FLASH && ADVANCED_NETWORK
+	depends on ADVANCED_NETWORK
 	default y
 	imply PACKAGE_strongswan
 	imply PACKAGE_strongswan-minimal
 	imply PACKAGE_strongswan-mod-tpm if TPM_SUPPORT
-	imply PACKAGE_strongswan-mod-ml
-	imply PACKAGE_kmod-xfrm-interface
-	imply PACKAGE_xfrm
-	imply PACKAGE_vuci-app-strong-swan-ui
-	imply PACKAGE_swanmon
-	detail
-		Tunnel, Transport, XFRM modes, Pre-shared key, X.509, PKCS#12, EAP, XAUTH, RSA authentication methods,
-		IKEv1, IKEv2, 14 encryption methods, MD5, SHA1, SHA256, SHA348, SHA512 authentication algorithms
-
-config STRONGSWAN5_SUPPORT
-	visible_in_feature_list
-	bool "IPsec"
-	label "VPN"
-	maintainer "Networks/Networks2"
-	depends on SMALL_FLASH && ADVANCED_NETWORK
-	default y
-	imply PACKAGE_strongswan5
-	imply PACKAGE_strongswan5-minimal
-	imply PACKAGE_strongswan5-mod-tpm if TPM_SUPPORT
 	imply PACKAGE_kmod-xfrm-interface
 	imply PACKAGE_xfrm
 	imply PACKAGE_vuci-app-strong-swan-ui
@@ -1230,7 +1199,7 @@ config EOIP_SUPPORT
 	default m
 	imply PACKAGE_vuci-app-eoip-ui
 	detail
-		Ethernet over IP (EoIP) tunnelling is a protocol based on GRE RFC 1701 that creates an Ethernet tunnel between two routers on top of an IP connection
+		Ethernet over IP (EoIP) Tunneling is a MikroTik RouterOS protocol based on GRE RFC 1701 that creates an Ethernet tunnel between two routers on top of an IP connection
 
 config OPENCONNECT_SUPPORT
 	visible_in_feature_list
@@ -1726,6 +1695,7 @@ config SERIAL_SUPPORT
 
 config SERIAL_CONSOLE
 	visible_in_feature_list
+	bool
 	tristate "Console"
 	maintainer "Apps/Apps2"
 	label "Serial Utilities"
@@ -1737,6 +1707,7 @@ config SERIAL_CONSOLE
 
 config SERIAL_OVERIP
 	visible_in_feature_list
+	bool
 	tristate "Serial over IP"
 	maintainer "Apps/Apps2"
 	label "Serial Utilities"
@@ -2314,25 +2285,12 @@ config SCEP_SUPPORT
 	tristate "SCEP"
 	maintainer "SysApp"
 	label "Utilities"
-	depends on PKG_SUPPORT && CERTIFICATE_SUPPORT && (STRONGSWAN_SUPPORT || STRONGSWAN5_SUPPORT)
+	depends on PKG_SUPPORT && CERTIFICATE_SUPPORT && STRONGSWAN_SUPPORT
 	default m if (!NAND_SUPPORT || (NAND_SUPPORT && GATEWAY_DEVICE)) && !TEST_IMAGE
 	default y
-	imply PACKAGE_scep if !SMALL_FLASH
-	imply PACKAGE_scep5 if SMALL_FLASH
+	imply PACKAGE_scep
 	detail
 		SCEP (Simple Certificate Enrollment Protocol) is a standard protocol used for the automated issuance and management of digital certificates
-
-config FRR_OSPF6_SUPPORT
-	visible_in_feature_list
-	tristate "OSPFv3"
-	maintainer "Networks/Networks2"
-	label "Network"
-	depends on !SMALL_FLASH && PKG_SUPPORT && ADVANCED_NETWORK && FRR_SUPPORT && !CONSUMER_AP
-	default y if TEST_IMAGE
-	default m
-	imply PACKAGE_frr-ospf6d-meta
-	detail
-		OSPFv3 routing engine (installed as package)
 
 config FRR_VTYSH_SUPPORT
 	visible_in_feature_list
@@ -2525,7 +2483,7 @@ config IPERF_SUPPORT
 	maintainer "Networks/Networks1"
 	label "Utilities"
 	depends on PKG_SUPPORT
-	default m
+	default m if !PROD_IMAGE
 	imply PACKAGE_iperf
 
 config STRESS_NG_SUPPORT
@@ -2533,7 +2491,7 @@ config STRESS_NG_SUPPORT
 	maintainer "Networks/Networks1"
 	label "Utilities"
 	depends on PKG_SUPPORT
-	default m
+	default m if !PROD_IMAGE
 	imply PACKAGE_stress-ng
 
 config 7Z_ARCHIVER_SUPPORT
@@ -2643,7 +2601,7 @@ config SENTRY_BACKEND_SUPPORT
 	bool
 	maintainer "SysApp"
 	depends on !PROD_IMAGE && !GPL_BUILD
-	default n
+	default y
 	imply PACKAGE_sentry_backend
 
 #
@@ -2862,57 +2820,6 @@ config ITXPT_SUPPORT
 	detail if MQTT_SUPPORT
 		\, MQTT Broker
 
-#
-# ASTERISK, SIP
-#
-
-config SOUND_FXS
-	bool
-	maintainer "Embedded/BBU"
-	depends on AUDIO_SUPPORT
-	imply PACKAGE_alsa-lib
-	imply PACKAGE_kmod-sound-core
-	imply PACKAGE_kmod-sound-soc-core
-	imply PACKAGE_kmod-proslic-si3218x
-
-config ASTERISK_SUPPORT
-	tristate "Asterisk"
-	depends on HAS_ASTERISK
-	default m if !SOUND_FXS
-	default y
-	imply PACKAGE_asterisk
-	imply PACKAGE_asterisk-config
-	imply PACKAGE_asterisk-bridge-simple
-	imply PACKAGE_asterisk-codec-alaw
-	imply PACKAGE_asterisk-pjsip
-	imply PACKAGE_asterisk-res-pjproject
-	imply PACKAGE_asterisk-res-rtp-asterisk
-	imply PACKAGE_asterisk-res-sorcery
-	imply PACKAGE_asterisk-app-playtones
-	imply PACKAGE_asterisk-format-pcm
-	imply PACKAGE_asterisk-format-wav
-	imply PACKAGE_asterisk-func-jitterbuffer
-	imply PACKAGE_asterisk-func-devstate
-	imply PACKAGE_asterisk-app-disa
-	imply PACKAGE_asterisk-app-record
-	imply PACKAGE_asterisk-res-clioriginate
-	imply PACKAGE_asterisk-app-originate
-	imply PACKAGE_asterisk-pbx-spool
-	imply PACKAGE_asterisk-res-srtp
-	imply PACKAGE_asterisk-chan-quectel if MOBILE_SUPPORT
-	imply PACKAGE_asterisk-chan-proslic if SOUND_FXS
-	imply PACKAGE_kmod-asterisk-snd-split if MOBILE_SUPPORT && GPS_SUPPORT
-
-config SIP_SUPPORT
-	tristate "SIP"
-	depends on ASTERISK_SUPPORT
-	maintainer "Apps/Apps2"
-	default y if SOUND_FXS
-	default m
-	imply PACKAGE_vuci-app-sip-gateway-ui
-	help
-		SIP service for VoIP communication
-
 config SITE_MANAGER_SUPPORT
 	bool "Site Manager"
 	maintainer "Apps/Apps1"
@@ -2954,4 +2861,3 @@ config BONDIX_SUPPORT
 	imply PACKAGE_vuci-app-bondix-ui
 
 endmenu
-

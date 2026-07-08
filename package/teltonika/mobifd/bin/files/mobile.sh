@@ -440,12 +440,6 @@ setup_bridge_v4() {
 	json_add_string ip4table "40"
 	ubus call network add_dynamic "$(json_dump)"
 
-	json_init
-	json_add_string bridge_ipaddr "$bridge_ipaddr"
-	json_add_string interface "${interface}"
-	ubus call network.interface.mobile_bridge set_data "$(json_dump)"
-	json_close_object
-
 	ip route add default dev "$dev" table 42
 	ip route add "$bridge_ipaddr" dev br-lan
 	ip route add default via "$bridge_ipaddr" dev br-lan table 43

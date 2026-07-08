@@ -13,7 +13,7 @@ CMD ["/bin/bash"]
 RUN apt update && apt install -y \
 	gcovr \
 	ruby \
-	&& gem install ceedling --no-document \
+	&& gem install ceedling \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Install build dependencies

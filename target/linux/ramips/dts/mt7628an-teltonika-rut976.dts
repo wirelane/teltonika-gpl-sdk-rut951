@@ -51,20 +51,12 @@
 		};
 
 		gpio_sim_select {
-			tlt-mnf,incompatible_branch = "T";
 			gpio-export,name = "sim_sel";
 			gpio-export,output = <1>;
 			gpios = <&shift_io 7 GPIO_ACTIVE_LOW>;
 		};
-		gpio_sim_select@1 {
-			tlt-mnf,branch = "T";
-			gpio-export,name = "sim_sel";
-			gpio-export,output = <1>;
-			gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
-		};
 
 		gpio_sim_select_2 {
-			tlt-mnf,incompatible_branch = "T";
 			gpio-export,name = "sim_sel2";
 			gpio-export,output = <0>;
 			gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
@@ -204,14 +196,9 @@
 
 		misc {
 			GPIO_0 {
-				compatible_branch_0 = "!T";
-				compatible_versions_0 = <5 99>;
-				line_name_0 = "GPIO_MODEM_STATUS";
-				active_low_0;
-
-				compatible_branch_1 = "T";
-				line_name_1 = "GPIO_MODEM_STATUS";
-				active_low_1;
+				compatible_versions = <5 99>;
+				line_name = "GPIO_MODEM_STATUS";
+				active_low;
 			};
 			GPIO_106 {
 				line_name = "GPIO_MODEM_POWER_1";
@@ -220,19 +207,13 @@
 				line_name = "GPIO_MODEM_RESET_1";
 			};
 			GPIO_103 {
-				compatible_branch = "!T";
 				line_name = "GPIO_SIM_SELECT";
 				active_low;
 			};
 			GPIO_6 {
-				compatible_branch_0 = "!T";
-				line_name_0 = "GPIO_SIM_SELECT_2";
-
-				compatible_branch_1 = "T";
-				line_name_1 = "GPIO_SIM_SELECT";
+				line_name = "GPIO_SIM_SELECT_2";
 			};
 			GPIO_44 {
-				compatible_branch = "!T";
 				line_name = "GPIO_SD_ENABLE"; // Duplicates as rts, fix in the future
 			};
 			GPIO_109 {
@@ -300,8 +281,6 @@
 
 				adc_cof@0 {
 					divider = "128.160418482999"; //147.0 / 1147.0 * 1000.0
-					// Uses old divider value because new chip 
-					// Vref is lower then the older one and the difference balances out (3.3/2.048)=(128.16/79.69)
 				};
 			};
 			acl@0 {
@@ -337,12 +316,6 @@
 		sec;
 	};
 
-	simpin3@1 {
-		tlt-mnf,branch = "T";
-		default = "";
-		sec;
-	};
-
 	sim_cfg {
 		default = "2111000_2112000";
 	};
@@ -359,12 +332,6 @@
 		reg = <&config 0x110 0x20>;
 		type = "simcfg";
 		default = "2111110_2112010_2121210";
-	};
-
-	sim_cfg@3 {
-		tlt-mnf,branch = "T";
-		default = "1111120_1112120_1121220";
-		keep-sim-presence;
 	};
 
 	blver {

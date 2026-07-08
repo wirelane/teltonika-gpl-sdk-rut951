@@ -249,8 +249,8 @@ systemlog_hook() {
 	troubleshoot_init_log "Dmesg" "$log_file"
 	troubleshoot_add_log "$(dmesg)" "$log_file"
 
-	config_load log
-	config_get log_flash_file global "log_file" ""
+	config_load system
+	config_get log_flash_file log "log_file" ""
 
 	troubleshoot_init_log "Logread" "$log_file"
 	if [ -n "$log_flash_file" ] && [ -f "$log_flash_file" ] ; then

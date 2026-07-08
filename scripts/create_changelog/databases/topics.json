@@ -1,31 +1,5 @@
 [
   {
-    "category": "Services",
-    "name": "OSPFv3",
-    "depends": [
-      {
-        "type": "hw",
-        "name": "flash16mb",
-        "value": false
-      }
-    ]
-  },
-  {
-    "category": "Network",
-    "name": "Iperf",
-    "depends": []
-  },
-  {
-    "category": "Services",
-    "name": "Stress-ng",
-    "depends": []
-  },
-  {
-    "category": "Services",
-    "name": "Bondix",
-    "depends": []
-  },
-  {
     "category": "Network",
     "name": "Internet Status",
     "depends": [
@@ -595,10 +569,6 @@
         "name": "TRB1"
       },
       {
-        "type": "family",
-        "name": "EBG1"
-      },
-      {
         "type": "device",
         "name": "RUTC50"
       },
@@ -753,10 +723,6 @@
     "category": "System",
     "name": "USB",
     "depends": [
-      {
-        "type": "family",
-        "name": "EBG1"
-      },
       {
         "type": "family",
         "name": "TRB1"

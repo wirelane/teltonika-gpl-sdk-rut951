@@ -17,13 +17,6 @@ config EXPERIMENTAL
 	
 	  If you plan to use this build in production, say NO!
 
-config TLT_PREBUILT_SAVE
-	bool "Snapshot Teltonika-closed InstallGPL outputs into prebuilt cache"
-	default n
-	help
-	  After each normal build of a Teltonika-closed package, its Build/InstallGPL outputs are archived
-	  into the prebuilt cache, keyed by package, version, target and arch
-
 menu "Global build settings"
 
 	choice
@@ -89,24 +82,6 @@ menu "Global build settings"
 	config SIGNATURE_CHECK
 		bool "Enable signature checking in opkg"
 		default y if !BUILD_MINIMAL_IMAGE
-
-	config VERIFIED_BOOT_FIT_CERT_IN_IMAGE
-		depends on VERIFIED_BOOT_SUPPORT
-		bool "Include signed FIT certificate in the FIT image itself"
-		default y
-		help
-		  By default, U-Boot includes public key in it's DTB, which verifies FIT configuration's
-		  signature. This option enables additional key pair for authentication, and includes 
-		  signed public key for config verification in the FIT image, not U-Boot. U-Boot then includes
-		  public key to verify public key in FIT. This allows FIT key rotation without the need to update
-		  U-Boot on the device.
-		  Previous auth flow: U-Boot -> FIT conf.
-		  Updated auth flow: U-Boot -> FIT cert -> FIT conf.
-
-	config VERIFIED_BOOT_LOCAL_SIGN
-		depends on VERIFIED_BOOT_SUPPORT
-		bool "Sign Verified Boot images locally"
-		default n
 
 	comment "General build options"
 
