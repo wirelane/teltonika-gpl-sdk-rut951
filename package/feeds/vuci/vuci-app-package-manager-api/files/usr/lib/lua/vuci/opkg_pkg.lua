@@ -45,8 +45,9 @@ end
 ---@param app_or_pkg_name string
 ---@param refresh boolean?
 ---@return OpkgPkg?
-function OpkgPkg.get_available_pkg(app_or_pkg_name, refresh)
-	local pkg_text = o_utils.get_pkg_list_by_app_name(refresh)[app_or_pkg_name] or o_utils.get_pkg_list(refresh)[app_or_pkg_name]
+function OpkgPkg.get_available_pkg(app_or_pkg_name, refresh, sid)
+	local pkg_text = o_utils.get_pkg_list_by_app_name(refresh, sid)[app_or_pkg_name] or
+		o_utils.get_pkg_list(refresh, sid)[app_or_pkg_name]
 	if pkg_text then
 		return OpkgPkg(pkg_text)
 	end
@@ -243,7 +244,7 @@ end
 function OpkgPkg:_validate_pkg_upgrade()
 	if not next(o_utils.get_pkg_list()) then return false, ERR_CODES.NO_CONNECTION end
 
-	if not o_utils.opkg_server_reachable() then return false, ERR_CODES.NO_CONNECTION end
+
 
 	local installed_pkg = OpkgPkg.get_installed_pkg(self.app_name)
 	if not installed_pkg then return false, ERR_CODES.INVALID_PACKAGE end

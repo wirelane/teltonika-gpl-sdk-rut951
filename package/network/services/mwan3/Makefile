@@ -47,22 +47,6 @@ define Package/mwan3/conffiles
 /etc/mwan3/mwan3.user
 endef
 
-define Package/mwan3/postinst
-#!/bin/sh
-if [ -z "$${IPKG_INSTROOT}" ] && [ -x /etc/init.d/rpcd ]; then
-	/etc/init.d/rpcd reload
-fi
-exit 0
-endef
-
-define Package/mwan3/postrm
-#!/bin/sh
-if [ -z "$${IPKG_INSTROOT}" ] && [ -x /etc/init.d/rpcd ]; then
-	/etc/init.d/rpcd reload
-fi
-exit 0
-endef
-
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)/files/
 	$(CP) ./src/* $(PKG_BUILD_DIR)/

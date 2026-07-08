@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=opkg
-PKG_RELEASE:=4
+PKG_RELEASE:=5
 PKG_FLAGS:=essential
 
 PKG_SOURCE_VERSION:=1bf042dd06751b693a8544d2317e5b969d666b69
@@ -102,6 +102,7 @@ define Package/opkg/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) ./files/opkg-key $(1)/usr/sbin/
 	echo $(OPKG_FEED) > $(1)/etc/opkg/teltonikafeeds.conf
+	echo $(OPKG_FEED_3RD_PARTY) >> $(1)/etc/opkg/3rd_party_packages.conf
 endef
 
 define Host/Install

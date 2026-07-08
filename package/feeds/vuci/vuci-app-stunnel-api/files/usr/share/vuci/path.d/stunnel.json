@@ -1,0 +1,1 @@
+[{"endpoint":"/stunnel/global","lua_service":"services/stunnel_global","backup_order":80},{"endpoint":"/stunnel/{service_group}/{?sid}","lua_service":"services/stunnel","backup_order":81}]

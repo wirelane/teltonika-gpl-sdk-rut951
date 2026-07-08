@@ -8,16 +8,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sqlite
-PKG_VERSION:=3.41.2
+PKG_VERSION:=3.50.4
 PKG_RELEASE:=2
 
 PKG_LICENSE:=PublicDomain
 
-PKG_SOURCE_VERSION:=3410200
-PKG_SOURCE_URL:=https://www.sqlite.org/2023
+PKG_SOURCE_VERSION:=3500400
+PKG_SOURCE_URL:=https://www.sqlite.org/2025
 PKG_SOURCE:=$(PKG_NAME)-autoconf-$(PKG_SOURCE_VERSION).tar.gz
 
-PKG_HASH:=e98c100dd1da4e30fa460761dab7c0b91a50b785e167f8c57acc46514fae9499
+PKG_HASH:=a3db587a1b92ee5ddac2f66b3edb41b26f9c867275782d46c3a088977d6a5b18
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-autoconf-$(PKG_SOURCE_VERSION)
 
@@ -45,7 +45,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/sqlite3/Default
   SUBMENU:=Database
   TITLE:=SQLite (v3.x) database engine
-  URL:=http://www.sqlite.org/
+  URL:=https://www.sqlite.org/
 endef
 
 define Package/sqlite3/Default/description
@@ -80,6 +80,7 @@ define Package/sqlite3-cli
 	  +libsqlite3 \
 	  +SQLITE3_READLINE:libreadline \
 	  +SQLITE3_READLINE:libncursesw
+  EXTRA_DEPENDS:=libsqlite3 (=$(PKG_VERSION)-r$(PKG_RELEASE))
   TITLE+= (cli)
 endef
 
@@ -97,19 +98,25 @@ endef
 TARGET_CFLAGS += \
 	-DHAVE_ISNAN \
 	-DHAVE_MALLOC_USABLE_SIZE \
-	-DSQLITE_ENABLE_UNLOCK_NOTIFY
+	-DSQLITE_ENABLE_UNLOCK_NOTIFY \
+	$(if $(CONFIG_SQLITE3_JSON1),,-DSQLITE_OMIT_JSON) \
+	-DSQLITE_OMIT_EXPLAIN \
+	-DSQLITE_OMIT_DEPRECATED \
+	-DSQLITE_OMIT_VIEW \
+	-DSQLITE_OMIT_DESERIALIZE
 
-CONFIGURE_ARGS += \
+CONFIGURE_ARGS := \
+	$(filter-out --target=% $(DISABLE_IPV6) $(DISABLE_NLS),$(CONFIGURE_ARGS)) \
 	--disable-debug \
 	--disable-static-shell \
 	--enable-shared \
 	--enable-static \
 	--enable-threadsafe \
-	$(if $(CONFIG_SQLITE3_DYNAMIC_EXTENSIONS),--enable-dynamic-extensions,--disable-dynamic-extensions) \
+	--soname=legacy \
+	$(if $(CONFIG_SQLITE3_DYNAMIC_EXTENSIONS),--enable-load-extension,--disable-load-extension) \
 	$(if $(CONFIG_SQLITE3_FTS3),--enable-fts3,--disable-fts3) \
 	$(if $(CONFIG_SQLITE3_FTS3),--enable-fts4,--disable-fts4) \
 	$(if $(CONFIG_SQLITE3_FTS3),--enable-fts5,--disable-fts5) \
-	$(if $(CONFIG_SQLITE3_JSON1),--enable-json1,--disable-json1) \
 	$(if $(CONFIG_SQLITE3_RTREE),--enable-rtree,--disable-rtree) \
 	$(if $(CONFIG_SQLITE3_SESSION),--enable-session,--disable-session)
 
@@ -131,7 +138,7 @@ endef
 
 define Package/libsqlite3/install
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libsqlite3.so.$(ABI_VERSION)* $(1)/usr/lib
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libsqlite3.so* $(1)/usr/lib
 endef
 
 define Package/sqlite3-cli/install

@@ -206,6 +206,31 @@ check_dsa_switch() {
 	return 0
 }
 
+check_single_port_device() {
+
+	json_select network
+
+		json_select lan
+			json_get_var device device
+		json_select ..
+
+	json_select ..
+
+	[ -n "$device" ] || return 1
+
+	[[ "$device" != "eth"* ]] && return 1
+
+	uci -q batch <<-EOF
+		set network._lan1="port"
+		set network._lan1.enabled="1"
+		set network._lan1.autoneg="on"
+		set network._lan1.role="lan"
+		set network._lan1.ifname="$device"
+	EOF
+
+	return 0
+}
+
 check_rest_ports() {
 
 	local i=0
@@ -218,7 +243,7 @@ check_rest_ports() {
 
 	json_select ..
 
-	[ -n "$ports" ] || return 1
+	[ -n "$ports" ] || check_single_port_device || return
 
 	for port in $ports; do
 

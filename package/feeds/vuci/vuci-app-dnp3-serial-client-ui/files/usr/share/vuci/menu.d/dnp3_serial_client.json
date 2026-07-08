@@ -1,0 +1,17 @@
+{
+	"services/dnp3": {
+		"title": "DNP3",
+		"index": 130
+	},
+		"services/dnp3/serial_client": {
+			"title": "DNP3 Serial Client",
+			"index": 20,
+			"view": "services/DNP3SerialClient",
+			"acls": [ "services/dnp3/serial_client", "services/dnp3/global" ],
+			"depends": {
+				"board": {
+					"anyOf": ["has_usb", "has_rs232", "has_rs485", "has_console"]
+				}
+			}
+		}
+}

@@ -1,0 +1,1 @@
+[{"endpoint":"/modbus/client/global","lua_service":"services/modbus_global","backup_order":241},{"/modbus/client/database/entries/{service_group}":"services/modbus_database_entries_status"},{"/modbus/client/database/{service_group}":"services/modbus_database_status"}]

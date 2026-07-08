@@ -1,0 +1,92 @@
+#!/usr/bin/lua
+
+local Request = require("api.request")
+local util = require("vuci.util")
+local nixio = require("nixio")
+local uci = require("vuci.uci").cursor()
+local socket_url = require("socket.url")
+local http_codes = require("api.http_codes")
+
+local function send_status_line(status_code)
+	local status_line = ("Status: %s"):format(status_code)
+	local reason_phrase = http_codes.reason_phrases[status_code]
+	if reason_phrase then
+		status_line = status_line .. " " .. reason_phrase
+	end
+
+	io.stdout:write(status_line .. "\r\n")
+end
+
+local function send_response(status, redirect_url, cookie)
+	send_status_line(status)
+
+	if status == "302" and redirect_url then
+		io.stdout:write("Location: " .. redirect_url .. "\r\n")
+	end
+	if cookie then
+		io.stdout:write("Set-Cookie: " .. cookie .. "\r\n")
+	end
+	io.stdout:write("Cache-Control: no-cache\r\n\r\n")
+	io.stdout:flush()
+end
+
+local function construct_redirect_url(env)
+	local redirect_url = env["HTTP_HOST"]
+	if not redirect_url or redirect_url == "" then
+		redirect_url = env["SERVER_ADDR"]
+	end
+	return (env["HTTPS"] and "https://" or "http://") .. redirect_url .. "/"
+end
+
+local function main()
+	local env = nixio.getenv()
+	local query = Request.parse_query_string(env["QUERY_STRING"])
+	if not query or not query.state then
+		return send_response("400")
+	end
+
+	local log_params = {
+		success = false,
+		custom_message = {
+			accepted_event = "SSO login succeeded for \"%s\"",
+			rejected_event = "SSO login attempt failed",
+			accepted_log = "SSO login succeeded for %s",
+			rejected_log = "SSO login attempt failed"
+		}
+	}
+
+	local redirect_url = construct_redirect_url(env)
+	if not query.code then
+		log_params.custom_message.rejected_event = log_params.custom_message.rejected_event .. ": " .. (query.error_description or "No code provided")
+		log_params.custom_message.rejected_log = log_params.custom_message.rejected_event
+		util.log_connection_webui(env, log_params)
+
+		redirect_url = redirect_url .. "?sso_failed=1"
+		if query.error then
+			redirect_url = redirect_url .. "&error=" .. socket_url.escape(query.error)
+		end
+		if query.error_description then
+			redirect_url = redirect_url .. "&error_description=" .. socket_url.escape(query.error_description)
+		end
+		return send_response("302", redirect_url)
+	end
+
+	local timeout = uci:get("vuci", "main", "api_session_timeout")
+	local info = util.ubus("session.oauth2", "sso_callback", {
+		state = query.state,
+		code = query.code,
+		timeout = tonumber(timeout)
+	}) or nil
+	if not info then
+		util.log_connection_webui(env, log_params)
+		return send_response("302", redirect_url .. "?sso_failed=1")
+	end
+
+	log_params.success = true
+	log_params.custom_message.accepted_event = log_params.custom_message.accepted_event:format(info.data.username)
+	log_params.custom_message.accepted_log = log_params.custom_message.accepted_log:format(info.data.username)
+	util.log_connection_webui(env, log_params)
+	return send_response("302", redirect_url, "token=" .. info.ubus_rpc_session .. "; Path=/; SameSite=Strict; HttpOnly")
+end
+
+main()

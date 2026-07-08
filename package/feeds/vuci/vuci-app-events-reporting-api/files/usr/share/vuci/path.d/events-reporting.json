@@ -1,0 +1,1 @@
+[{"endpoint":"/events_reporting/{service_group}/{?sid}","lua_service":"services/events_reporting","backup_order":122}]

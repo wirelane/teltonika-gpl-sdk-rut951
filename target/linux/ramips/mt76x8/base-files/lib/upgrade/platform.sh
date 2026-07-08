@@ -71,6 +71,12 @@ platform_check_hw_support() {
 		[ "$hwbranch" = "S" ] && { ! find_hw_mod "246hwS"; } && return 1
 	}
 
+	exp="^OTD144"
+	[[ $board =~ $exp ]] && {
+		{ ! prepare_metadata_hw_mods "$1"; } && return 1
+		{ ! check_hw_mod "144" 5 "144v5"; } && return 1
+	}
+
 
 	exp="^RUT9(51|56|01|06)"
 	[[ ! $board =~ $exp ]] && return 0

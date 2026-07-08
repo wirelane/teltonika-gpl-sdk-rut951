@@ -7,7 +7,7 @@
 			"title": "Change Password",
 			"index": 1,
 			"acls": [ "system/admin/multiusers/change_password" ],
-			"view": "system/UserEdit"
+			"view": "system/ChangePasswordPage"
 		},
 
 		"system/admin/multiusers/users_configuration": {

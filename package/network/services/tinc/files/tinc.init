@@ -41,32 +41,33 @@ append_param() {
 }
 
 append_net_params() {
-	s="$1"
-	shift
+	local s="$1"
+	local host_name="$2"
+	shift 2
 
 	for i in "$@"; do
 		config_get val "$s" "$i"
 		[ -z "$val" ] && continue
 		[ "$i" = "subnet" ] && {
-			append_param "$s" "$s" "$i" "$val"
+			append_param "$s" "$host_name" "$i" "$val"
 			continue
 		}
 		[ "$i" = "privatekeyfile" ] && {
 			cp "$val" "$TMP_TINC/$s/rsa_key.priv"
-			chmod 700 "$TMP_TINC/$s/rsa_key.priv"
+			chmod 600 "$TMP_TINC/$s/rsa_key.priv"
 			continue
 		}
 		[ "$i" = "publickeyfile" ] && {
-			cat "$val" >> "$TMP_TINC/$s/hosts/$s"
+			cat "$val" >> "$TMP_TINC/$s/hosts/$host_name"
 			continue
 		}
 		[ "$i" = "bindtointerface" ] && {
 			network_get_device l3_device "$val"
 			trigger_interface="$val"
-			echo "${i} = ${l3_device}" >> "$TMP_TINC/$s/hosts/$s"
+			echo "${i} = ${l3_device}" >> "$TMP_TINC/$s/hosts/$host_name"
 			continue
 		}
-		[ "$i" = "connectto" ] && {
+		[ "$i" = "name" ] || [ "$i" = "connectto" ] || [ "$i" = "mode" ] && {
 			append_param "$s" "" "$i" "$val"
 			continue
 		}
@@ -77,16 +78,16 @@ append_net_params() {
 
 prepare_net() {
 	local s="$1"
-	local local_ip local_ipv6
+	local local_ip local_ipv6 host_name
 	config_get enabled "$s" enabled "0"
+	config_get host_name "$s" name "$s"
 	[ "$enabled" = "0" ] && return
 
 	[ -d "$TMP_TINC/$s" ] && rm -rf "$TMP_TINC/$s"
-	mkdir -p "$TMP_TINC/$s"
 	mkdir -p "$TMP_TINC/$s/hosts"
 	[ -d "/etc/tinc/$s" ] && cp -r "/etc/tinc/$s" "$TMP_TINC/"
 
-	append_net_params "$s" \
+	append_net_params "$s" "$host_name" \
 		addressfamily \
 		bindtoaddress \
 		bindtointerface \
@@ -114,9 +115,10 @@ prepare_net() {
 
 	config_get local_ip "$s" local_ip
 	config_get local_ipv6 "$s" local_ipv6
-	[ ! -e "$TMP_TINC/$s/hosts/$s" ] && touch "$TMP_TINC/$s/hosts/$s"
-	[ -n "$local_ip" ] && ! grep -q "^Subnet = ${local_ip%/*}$" "$TMP_TINC/$s/hosts/$s" && echo "Subnet = ${local_ip%/*}" >> "$TMP_TINC/$s/hosts/$s"
-	[ -n "$local_ipv6" ] && ! grep -q "^Subnet = ${local_ipv6%/*}$" "$TMP_TINC/$s/hosts/$s" && echo "Subnet = ${local_ipv6%/*}" >> "$TMP_TINC/$s/hosts/$s"
+	local local_host_file="$TMP_TINC/$s/hosts/$host_name"
+	touch "$local_host_file"
+	[ -n "$local_ip" ] && ! grep -q "^Subnet = ${local_ip%/*}$" "$local_host_file" && echo "Subnet = ${local_ip%/*}" >> "$local_host_file"
+	[ -n "$local_ipv6" ] && ! grep -q "^Subnet = ${local_ipv6%/*}$" "$local_host_file" && echo "Subnet = ${local_ipv6%/*}" >> "$local_host_file"
 
 	config_foreach prepare_host "tinc-host_${s}" "$s"
 	setup_up "$s"
@@ -124,44 +126,53 @@ prepare_net() {
 }
 
 append_host_params() {
-	n="$1"
-	shift
-	s="$1"
-	shift
+	local n="$1"; shift
+	local s="$1"; shift
+	local fname="$1"; shift
 	for i in "$@"; do
 		config_get val "$s" "$i"
 		[ -z "$val" ] && continue
+		[ "$i" = "name" ] && continue
 		[ "$i" = "PublicKeyFile" ] && {
-			cat "$val" >> "$TMP_TINC/$n/hosts/$s"
+			cat "$val" >> "$TMP_TINC/$n/hosts/$fname"
 			continue
 		}
-		[ "$i" = "subnet" ] && {
-			append_param "$n" "$s" "$i" "$val"
+		[ "$i" = "subnet" ] || [ "$i" = "address" ] && {
+			append_param "$n" "$fname" "$i" "$val"
 			continue
 		}
-		[ "$i" = "address" ] && {
-			append_param "$n" "$s" "$i" "$val"
-			continue
-		}
-		echo "$i = $val" >> "$TMP_TINC/$n/hosts/$s"
+		echo "$i = $val" >> "$TMP_TINC/$n/hosts/$fname"
 	done
 }
 
 append_route() {
 	local subnet="$1"
 	local net="$2"
-	if [ -z "$subnet" ] || echo "$subnet" | grep -Eq '^([0-9A-Fa-f]{2}([-:])){5}[0-9A-Fa-f]{2}$|^([0-9A-Fa-f]{4}\.){2}[0-9A-Fa-f]{4}$'; then
+	if [ -z "$subnet" ] || echo "$subnet" | grep -Eq '^([0-9A-Fa-f]{2}([-:])){5}[0-9A-Fa-f]{2}$|^([0-9A-Fa-f]{4}\.){2}[0-9A-Fa-f]{4}$' || ! echo "$subnet" | grep -Eq '^[0-9A-Fa-f.:/]+$'; then
 		return
 	fi
 	echo 'ip route add "'$subnet'" dev $INTERFACE' >> $TMP_TINC/${net}/tinc-up
 }
 
+update_host_routes() {
+	local host_id="$1"
+	local hostname="$2"
+	local net_id="$3"
+	local enabled net name
+	config_get enabled "$host_id" enabled "0"
+	config_get net "$host_id" net
+	config_get name "$host_id" name
+
+	if [ "$enabled" != "1" ] || [ "$net" != "$net_id" ] || [ "$name" != "$hostname" ]; then
+		return
+	fi
+	config_list_foreach "$host_id" "subnet" append_route "$net"
+}
+
 add_hosts_routes() {
-	local host="$1"
+	local hostname="$1"
 	local net="$2"
-	local enabled
-	config_get enabled "$host" enabled "0"
-	[ "$enabled" = "1" ] && config_list_foreach "$host" "subnet" append_route "$net"
+	config_foreach update_host_routes "tinc-host_${net}" "$hostname" "$net"
 }
 
 setup_up() {
@@ -169,13 +180,9 @@ setup_up() {
 	local local_ip local_ipv6
 	config_get local_ip "$net" local_ip
 	config_get local_ipv6 "$net" local_ipv6
-	[ -n "$local_ip" ] && {
-		eval "$(ipcalc.sh "$local_ip")"
-	}
-	echo '
-#!/bin/sh
-ip link set $INTERFACE up
-' > "$TMP_TINC/${net}/tinc-up"
+	[ -n "$local_ip" ] && eval "$(ipcalc.sh "$local_ip")"
+	echo '#!/bin/sh' > "$TMP_TINC/${net}/tinc-up"
+	echo 'ip link set $INTERFACE up' >> "$TMP_TINC/${net}/tinc-up"
 
 	if [ -n "$IP" ] && [ -n "$NETMASK" ]; then
 		echo 'ifconfig $INTERFACE '"$IP"' netmask '"$NETMASK"'' >> "$TMP_TINC/${net}/tinc-up"
@@ -185,13 +192,10 @@ ip link set $INTERFACE up
 	chmod +x "$TMP_TINC/${net}/tinc-up"
 }
 
-
 setup_down() {
 	local net="$1"
-	echo '
-#!/bin/sh
-ip link set $INTERFACE down
-' > "$TMP_TINC/${net}/tinc-down"
+	echo '#!/bin/sh' > "$TMP_TINC/${net}/tinc-down"
+	echo 'ip link set $INTERFACE down' >> "$TMP_TINC/${net}/tinc-down"
 	chmod +x "$TMP_TINC/${net}/tinc-down"
 }
 
@@ -204,21 +208,21 @@ check_host_use() {
 prepare_host() {
 	local s="$1"
 	local n="$2"
-
-	local net enabled
+	local net enabled host_name 
 	local connected=false
 
 	config_get enabled "$s" enabled "0"
 	config_get net "$s" net
+	config_get host_name "$s" name "$s"
 	if [ "$enabled" != "1" ] || [ "$net" != "$n" ]; then
 		return
 	fi
 
-	config_list_foreach "$net" "connectto" check_host_use "$s"
+	config_list_foreach "$net" "connectto" check_host_use "$host_name"
 	[ "$connected" = false ] && return
 
-	[ ! -e "$TMP_TINC/$net/hosts/$s" ] && touch "$TMP_TINC/$net/hosts/$s"
-	append_host_params "$net" "$s" \
+	touch "$TMP_TINC/$net/hosts/$host_name"
+	append_host_params "$n" "$s" "$host_name" \
 		address \
 		cipher \
 		clampmss \

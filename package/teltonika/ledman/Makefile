@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ledman
 
-PKG_SOURCE_VERSION:=2.31
+PKG_SOURCE_VERSION:=2.32
 
 PKG_LICENSE:=Teltonika-closed
 

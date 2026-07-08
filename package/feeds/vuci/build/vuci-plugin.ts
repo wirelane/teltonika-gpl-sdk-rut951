@@ -84,16 +84,21 @@ export default function VuCI(pluginOptions: VuciOptions): Plugin {
 
         this.info('Formatting the file contents...')
         const fileContent = `
-// Generated at: ${today().format('YYYY-MM-DD hh:mm:ss')}
 export const routes = [
   ${grouped.map(format).join(',\n  ')}
 ] as const
 
-export type RoutePath = (typeof routes)[number]['path']`
+export type RoutePath = (typeof routes)[number]['path']
+`
         const pathTs = new URL('../vuci-menu.ts', import.meta.url)
-        this.info('Writing menu contents to ' + green(pathTs.pathname))
-        fsp.writeFile(pathTs, fileContent.trim() + '\n')
-        this.info('Contents successfully written to ' + green(pathTs.pathname))
+        // This fixes reloads when two watched instances are running for e.g., dev server and tests
+        if (fs.existsSync(pathTs) && fileContent === fs.readFileSync(pathTs, { encoding: 'utf8' })) {
+          this.info('No changes to ' + green(pathTs.pathname) + ' skipping write')
+        } else {
+          this.info('Writing menu contents to ' + green(pathTs.pathname))
+          fsp.writeFile(pathTs, fileContent)
+          this.info('Contents successfully written to ' + green(pathTs.pathname))
+        }
         const pathJs = new URL('../vuci-menu.js', import.meta.url)
         if (fs.existsSync(pathJs)) {
           this.info('Deleting old file ' + green(pathJs.pathname))

@@ -62,10 +62,11 @@ sub target_config_features(@) {
 		/^power-control$/ and $ret .= "\tselect HAS_POWER_CONTROL\n";
 		/^single_port$/ and $ret .= "\tselect HAS_SINGLE_ETH_PORT\n";
 		/^wifi$/ and $ret .= "\tselect WIFI_SUPPORT\n";
+		/^ethernet$/ and $ret .= "\tselect ETHERNET_SUPPORT\n";
 		/^bluetooth$/ and $ret .= "\tselect BLUETOOTH_SUPPORT\n";
 		/^mobile$/ and $ret .= "\tselect MOBILE_SUPPORT\n";
 		/^custom-data-limit$/ and $ret .= "\tselect CUSTOM_DATA_LIMIT\n";
-		/^dualsim$/ and $ret .= "\tselect DUAL_SIM_SUPPORT\n";
+		/^dual_sim$/ and $ret .= "\tselect DUAL_SIM_SUPPORT\n";
 		/^tpm$/ and $ret .= "\tselect TPM_SUPPORT\n";
 		/^reset_button$/ and $ret .= "\tselect RESET_BUTTON_SUPPORT\n";
 		/^rndis$/ and $ret .= "\tselect RNDIS_SUPPORT\n";
@@ -108,6 +109,7 @@ sub target_config_features(@) {
 		/^hid_buttons$/ and $ret .= "\tselect HID_BUTTON_SUPPORT\n";
 		/^iec60870_client$/ and $ret .= "\tselect IEC60870_CLIENT_SUPPORT\n";
 		/^iec60870_server$/ and $ret .= "\tselect IEC60870_SERVER_SUPPORT\n";
+		/^power_manager$/ and $ret .= "\tselect POWER_MANAGER_SUPPORT\n";
 	}
 	return $ret;
 }

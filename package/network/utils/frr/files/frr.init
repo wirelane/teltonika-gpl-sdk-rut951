@@ -304,28 +304,28 @@ bgp_parse_instance() {
 	xappend_bool "$CONFIG_FILE_BGP" "$deterministic_med" "bgp deterministic-med"
 
 	for ip_family in $family; do
+		xappend      "$CONFIG_FILE_BGP" "address-family $ip_family unicast"
+		xappend_list "$CONFIG_FILE_BGP" "redistribute" "$redistribute"
 		for net in $network; do
 			if [ "$(check_family "$net")" = "$ip_family" ]; then
-				xappend      "$CONFIG_FILE_BGP" "address-family $ip_family unicast"
 				xappend_list "$CONFIG_FILE_BGP" "network" "$net"
-				xappend_list "$CONFIG_FILE_BGP" "redistribute" "$redistribute"
-				if [ "$vrf" != "default" ]; then
-					xappend      "$CONFIG_FILE_BGP" "rd vpn export" "$rd_export"
-					if [ "$export_vpn" = "1" ]; then
-						xappend      "$CONFIG_FILE_BGP" "label vpn export" "$label_export"
-					fi
-					xappend      "$CONFIG_FILE_BGP" "rt vpn import" "$rt_import"
-					xappend      "$CONFIG_FILE_BGP" "rt vpn export" "$rt_export"
-					xappend_bool "$CONFIG_FILE_BGP" "$export_vpn" "export vpn"
-					xappend_bool "$CONFIG_FILE_BGP" "$import_vpn" "import vpn"
-				fi
-				if [ "$ip_family" = "ipv6" ]; then
-					xappend "$CONFIG_FILE_BGP" "bgp default ipv6-unicast"
-				else
-					xappend "$CONFIG_FILE_BGP" "exit-address-family"
-				fi
 			fi
 		done
+		if [ "$vrf" != "default" ]; then
+			xappend      "$CONFIG_FILE_BGP" "rd vpn export" "$rd_export"
+			if [ "$export_vpn" = "1" ]; then
+				xappend      "$CONFIG_FILE_BGP" "label vpn export" "$label_export"
+			fi
+			xappend      "$CONFIG_FILE_BGP" "rt vpn import" "$rt_import"
+			xappend      "$CONFIG_FILE_BGP" "rt vpn export" "$rt_export"
+			xappend_bool "$CONFIG_FILE_BGP" "$export_vpn" "export vpn"
+			xappend_bool "$CONFIG_FILE_BGP" "$import_vpn" "import vpn"
+		fi
+		if [ "$ip_family" = "ipv6" ]; then
+			xappend "$CONFIG_FILE_BGP" "bgp default ipv6-unicast"
+		else
+			xappend "$CONFIG_FILE_BGP" "exit-address-family"
+		fi
 		config_foreach bgp_parse_peer bgp_peer "$section" "$ip_family"
 	done
 	config_foreach bgp_parse_access_list bgp_access_list "$ip_family"
@@ -374,11 +374,11 @@ bgp_parse_peer() {
 	[ "$allow_ipv6" = "1" ] && xappend "$CONFIG_FILE_BGP" "neighbor" "$ipaddr" "activate"
 	xappend      "$CONFIG_FILE_BGP" "exit-address-family"
 
-	[ "$allow_vpn" = "1" ] && {
+	if [ "$allow_vpn" = "1" ] && { [ "$ip_family" = "ipv4" ] || [ "$allow_ipv6" = "1" ]; }; then
 		xappend      "$CONFIG_FILE_BGP" "address-family" "$ip_family" "vpn"
 		xappend      "$CONFIG_FILE_BGP" "neighbor" "$ipaddr" "activate"
 		xappend      "$CONFIG_FILE_BGP" "exit-address-family"
-	}
+	fi
 	config_foreach bgp_parse_peer_group bgp_peer_group "$ipaddr" "$as" "$ip_family"
 	config_foreach bgp_parse_route_map_filters bgp_route_map_filters
 }

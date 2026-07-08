@@ -6,8 +6,8 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=gkeepalive
-PKG_VERSION:=2026-04-07
-PKG_RELEASE:=1
+PKG_VERSION:=2026-05-12
+PKG_RELEASE:=2
 PKG_SOURCE_VERSION=1.4
 PKG_LICENSE:=Teltonika-closed
 

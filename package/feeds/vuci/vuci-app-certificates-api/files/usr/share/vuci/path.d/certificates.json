@@ -1,0 +1,1 @@
+[{"endpoint":"/certificates/root_ca/{service_group}/{?sid}","lua_service":"system/root_ca","exclude_from_backup":true},{"endpoint":"/certificates/{service_group}/{?sid}","lua_service":"system/certificates","backup_order":6},{"endpoint":"/certificates/{type}/{service_group}/{sid}","lua_service":"system/certificates","exclude_from_backup":true}]

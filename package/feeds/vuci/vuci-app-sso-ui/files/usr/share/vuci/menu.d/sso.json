@@ -1,0 +1,8 @@
+{
+  "system/admin/multiusers/sso": {
+    "title": "SSO",
+    "index": 5,
+    "acls": ["system/admin/multiusers/sso"],
+    "view": "system/SsoPage"
+  }
+}

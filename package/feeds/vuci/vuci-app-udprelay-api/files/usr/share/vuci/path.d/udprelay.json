@@ -1,0 +1,1 @@
+[{"endpoint":"/udprelay/{service_group}/{?sid}","lua_service":"network/udprelay","backup_order":71}]

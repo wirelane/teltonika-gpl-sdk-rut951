@@ -1,12 +1,68 @@
 [
   {
     "category": "Network",
+    "name": "Internet Status",
+    "depends": [
+      {
+        "type": "family",
+        "name": "Router"
+      }
+    ]
+  },
+  {
+    "category": "Services",
+    "name": "Wake on LAN",
+    "depends": []
+  },
+  {
+    "category": "Network",
     "name": "MPLS",
     "depends": [
       {
         "type": "hw",
         "name": "is_access_point",
         "value": false
+      }
+    ]
+  },
+  {
+    "category": "System",
+    "name": "Site Manager",
+    "depends": [
+      {
+        "type": "hw",
+        "name": "flash16mb",
+        "value": false
+      }
+    ]
+  },
+  {
+    "category": "System",
+    "name": "2FA",
+    "depends": [
+      {
+        "type": "family",
+        "name": "Router"
+      }
+    ]
+  },
+  {
+    "category": "Services",
+    "name": "UPnP",
+    "depends": [
+      {
+        "type": "family",
+        "name": "Router"
+      }
+    ]
+  },
+  {
+    "category": "Network",
+    "name": "Netbird",
+    "depends": [
+      {
+        "type": "hw",
+        "name": "high_storage"
       }
     ]
   },
@@ -1088,6 +1144,16 @@
   {
     "category": "Services",
     "name": "CAN Gateway",
+    "depends": [
+      {
+        "type": "hw",
+        "name": "stm_can"
+      }
+    ]
+  },
+  {
+    "category": "Services",
+    "name": "CANopen SDO Client",
     "depends": [
       {
         "type": "hw",

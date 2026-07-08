@@ -38,9 +38,12 @@ local PKG_KEY_MAP = {
 	pkg_reboot = "reboot",
 	ipk_deps = "ipk_deps",
 	ipk_file = "ipk_file",
+	["Third-Party"] = "third_party",
+	src = "src"
 }
 
 local PKG_TYPES = opkg.PKG_TYPES
+local FEED_SIDS = opkg.FEED_SIDS
 
 local function check_arch_and_hw(package)
 	local ok = opkg.check_package_arch(package.architecture, package.router)
@@ -51,21 +54,21 @@ local function check_arch_and_hw(package)
 	return true
 end
 
-local function get_pending_packages()
+local function get_pending_packages(sid)
 	local pkg_list
 	local packages = {}
 
 	pkg_list = fs.readfile(PKG_RESTORE_PATH) or ""
-	for pkg_name, tlt_name in pkg_list:gmatch("([%w%.%-%+_]+) %- *(.-)\n") do
-		if not tlt_name:find("^%s*%-*%s*$") then
-			packages[pkg_name] = { package = pkg_name, tlt_name = tlt_name, type = PKG_TYPES.PENDING } -- In queue to download
+	for pkg_name, tlt_name, feed in pkg_list:gmatch("([^\n]-) %- ([^\n]+) %- ([^\n]-)\n") do
+		if not tlt_name:find("^%s*%-*%s*$") and (not sid or feed == sid) then
+			packages[pkg_name] = { package = pkg_name, tlt_name = tlt_name, type = PKG_TYPES.PENDING, src = feed }
 		end
 	end
 
 	pkg_list = fs.readfile(FAILED_PKG_PATH) or ""
-	for pkg_name, tlt_name in pkg_list:gmatch("([%w%.%-%+_]+) %- *(.-)\n") do
-		if not tlt_name:find("^%s*%-*%s*$") then
-			packages[pkg_name] = { package = pkg_name, tlt_name = tlt_name, type = PKG_TYPES.PENDING_ERRORED } -- Installation failed
+	for pkg_name, tlt_name, feed in pkg_list:gmatch("([^\n]-) %- ([^\n]+) %- ([^\n]-)\n") do
+		if not tlt_name:find("^%s*%-*%s*$") and (not sid or feed == sid) then
+			packages[pkg_name] = { package = pkg_name, tlt_name = tlt_name, type = PKG_TYPES.PENDING_ERRORED, src = feed }
 		end
 	end
 
@@ -159,33 +162,46 @@ local function extract_package()
 	return pkg
 end
 
-local _pkg_info
+local _pkg_info = {}
 ---Returns available filtered (by router name and by hidden flag) packages. Uses cache if present
+---@param sid? string
 ---@return { [string]: pkg_info }
-local function get_available_pkgs()
-	if _pkg_info then return _pkg_info end
-	_pkg_info = json.parse(fs.readfile(PKG_CACHE_FILE) or "")
-	if _pkg_info and next(_pkg_info) then return _pkg_info end
-
-	local packages = parse_opkg_call(opkg.get_pkg_list())
-	local filtered_pkgs = {}
-	for pkg_name, pkg in pairs(packages) do
-		if not pkg.hidden and pkg.tlt_name and check_arch_and_hw(pkg) then
-			filtered_pkgs[pkg_name] = pkg
-			filtered_pkgs[pkg_name].type = PKG_TYPES.AVAILABLE
+local function get_available_pkgs(sid)
+	if sid then
+		if _pkg_info[sid] then return _pkg_info[sid] end
+		_pkg_info[sid] = json.parse(fs.readfile(PKG_CACHE_FILE % sid) or "")
+		if _pkg_info[sid] and next(_pkg_info[sid]) then
+			return _pkg_info[sid]
 		end
+
+		local packages = parse_opkg_call(opkg.get_pkg_list(false, sid))
+		local filtered_pkgs = {}
+		for pkg_name, pkg in pairs(packages) do
+			if not pkg.hidden and pkg.tlt_name and check_arch_and_hw(pkg)
+				and (sid ~= "3rd_party_packages" or pkg["third_party"] == true) then
+				filtered_pkgs[pkg_name] = pkg
+				filtered_pkgs[pkg_name].type = PKG_TYPES.AVAILABLE
+			end
+		end
+		_pkg_info[sid] = filtered_pkgs
+		fs.writefile(PKG_CACHE_FILE % sid, json.stringify(_pkg_info[sid]))
+		fs.chmod(PKG_CACHE_FILE % sid, "rw-rw-r--")
+		return _pkg_info[sid]
 	end
-	_pkg_info = filtered_pkgs
-	fs.writefile(PKG_CACHE_FILE, json.stringify(_pkg_info))
-	fs.chmod(PKG_CACHE_FILE, "rw-rw-r--")
-	return _pkg_info
+
+	local packages = {}
+	for feed in pairs(FEED_SIDS) do
+		util.update(packages, get_available_pkgs(feed))
+	end
+	return packages
 end
 
 ---Parses .control file and adds additional info
 ---@param control_file_text string
+---@param sid? string
 ---@return pkg_info
-local function parse_pkg_info_full(control_file_text)
-	local all_available = get_available_pkgs()
+local function parse_pkg_info_full(control_file_text, sid)
+	local all_available = get_available_pkgs(sid)
 	local pkginfo = parse_pkg_info(control_file_text)
 	pkginfo.type = PKG_TYPES.INSTALLED
 	pkginfo.installed_version = pkginfo.version
@@ -199,22 +215,29 @@ local function parse_pkg_info_full(control_file_text)
 	return pkginfo
 end
 
-local function get_installed_packages()
+---@param sid? string
+---@return { [string]: pkg_info }
+local function get_installed_packages(sid)
 	local installed_pkgs = {}
 	for _, value in ipairs(pac.list_control_files_ext(opkg.DEST_ROOT .. "/usr/lib/opkg/info/")) do
 		local info = fs.readfile(value) or "" -- info can be nil if pkg is being removed
 		if info:find("\ntlt_name: ", nil, true) then
-			local pkginfo = parse_pkg_info_full(info)
-			installed_pkgs[pkginfo.package] = pkginfo
+			local pkginfo = parse_pkg_info_full(info, sid)
+			if not sid or (sid == "3rd_party_packages" and pkginfo["third_party"] == "True")
+				or (sid ~= "3rd_party_packages" and pkginfo["third_party"] ~= "True") then
+				installed_pkgs[pkginfo.package] = pkginfo
+			end
 		end
 	end
 	return installed_pkgs
 end
 
-local function get_all_packages()
-	local all_pkgs = get_available_pkgs()
-	local pending_packages = get_pending_packages()
-	local installed_packages = get_installed_packages()
+---@param sid? string
+---@return { [string]: pkg_info }
+local function get_all_packages(sid)
+	local all_pkgs = get_available_pkgs(sid)
+	local pending_packages = get_pending_packages(sid)
+	local installed_packages = get_installed_packages(sid)
 	for _, p in pairs(pending_packages) do
 		local found
 		for pkg_name, pkg in pairs(all_pkgs) do
@@ -253,6 +276,8 @@ local function _fix_keys(pkg, pkg_name)
 	pkg.ipk_file = nil
 	pkg.hw_info = nil
 	pkg.hidden = nil
+	pkg.src = pkg.src or (pkg["third_party"] == "True" and "3rd_party_packages" or "tlt_packages")
+	pkg.third_party = nil
 
 	pkg.size = pkg.size and tostring(pkg.size) or nil
 	pkg.installed_size = pkg.installed_size and tostring(pkg.installed_size) or nil
@@ -347,24 +372,27 @@ local function validate_uploaded_package() -- checks uploaded package and extrac
 	}
 end
 
-local function append_pkg_statuses(pkgs)
+local function append_pkg_statuses(pkgs, sid)
 	local pkg_stats = opkg_multi.get_pkg_statuses()
 	for app_name, pkg_stat in pairs(pkg_stats) do
-		local p
-		for pkg_name, pkg in pairs(pkgs) do
+		local p = pkgs[app_name]
+		if not p then
+			for _, pkg in pairs(pkgs) do
 			-- first search by app_name
-			if pkg.app_name == app_name then
-				p = pkg
-				break
+				if pkg.app_name == app_name then
+					p = pkg
+					break
+				end
 			end
 		end
-		p = p or pkgs[app_name]
-		if not p then
-			p = {}
-			pkgs[app_name] = p
+		if not p and (sid == nil or sid == pkg_stat.src) then
+			pkgs[app_name] = { app_name = app_name }
+			p = pkgs[app_name]
 		end
-		for key, value in pairs(pkg_stat) do
-			p[key] = value
+		if p then
+			for key, value in pairs(pkg_stat) do
+				p[key] = value
+			end
 		end
 	end
 	return pkgs
@@ -373,19 +401,22 @@ end
 function PackageManager:check_status_sid()
 	-- actions and status endpoints are conflicting, that's why this check is needed
 	local endpoint_url = self.bulk and self.arguments.endpoint or self.request_info.PATH_INFO
-	if not endpoint_url:match(self.service_group .. "/status") or (self.sid and self.sid ~= "status") then
+	if not endpoint_url:match(self.service_group .. "/status") or (self.service_group ~= "all_packages" and self.sid and self.sid ~= "status") then
 		return self:ResponseNotImplemented(string.format("Endpoint for '%s' not implemented.", self.sid or self.service_group))
 	end
 end
 
 function PackageManager:GET_TYPE_all_packages()
 	self:check_status_sid()
-	if util.trim(self.query_parameters.refresh_package_list or "") == "1" then
-		opkg.fetch_pkg_list(true)
-	else
-		opkg.fetch_pkg_list()
+	if self.sid and self.sid ~= "status" and not FEED_SIDS[self.sid] then
+		self:add_critical_error(STD_CODES.INVALID_SECTION, "Invalid feed.", "feed", HTTP_STATUS_CODES.NOT_FOUND)
 	end
-	return self:ResponseOK(convert_to_array(append_pkg_statuses(get_all_packages())))
+	if util.trim(self.query_parameters.refresh_package_list or "") == "1" then
+		opkg.fetch_pkg_list(true, self.sid)
+	else
+		opkg.fetch_pkg_list(false, self.sid)
+	end
+	return self:ResponseOK(convert_to_array(append_pkg_statuses(get_all_packages(self.sid), self.sid)))
 end
 
 function PackageManager:GET_TYPE_available_packages()

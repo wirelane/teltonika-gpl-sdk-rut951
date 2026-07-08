@@ -1,0 +1,20 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+PACKAGE_FILE="/etc/package_restore.txt"
+
+check_if_enabled() {
+	local sec="$1"
+
+	config_get enabled "$sec" "enabled"
+	[ "$enabled" == "1" ] && {
+		echo "2fa - 2FA - tlt_packages" >>"$PACKAGE_FILE"
+		exit 0
+	}
+}
+
+config_load totp
+config_foreach check_if_enabled user
+
+exit 0

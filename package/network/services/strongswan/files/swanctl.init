@@ -605,13 +605,18 @@ config_round() {
 				swanctl_xappend3 "auth = $auth_method"
 				[ -n "$xauth_identity" ] && swanctl_xappend3 "xauth_id = \"$xauth_identity\""
 				;;
+			pubkey)
+				swanctl_xappend3 "auth = $auth_method"
+				if [ -n "$local_cert" ]; then
+					swanctl_xappend3 "certs = $local_cert"
+				elif [ -n "$pkcs12_path" ]; then
+					swanctl_xappend3 "certs = $conf.pkcs12.crt"
+				fi
+				;;
 			*)
 				swanctl_xappend3 "auth = $auth_method"
 				;;
 		esac
-		[ "$auth_method" = pubkey ] && [ -n "$local_cert" ] && {
-			swanctl_xappend3 "certs = $local_cert"
-		}
 		[ -n "$local_identifier" ] && [ "$auth_method" != "xauth" ] && swanctl_xappend3 "id = \"$local_identifier\""
 		swanctl_xappend2 "}"
 		;;
@@ -625,10 +630,6 @@ config_round() {
 			xauth)
 				swanctl_xappend3 "auth = xauth"
 				[ -n "$xauth_identity" ] && swanctl_xappend3 "xauth_id = \"$xauth_identity\""
-				;;
-			psk)
-				swanctl_xappend3 "auth = psk"
-				swanctl_xappend3 "id = $gateway"
 				;;
 			*)
 				swanctl_xappend3 "auth = $auth_method"
@@ -761,6 +762,7 @@ config_remote() {
 	config_get_bool aggressive "${conf}_c" aggressive 0
 	config_get_bool comp_mode "${conf}_c" comp_mode 0
 	config_get_bool defaultroute "${conf}_c" defaultroute 0
+	config_get_bool route_based_ipsec "${conf}_c" route_based_ipsec 0
 	config_get local_sourceip "${conf}_c" local_sourceip ""
 	config_get passthrough "${conf}_c" passthrough ""
 	config_get passthrough_local "${conf}_c" passthrough_local ""
@@ -841,7 +843,7 @@ config_remote() {
 	swanctl_xappend2 "remote_addrs = $remote_gateway"
 	swanctl_xappend2 "aggressive = $aggressive"
 
-	[ -n "$local_sourceip" ] && swanctl_xappend2 "vips = $local_sourceip"
+	[ -n "$local_sourceip" ] && [ "$defaultroute" != 1 ] && swanctl_xappend2 "vips = $local_sourceip"
 	[ -n "$fragmentation" ] && swanctl_xappend2 "fragmentation = $fragmentation"
 	[ "$encap" = 1 ] && swanctl_xappend2 "encap = yes"
 	if [ -n "$remote_sourceip" ]; then
@@ -983,13 +985,13 @@ config_remote() {
 			swanctl_xappend0 "secrets {"
 			swanctl_xappend1 "ike-$conf {"
 			swanctl_xappend2 "secret = $pre_shared_key"
-			if [ -n "$local_identifier" ]; then
+			if [ -n "$local_identifier" ] && [ -n "$remote_identifier" ]; then
 				swanctl_xappend2 "id1 = \"$local_identifier\""
-				if [ -n "$remote_identifier" ]; then
-					swanctl_xappend2 "id2 = \"$remote_identifier\""
-				fi
-			else
-				swanctl_xappend2 "id = $gateway"
+				swanctl_xappend2 "id2 = \"$remote_identifier\""
+			elif [ -n "$local_identifier" ]; then
+				swanctl_xappend2 "id = \"$local_identifier\""
+			elif [ -n "$remote_identifier" ]; then
+				swanctl_xappend2 "id = \"$remote_identifier\""
 			fi
 			swanctl_xappend1 "}"
 			swanctl_xappend0 "}"
@@ -1000,6 +1002,11 @@ config_remote() {
 		pkcs12)
 			if [ -n "$pkcs12_path" ]; then
 				ln -s "$pkcs12_path" "$SWANCTL_DIR/pkcs12"
+				local pkcs12_crt="$SWANCTL_DIR/x509/$conf.pkcs12.crt"
+				openssl pkcs12 -in "$pkcs12_path" -nokeys -clcerts -nodes \
+					-password "pass:$pkcs12_decrypt" -out "$pkcs12_crt" 2>/dev/null \
+					|| { rm -f "$pkcs12_crt"; fatal "pkcs12 cert extraction failed for $conf"; }
+				chmod 0644 "$pkcs12_crt"
 				pkcs12_path="${pkcs12_path:+\"$(basename $pkcs12_path)\"}"
 				pkcs12_decrypt="${pkcs12_decrypt:+\"$pkcs12_decrypt\"}"
 			fi
@@ -1120,6 +1127,7 @@ prepare_env() {
 
 run_cleanup() {
 	find "$SWANCTL_DIR" -type l -exec rm -v {} \;
+	find "$SWANCTL_DIR/x509" -type f -name '*.pkcs12.crt' -exec rm -v {} \;
 }
 
 service_running() {

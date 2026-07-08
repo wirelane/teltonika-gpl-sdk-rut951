@@ -1,5 +1,7 @@
---- a/loginutils/login.c
-+++ b/loginutils/login.c
+Index: busybox-1.34.1/loginutils/login.c
+===================================================================
+--- busybox-1.34.1.orig/loginutils/login.c
++++ busybox-1.34.1/loginutils/login.c
 @@ -53,6 +53,11 @@
  //config:	default y
  //config:	depends on LOGIN
@@ -21,7 +23,7 @@
  #include <string.h>
  #include "lock_manager.h"
  #include "ip_block.h"
-@@ -90,6 +93,24 @@
+@@ -90,6 +93,32 @@
  static void push_log(char *format, ...);
  #endif // CONFIG_FEATURE_IP_BLOCKD
  
@@ -33,12 +35,20 @@
 +
 +enum {
 +	_2FA_RES,
++	_2FA_RECOVERY,
 +	_2FA_ACTIVE,
 +	__2FA_MAX
 +};
 +
++struct _2fa_check_req {
++	bool res;
++	bool recovery;
++	bool active;
++};
++
 +static const struct blobmsg_policy _2fa_policy[__2FA_MAX] = {
 +	[_2FA_RES] = { .name = "res", .type = BLOBMSG_TYPE_BOOL },
++	[_2FA_RECOVERY] = { .name = "recovery", .type = BLOBMSG_TYPE_BOOL },
 +	[_2FA_ACTIVE] = { .name = "active", .type = BLOBMSG_TYPE_BOOL },
 +};
 +#endif // CONFIG_FEATURE_2FA
@@ -46,7 +56,7 @@
  #if ENABLE_SELINUX
  # include <selinux/selinux.h>  /* for is_selinux_enabled()  */
  # include <selinux/get_context_list.h> /* for get_default_context() */
-@@ -168,6 +189,65 @@ struct globals {
+@@ -168,6 +197,69 @@ struct globals {
  #define G (*(struct globals*)bb_common_bufsiz1)
  #define INIT_G() do { setup_common_bufsiz(); } while (0)
  
@@ -55,15 +65,19 @@
 +{
 +	(void)type;
 +
-+	bool *res = (bool *)req->priv;
++	struct _2fa_check_req *req_data = (struct _2fa_check_req *)req->priv;
 +	struct blob_attr *tb[__2FA_MAX];
 +
 +	blobmsg_parse(_2fa_policy, __2FA_MAX, tb, blob_data(msg), blob_len(msg));
 +
 +	if (tb[_2FA_RES]) {
-+		*res = blobmsg_get_bool(tb[_2FA_RES]);
-+	} else if (tb[_2FA_ACTIVE]) {
-+		*res = blobmsg_get_bool(tb[_2FA_ACTIVE]);
++		req_data->res = blobmsg_get_bool(tb[_2FA_RES]);
++	}
++	if (tb[_2FA_RECOVERY]) {
++		req_data->recovery = blobmsg_get_bool(tb[_2FA_RECOVERY]);
++	}
++	if (tb[_2FA_ACTIVE]) {
++		req_data->active = blobmsg_get_bool(tb[_2FA_ACTIVE]);
 +	}
 +}
 +
@@ -71,25 +85,25 @@
 +{
 +	static struct blob_buf b = { 0 };
 +	uint32_t id = 0;
-+	bool active = false;
++	struct _2fa_check_req res = { 0 };
 +
 +	if (!username || !ctx || ubus_lookup_id(ctx, "totp", &id)) {
-+		return active;
++		return false;
 +	}
 +
 +	blob_buf_init(&b, 0);
 + 	blobmsg_add_string(&b, "username", username);
-+	ubus_invoke(ctx, id, "status", b.head, check_2fa_cb, &active, UBUS_TIMEOUT);
++	ubus_invoke(ctx, id, "status", b.head, check_2fa_cb, &res, UBUS_TIMEOUT);
 +	blob_buf_free(&b);
 +
-+	return active;
++	return res.active;
 +}
 +
-+static bool check_2fa(struct ubus_context *ctx, char const *username, const char *otp)
++static struct _2fa_check_req check_2fa(struct ubus_context *ctx, char const *username, const char *otp)
 +{
 +	static struct blob_buf b = { 0 };
 +	uint32_t id = 0;
-+	bool res = false;
++	struct _2fa_check_req res = { 0 };
 +
 +	if (!username || !ctx || ubus_lookup_id(ctx, "totp", &id)) {
 +		return res;
@@ -112,7 +126,7 @@
  
  #if ENABLE_FEATURE_NOLOGIN
  static void die_if_nologin(void)
-@@ -274,13 +354,13 @@ static void login_pam_end(pam_handle_t *
+@@ -274,13 +366,13 @@ static void login_pam_end(pam_handle_t *
  # define login_pam_end(pamh) ((void)0)
  #endif
  
@@ -128,7 +142,17 @@
  	/* skip whitespace */
  	do {
  		c = getchar();
-@@ -463,7 +543,7 @@ int login_main(int argc UNUSED_PARAM, ch
+@@ -378,6 +470,9 @@ int login_main(int argc UNUSED_PARAM, ch
+ 	char *opt_user = opt_user; /* for compiler */
+ 	char *full_tty;
+ 	char *short_tty;
++#ifdef CONFIG_FEATURE_2FA
++	bool is_2fa_required = false;
++#endif // CONFIG_FEATURE_2FA
+ 	IF_SELINUX(security_context_t user_sid = NULL;)
+ #if ENABLE_PAM
+ 	int pamret;
+@@ -463,7 +558,7 @@ int login_main(int argc UNUSED_PARAM, ch
  		tcflush(0, TCIFLUSH);
  
  		if (!username[0])
@@ -137,30 +161,76 @@
  
  #if ENABLE_PAM
  		pamret = pam_start("login", username, &conv, &pamh);
-@@ -570,6 +650,21 @@ int login_main(int argc UNUSED_PARAM, ch
+@@ -570,6 +665,45 @@ int login_main(int argc UNUSED_PARAM, ch
  					username);
  				goto auth_failed;
  			}
 +#ifdef CONFIG_FEATURE_2FA
 +			struct ubus_context *ctx = ubus_connect(NULL);
 +			if (status_2fa(ctx, username)) {
-+				bool ret = false;
++				is_2fa_required = true;
++
++#ifdef CONFIG_FEATURE_IP_BLOCKD
++				push_log("Password auth succeeded, 2FA required for %s%s", username, fromhost);
++#else
++				syslog(LOG_INFO, "Password auth succeeded, 2FA required for %s%s", username, fromhost);
++#endif // CONFIG_FEATURE_IP_BLOCKD
 +
 +				char otp[USERNAME_SIZE];
 +				get_input_or_die(otp, sizeof(otp), print_otp_prompt);
-+				ret = check_2fa(ctx, username, otp);
-+				if (!ret) {
++				struct _2fa_check_req res = check_2fa(ctx, username, otp);
++				if (!res.res) {
++#ifdef CONFIG_FEATURE_IP_BLOCKD
++					push_log("2FA auth failed for %s%s", username, fromhost);
++#else
++					syslog(LOG_WARNING, "2FA auth failed for %s%s", username, fromhost);
++#endif // CONFIG_FEATURE_IP_BLOCKD
 +					ubus_free(ctx);
 +					goto auth_failed;
 +				}
++#ifdef CONFIG_FEATURE_IP_BLOCKD
++				if (res.recovery) {
++					push_log("2FA auth succeeded (recovery code) for %s%s", username, fromhost);
++				} else {
++					push_log("2FA auth succeeded for %s%s", username, fromhost);
++				}
++#else
++				if (res.recovery) {
++					syslog(LOG_INFO, "2FA auth succeeded (recovery code) for %s%s", username, fromhost);
++				} else {
++					syslog(LOG_INFO, "2FA auth succeeded for %s%s", username, fromhost);
++				}
++#endif // CONFIG_FEATURE_IP_BLOCKD
 +			}
 +			ubus_free(ctx);
 +#endif // CONFIG_FEATURE_2FA
  			break; /* success, continue login process */
  		}
  #endif /* ENABLE_PAM */
---- a/Makefile
-+++ b/Makefile
+@@ -590,6 +724,9 @@ int login_main(int argc UNUSED_PARAM, ch
+ 				return EXIT_FAILURE;
+ 			}
+ 		}
++#ifdef CONFIG_FEATURE_2FA
++		if (!is_2fa_required)
++#endif // CONFIG_FEATURE_2FA
+ 		push_log("Bad password attempt for %s%s", username, fromhost);
+ #endif // CONFIG_FEATURE_IP_BLOCKD
+ 		pause_after_failed_login();
+@@ -684,6 +821,9 @@ int login_main(int argc UNUSED_PARAM, ch
+ #ifndef CONFIG_FEATURE_IP_BLOCKD
+ 		syslog(LOG_INFO, "root login%s", fromhost);
+ #else
++#ifdef CONFIG_FEATURE_2FA
++		if (!is_2fa_required)
++#endif // CONFIG_FEATURE_2FA
+ 		push_log("Password auth succeeded for %s%s", username, fromhost);
+ #endif // CONFIG_FEATURE_IP_BLOCKD
+ 
+Index: busybox-1.34.1/Makefile
+===================================================================
+--- busybox-1.34.1.orig/Makefile
++++ busybox-1.34.1/Makefile
 @@ -616,6 +616,10 @@ ifdef CONFIG_FEATURE_PASSWORD_POLICY
  CONFIG_EXTRA_LDLIBS+=uci
  endif

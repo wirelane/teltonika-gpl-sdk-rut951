@@ -43,6 +43,7 @@
 #
 #    Without prefix: tooltip key
 #                        Feature availability varies by order code
+# 4. visible_in_feature_list - Allows a feature to be visible in feature list
 #
 # SPECIAL FORMATTING:
 # ------------------
@@ -159,6 +160,7 @@ menu "Target firmware features"
 #
 
 config MOBILE_SUPPORT
+	visible_in_feature_list
 	bool "Mobile Connection Management"
 	label "Mobile Management"
 	maintainer "Mobile"
@@ -207,6 +209,7 @@ config MOBILE_SUPPORT
 		Passthrough Mode: Availability varies by order code
 
 config APN_DATABASE_WEBUI_SUPPORT
+	visible_in_feature_list
 	tristate "APN Database Management"
 	label "Mobile Management"
 	maintainer "Mobile"
@@ -218,6 +221,7 @@ config APN_DATABASE_WEBUI_SUPPORT
 		Enables access to add, delete or edit records of APN database for auto APN functionality
 
 config MOBILE_USAGE_SUPPORT
+	visible_in_feature_list
 	bool "Mobile Data Management"
 	label "Mobile Management"
 	maintainer "Mobile"
@@ -230,6 +234,7 @@ config MOBILE_USAGE_SUPPORT
 		Mobile Data Limit: Provides warnings about limit and control to used data within customizable period
 
 config GSM_CHECKER_SUPPORT
+	visible_in_feature_list
 	bool
 	label "Mobile Management"
 	maintainer "Mobile"
@@ -240,6 +245,7 @@ config GSM_CHECKER_SUPPORT
 		Possibility to automatically check mobile module functions
 
 config MODEM_LOGGER_SUPPORT
+	visible_in_feature_list
 	tristate
 	label "Mobile Management"
 	maintainer "Mobile"
@@ -254,19 +260,24 @@ config MODEM_LOGGER_SUPPORT
 		Possibility to gather mobile module logs to desired server or save it locally
 
 config APP_MODEM_CONTROL
+	visible_in_feature_list
 	bool
+	tristate "Modem Control"
 	maintainer "Apps/Apps2"
-	label "Mobile Management"
+	label "Serial Utilities"
 	depends on SERIAL_SUPPORT && MOBILE_SUPPORT
 	default y
 	imply PACKAGE_modem_control
 	imply PACKAGE_vuci-app-modem-control-ui
+	detail
+		Send AT commands to the mobile modem over serial connection
 
 #
 # SIM management
 #
 
 config SIM_PIN_MANAGEMENT
+	visible_in_feature_list
 	bool "SIM PIN/PUK Code Management"
 	label "SIM Management"
 	maintainer "Mobile"
@@ -276,6 +287,7 @@ config SIM_PIN_MANAGEMENT
 		Enables setting, changing, or disabling the SIM card's PIN/PUK codes
 
 config SIM_IDLE_PROTECTION_SUPPORT
+	visible_in_feature_list
 	tristate "SIM Idle Protection"
 	label "SIM Management"
 	maintainer "Mobile"
@@ -287,6 +299,7 @@ config SIM_IDLE_PROTECTION_SUPPORT
 		Ensures periodic activation of unused SIM slots to prevent SIM card blocking
 
 config DUAL_SIM_SUPPORT
+	visible_in_feature_list
 	bool "SIM Switch"
 	label "SIM Management"
 	maintainer "Mobile"
@@ -299,6 +312,7 @@ config DUAL_SIM_SUPPORT
 		Availability varies by order code
 
 config ESIM_SUPPORT
+	visible_in_feature_list
 	bool "eSIM Management"
 	label "SIM Management"
 	maintainer "Mobile"
@@ -313,6 +327,7 @@ config ESIM_SUPPORT
 #
 
 config MOBILE_UTILS_SUPPORT
+	visible_in_feature_list
 	bool "Mobile Utilities"
 	label "Mobile Utilities"
 	maintainer "Apps/Apps1"
@@ -339,6 +354,7 @@ config MOBILE_UTILS_SUPPORT
 		Call Utilities: Feature availability varies by order code
 
 config SMPP_SUPPORT
+	visible_in_feature_list
 	tristate "SMPP"
 	label "Mobile Utilities"
 	maintainer "Apps/Apps1"
@@ -350,6 +366,7 @@ config SMPP_SUPPORT
 		SMPP protocol services for flexible short message data transfer
 
 config LPAC_APP
+	visible_in_feature_list
 	bool
 	maintainer "Embedded/BBU"
 	label "Mobile Utilities"
@@ -361,6 +378,7 @@ config LPAC_APP
 
 
 config RNDIS_SUPPORT
+	visible_in_feature_list
 	bool
 	maintainer "Embedded/PoC"
 	label "Mobile Utilities"
@@ -375,6 +393,7 @@ config USB_NCM_SUPPORT
 	imply PACKAGE_kmod-usb-net-cdc-ncm
 
 config EMAIL_TO_SMS_SUPPORT
+	visible_in_feature_list
 	tristate
 	maintainer "Apps/Apps1"
 	label "Mobile Utilities"
@@ -385,6 +404,7 @@ config EMAIL_TO_SMS_SUPPORT
 	imply PACKAGE_email_to_sms
 
 config PHONE_SUPPORT
+	visible_in_feature_list
 	bool
 	maintainer "Apps/Apps1"
 	label "Mobile Utilities"
@@ -397,6 +417,7 @@ config PHONE_SUPPORT
 #
 
 config WIFI_SUPPORT
+	visible_in_feature_list
 	bool "WiFi"
 	maintainer "Networks/Networks1"
 	label "WiFi"
@@ -422,6 +443,7 @@ config WIFI_SUPPORT
 		Features: \, Fast roaming
 
 config MT7628_HOTSPOT20
+	visible_in_feature_list
 	bool
 	maintainer "Embedded/PoC"
 	label "WiFi"
@@ -429,6 +451,7 @@ config MT7628_HOTSPOT20
 	default y
 
 config HOTSPOT20_SUPPORT
+	visible_in_feature_list
 	tristate "HotSpot 2.0"
 	maintainer "SysApp"
 	label "WiFi"
@@ -440,6 +463,7 @@ config HOTSPOT20_SUPPORT
 		Hotspot 2.0 is a WiFi technology that enables seamless and secure roaming between different WiFi networks
 
 config TRAVELMATE_SUPPORT
+	visible_in_feature_list
 	tristate "Travelmate"
 	maintainer "Networks/Networks1"
 	label "WiFi"
@@ -455,6 +479,7 @@ config TRAVELMATE_SUPPORT
 #
 
 config CORE_NETWORK_PACKAGES
+	visible_in_feature_list
 	bool
 	default y
 	maintainer "Networks/Networks1"
@@ -476,6 +501,7 @@ config CORE_NETWORK_PACKAGES
 		Interfaces: \, PPPoE client, IPv6 prefix management, WAN, LAN
 
 config ADVANCED_NETWORK
+	visible_in_feature_list
 	bool "Network"
 	maintainer "Networks/Networks1"
 	depends on !AP_DEVICE
@@ -505,6 +531,7 @@ config ADVANCED_NETWORK
 
 
 config FRR_SUPPORT
+	visible_in_feature_list
 	tristate "Dynamic Route Protocols"
 	label "Network"
 	maintainer "Networks/Networks2"
@@ -524,6 +551,7 @@ config FRR_SUPPORT
 		RIP, OSPF, EIGRP, BGP, NHRP
 
 config FRR8_SUPPORT
+	visible_in_feature_list
 	tristate "Dynamic Route Protocols"
 	label "Network"
 	maintainer "Networks/Networks2"
@@ -542,6 +570,7 @@ config FRR8_SUPPORT
 		RIP, OSPF, EIGRP, BGP, NHRP
 
 config BFD_FRR_SUPPORT
+	visible_in_feature_list
 	tristate
 	maintainer "Networks/Networks1"
 	label "Network"
@@ -555,6 +584,7 @@ config BFD_FRR_SUPPORT
 		BFD: Peers, profiles, receive and transmit interval, passive mode
 
 config BFD_FRR8_SUPPORT
+	visible_in_feature_list
 	tristate
 	maintainer "Networks/Networks1"
 	label "Network"
@@ -567,6 +597,7 @@ config BFD_FRR8_SUPPORT
 		Peers, profiles, receive and transmit interval, passive mode
 
 config SMCROUTE_SUPPORT
+	visible_in_feature_list
 	tristate
 	maintainer "Networks/Networks1"
 	label "Network"
@@ -580,6 +611,7 @@ config SMCROUTE_SUPPORT
 		Static multicast routes: Support for configuring static multicast routes, TTL filters
 
 config STARLINK_SUPPORT
+	visible_in_feature_list
 	tristate
 	maintainer "Networks/Networks1"
 	label "Network"
@@ -593,6 +625,7 @@ config STARLINK_SUPPORT
 		Starlink management: Status, stow/unstow/reboot actions
 
 config FIREWALL_SUPPORT
+	visible_in_feature_list
 	bool "Firewall"
 	maintainer "Networks/Networks1"
 	label "Firewall"
@@ -615,6 +648,7 @@ config FIREWALL_SUPPORT
 		Conntrack Helpers: FTP, PPTP, SIP, SNMP, TFTP, IRC
 
 config IPTABLES_NAT_EXTRA_SUPPORT
+	visible_in_feature_list
 	tristate "IPtables Filter Extension"
 	maintainer "Networks/Networks1"
 	label "Firewall"
@@ -626,6 +660,7 @@ config IPTABLES_NAT_EXTRA_SUPPORT
 		IPtables extensions for extra NAT targets. Adds targets\: MIRROR and NETMAP
 
 config IPTABLES_FILTER_EXTENSION
+	visible_in_feature_list
 	tristate "IPtables NAT extra"
 	maintainer "Networks/Networks1"
 	label "Firewall"
@@ -637,6 +672,7 @@ config IPTABLES_FILTER_EXTENSION
 		IPtables extensions for packet content inspection. Includes support for\: Matches\: - string - bpf
 
 config NFTABLES_SUPPORT
+	visible_in_feature_list
 	bool
 	maintainer "Embedded/PoC"
 	label "Network"
@@ -645,6 +681,7 @@ config NFTABLES_SUPPORT
 	imply PACKAGE_kmod-nft-netdev
 
 config NFTABLES_NOJSON_SUPPORT
+	visible_in_feature_list
 	tristate
 	maintainer "Embedded/PoC"
 	label "Network"
@@ -654,6 +691,7 @@ config NFTABLES_NOJSON_SUPPORT
 	imply PACKAGE_nftables-nojson
 
 config EBTABLES_DNS_SUPPORT
+	visible_in_feature_list
 	bool
 	maintainer "Networks/Networks1"
 	label "Network"
@@ -662,10 +700,11 @@ config EBTABLES_DNS_SUPPORT
 	imply PACKAGE_ebtables-dns
 
 config VXLAN_SUPPORT
+	visible_in_feature_list
 	tristate "VXLAN"
 	maintainer "Networks/Networks1"
 	label "Network"
-	depends on PKG_SUPPORT && !USES_VENDOR_WIFI_DRIVER
+	depends on PKG_SUPPORT
 	default y if TEST_IMAGE
 	default m
 	imply PACKAGE_vuci-app-vxlan-ui
@@ -675,6 +714,7 @@ config VXLAN_SUPPORT
 		VXLAN: 16 million VNIs, L2 over L3 tunneling, multicast, unicast or broadcast
 
 config JOOL_SUPPORT
+	visible_in_feature_list
 	tristate "NAT64"
 	maintainer "Networks/Networks1"
 	depends on PKG_SUPPORT && NAND_SUPPORT && !GATEWAY_DEVICE
@@ -686,6 +726,7 @@ config JOOL_SUPPORT
 		NAT64 is an IPv6 transition mechanism that facilitates communication between IPv6 and IPv4 hosts by using a form of network address translation
 
 config DOT1X_CLIENT_SUPPORT
+	visible_in_feature_list
 	tristate "802.1X Client"
 	maintainer "Networks/Networks2"
 	label "Network"
@@ -698,6 +739,7 @@ config DOT1X_CLIENT_SUPPORT
 		MD5, TLS, PWD, Tunneled TLS, PEAP
 
 config DOT1X_SERVER_SUPPORT
+	visible_in_feature_list
 	tristate "802.1X Server"
 	maintainer "Networks/Networks2"
 	label "Network"
@@ -709,6 +751,7 @@ config DOT1X_SERVER_SUPPORT
 		Port-based multi-host 802.1X NAC, RADIUS-assigned VLANs, accept VLANs, reject VLANs
 
 config UMDNS_SUPPORT
+	visible_in_feature_list
 	bool
 	maintainer "Apps/Apps1"
 	label "Network"
@@ -717,6 +760,7 @@ config UMDNS_SUPPORT
 	imply PACKAGE_umdns
 
 config IP_BRIDGE_SUPPORT
+	visible_in_feature_list
 	bool
 	maintainer "Networks/Networks1"
 	label "Network"
@@ -724,11 +768,18 @@ config IP_BRIDGE_SUPPORT
 	default y
 	imply PACKAGE_ip-bridge
 
+config BONDING_CLIENT_SUPPORT
+	visible_in_feature_list
+	tristate "Bonding client"
+	maintainer "Networks/Networks1"
+	label "Network"
+
 #
 # Network Utilities
 #
 
 config MULTIWAN_SUPPORT
+	visible_in_feature_list
 	tristate "Multiwan"
 	maintainer "Networks/Networks1"
 	label "Network Utilities"
@@ -741,6 +792,7 @@ config MULTIWAN_SUPPORT
 		Load Balancing: Distribute traffic among multiple WAN connections to improve performance and reliability
 
 config CONNCHECKER_SUPPORT
+	visible_in_feature_list
 	tristate "Internet Status"
 	maintainer "Networks/Networks1"
 	label "Network Utilities"
@@ -754,6 +806,7 @@ config CONNCHECKER_SUPPORT
 		IPv6/IPv6 track IP, interval configuration
 
 config IGMPPROXY_SUPPORT
+	visible_in_feature_list
 	tristate "IGMP proxy"
 	maintainer "Networks/Networks1"
 	label "Network Utilities"
@@ -765,6 +818,7 @@ config IGMPPROXY_SUPPORT
 		IGMP proxy (Multicast routing) forwards multicast traffic using IGMP signalling
 
 config QOS_SUPPORT
+	visible_in_feature_list
 	tristate "Network Traffic Control"
 	maintainer "Networks/Networks1"
 	label "Network Utilities"
@@ -776,6 +830,7 @@ config QOS_SUPPORT
 		Traffic control does packet prioritizing, traffic shaping, bandwidth limiting, AQM (Active Queue Management) and QoS (Quality of Service)
 
 config SQM_SUPPORT
+	visible_in_feature_list
 	tristate "Smart Queue Management"
 	maintainer "Networks/Networks1"
 	label "Network Utilities"
@@ -787,6 +842,7 @@ config SQM_SUPPORT
 		Smart Queue Management performs per-packet/per flow network scheduling, active queue length management (AQM), traffic shaping/rate limiting, and QoS (prioritisation)
 
 config RELAYD_SUPPORT
+	visible_in_feature_list
 	tristate "Relayd"
 	maintainer "Networks/Networks1"
 	label "Network Utilities"
@@ -798,6 +854,7 @@ config RELAYD_SUPPORT
 		Relayd create transparent wireless bridge between WiFi STA and LAN network
 
 config NETWORK_MAP_SUPPORT
+	visible_in_feature_list
 	tristate "Topology"
 	label "Network Utilities"
 	maintainer "Networks/Networks2"
@@ -808,6 +865,7 @@ config NETWORK_MAP_SUPPORT
 		Displays network devices that belong to the same network
 
 config NETWORK_USAGE_SUPPORT
+	visible_in_feature_list
 	bool "Network Usage"
 	label "Network Utilities"
 	maintainer "Networks/Networks2"
@@ -816,6 +874,7 @@ config NETWORK_USAGE_SUPPORT
 	imply PACKAGE_vuci-app-network-usage-ui
 
 config UDPRELAY_SUPPORT
+	visible_in_feature_list
 	tristate "UDP Relay"
 	maintainer "Networks/Networks1"
 	label "Network Utilities"
@@ -827,6 +886,7 @@ config UDPRELAY_SUPPORT
 		UDP relay forward broadcast packets from a specified UDP port to configured interface
 
 config VRF_SUPPORT
+	visible_in_feature_list
 	tristate "VRF"
 	maintainer "Networks/Networks1"
 	label "Network Utilities"
@@ -838,6 +898,7 @@ config VRF_SUPPORT
 		Virtual routing and forwarding, IP technology allows users to configure multiple routing table instances to simultaneously co-exist within the same router
 
 config VRRP_SUPPORT
+	visible_in_feature_list
 	tristate "VRRP"
 	maintainer "Networks/Networks1"
 	label "Network Utilities"
@@ -851,10 +912,11 @@ config VRRP_SUPPORT
 		Virtualized MAC, Priority, advertisement interval
 
 config HOTSPOT_SUPPORT
+	visible_in_feature_list
 	tristate "HotSpot"
 	maintainer "SysApp"
 	label "Network Utilities"
-	depends on PKG_SUPPORT
+	depends on PKG_SUPPORT && (WIFI_SUPPORT || ETHERNET_SUPPORT)
 	default y if (NAND_SUPPORT && !GATEWAY_DEVICE && !NETWORKS_EXTERNAL) || TEST_IMAGE
 	default m
 	imply PACKAGE_vuci-app-coovachilli-ui
@@ -867,6 +929,7 @@ config HOTSPOT_SUPPORT
 		customised hotspot themes
 
 config HOTSPOT_THEMES_SUPPORT
+	visible_in_feature_list
 	tristate
 	maintainer "SysApp"
 	label "Network Utilities"
@@ -884,6 +947,7 @@ config HOTSPOT_THEMES_SUPPORT
 	imply PACKAGE_hs_theme_station
 
 config MPLS_SUPPORT
+	visible_in_feature_list
 	tristate "MPLS"
 	label "Network Utilities"
 	depends on !SMALL_FLASH && PKG_SUPPORT && FRR_SUPPORT && ADVANCED_NETWORK && !USES_VENDOR_WIFI_DRIVER
@@ -896,6 +960,7 @@ config MPLS_SUPPORT
 		LDP, L3VPN
 
 config MPLS8_SUPPORT
+	visible_in_feature_list
 	tristate "MPLS"
 	label "Network Utilities"
 	depends on SMALL_FLASH && PKG_SUPPORT && FRR8_SUPPORT && ADVANCED_NETWORK && !USES_VENDOR_WIFI_DRIVER
@@ -912,6 +977,7 @@ config MPLS8_SUPPORT
 #
 
 config STRONGSWAN_SUPPORT
+	visible_in_feature_list
 	bool "IPsec"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -929,6 +995,7 @@ config STRONGSWAN_SUPPORT
 		IKEv1, IKEv2, 14 encryption methods, MD5, SHA1, SHA256, SHA348, SHA512 authentication algorithms
 
 config OPENVPN_SUPPORT
+	visible_in_feature_list
 	bool "OpenVPN"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -940,6 +1007,7 @@ config OPENVPN_SUPPORT
 		static key, TLS, password, PKCS#12 authentication methoods, 27 encryption methods
 
 config OPENVPN_DCO_SUPPORT
+	visible_in_feature_list
 	tristate
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -952,6 +1020,7 @@ config OPENVPN_DCO_SUPPORT
 		by offloading the data channel processing to kernelspace
 
 config STUNNEL_SUPPORT
+	visible_in_feature_list
 	tristate "Stunnel"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -963,6 +1032,7 @@ config STUNNEL_SUPPORT
 		Proxy designed to add TLS encryption functionality to existing clients and servers
 
 config L2TP_SUPPORT
+	visible_in_feature_list
 	bool "L2TP"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -975,6 +1045,7 @@ config L2TP_SUPPORT
 		\, IPv6 support
 
 config L2TPV6_SUPPORT
+	visible_in_feature_list
 	tristate
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -987,6 +1058,7 @@ config L2TPV6_SUPPORT
 		It is based on xl2tpd with added IPv6 support
 
 config L2TPv3_SUPPORT
+	visible_in_feature_list
 	tristate "L2TPv3"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -996,6 +1068,7 @@ config L2TPv3_SUPPORT
 		Label Switching (MPLS) for encapsulation of multiprotocol Layer 2 communications traffic over IP networks
 
 config PPTP_SUPPORT
+	visible_in_feature_list
 	bool "PPTP"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1007,6 +1080,7 @@ config PPTP_SUPPORT
 		PPTP: Server, client
 
 config SSTP_SUPPORT
+	visible_in_feature_list
 	tristate "SSTP Client"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1018,6 +1092,7 @@ config SSTP_SUPPORT
 		SSTP client is a is a VPN tunnel that provides a mechanism to transport PPP traffic through an SSL/TLS channel
 
 config DMVPN_SUPPORT
+	visible_in_feature_list
 	tristate "DMVPN"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1029,6 +1104,7 @@ config DMVPN_SUPPORT
 		Spoke and Hub modes, GRE, IPSec, NHRP technologies
 
 config DMVPN_FRR8_SUPPORT
+	visible_in_feature_list
 	tristate "DMVPN_FRR8"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1040,6 +1116,7 @@ config DMVPN_FRR8_SUPPORT
 		Spoke and Hub modes, GRE, IPSec, NHRP technologies
 
 config GRE_SUPPORT
+	visible_in_feature_list
 	bool "GRE"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1052,6 +1129,7 @@ config GRE_SUPPORT
 		Tunnel, GRE tunnel over IPSec modes
 
 config ZEROTIER_SUPPORT
+	visible_in_feature_list
 	tristate "ZeroTier"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1063,6 +1141,7 @@ config ZEROTIER_SUPPORT
 		VPN which offers peer-to-peer mesh connections
 
 config TINC_SUPPORT
+	visible_in_feature_list
 	tristate "Tinc"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1074,6 +1153,7 @@ config TINC_SUPPORT
 		VPN that uses tunnelling and encryption to create a secure private network between hosts on the Internet
 
 config WIREGUARD_SUPPORT
+	visible_in_feature_list
 	bool "WireGuard"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1086,6 +1166,7 @@ config WIREGUARD_SUPPORT
 		VPN that and was designed with the goals of ease of use, high speed performance, and low attack surface
 
 config TAILSCALE_SUPPORT
+	visible_in_feature_list
 	tristate "Tailscale"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1097,6 +1178,7 @@ config TAILSCALE_SUPPORT
 		Zero config VPN for building secure networks
 
 config NETBIRD_SUPPORT
+	visible_in_feature_list
 	tristate "Netbird"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1108,6 +1190,7 @@ config NETBIRD_SUPPORT
 		Open-source VPN management platform built on top of WireGuard® making it easy to create secure private networks for your organization or home
 
 config EOIP_SUPPORT
+	visible_in_feature_list
 	tristate "EoIP"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1119,6 +1202,7 @@ config EOIP_SUPPORT
 		Ethernet over IP (EoIP) Tunneling is a MikroTik RouterOS protocol based on GRE RFC 1701 that creates an Ethernet tunnel between two routers on top of an IP connection
 
 config OPENCONNECT_SUPPORT
+	visible_in_feature_list
 	tristate "OpenConnect"
 	label "VPN"
 	maintainer "Networks/Networks2"
@@ -1133,6 +1217,7 @@ config OPENCONNECT_SUPPORT
 #
 
 config AZURE_SUPPORT
+	visible_in_feature_list
 	tristate "Azure IoT Hub"
 	label "IoT Platforms"
 	maintainer "Apps/Apps1"
@@ -1144,6 +1229,7 @@ config AZURE_SUPPORT
 		Data to Server support, direct method support, plug & play integration, DPS
 
 config AWS_SUPPORT
+	visible_in_feature_list
 	tristate "AWS"
 	label "IoT Platforms"
 	maintainer "Apps/Apps1"
@@ -1155,6 +1241,7 @@ config AWS_SUPPORT
 		Call device's API by using AWS Jobs functionality
 
 config CUMULOCITY_SUPPORT
+	visible_in_feature_list
 	tristate "Cumulocity / Cloud Of Things"
 	label "IoT Platforms"
 	maintainer "Apps/Apps1"
@@ -1170,6 +1257,7 @@ config CUMULOCITY_SUPPORT
 		parameters monitoring
 
 config THINGWORX_SUPPORT
+	visible_in_feature_list
 	tristate "Thingworx"
 	label "IoT Platforms"
 	maintainer "Apps/Apps1"
@@ -1185,6 +1273,7 @@ config THINGWORX_SUPPORT
 		parameters monitoring
 
 config RMS_SUPPORT
+	visible_in_feature_list
 	bool "RMS"
 	label "IoT Platforms"
 	maintainer "Apps/Apps1"
@@ -1202,15 +1291,17 @@ config RMS_SUPPORT
 #
 
 config IO_MODBUS_SUPPORT
+	visible_in_feature_list
 	tristate "Modbus"
 	label "Industrial Protocols"
 	maintainer "Apps/Apps2"
 	depends on PKG_SUPPORT
 	default m if !HAS_MODBUS
 	default y
-	imply PACKAGE_vuci-app-modbus-server-ui
-	imply PACKAGE_vuci-app-modbus-client-ui
-	imply PACKAGE_vuci-app-modbus-serial-ui if SERIAL_SUPPORT
+	imply PACKAGE_vuci-app-modbus-tcp-server-ui
+	imply PACKAGE_vuci-app-modbus-tcp-client-ui
+	imply PACKAGE_vuci-app-modbus-serial-server-ui if SERIAL_SUPPORT
+	imply PACKAGE_vuci-app-modbus-serial-client-ui if SERIAL_SUPPORT
 	imply PACKAGE_vuci-app-modbus-gateway-ui
 	detail
 		Client, Server and MQTT Gateway modes with 14 data types over TCP
@@ -1224,12 +1315,16 @@ config IO_MODBUS_SUPPORT
 		connections
 
 config DNP3_SUPPORT
+	visible_in_feature_list
 	tristate "DNP3"
 	label "Industrial Protocols"
 	maintainer "Apps/Apps2"
 	depends on PKG_SUPPORT
 	default m
-	imply PACKAGE_vuci-app-dnp3-ui
+	imply PACKAGE_vuci-app-dnp3-tcp-client-ui
+	imply PACKAGE_vuci-app-dnp3-tcp-outstation-ui
+	imply PACKAGE_vuci-app-dnp3-serial-client-ui if SERIAL_SUPPORT
+	imply PACKAGE_vuci-app-dnp3-serial-outstation-ui if SERIAL_SUPPORT
 	detail
 		Station and Outstation modes over TCP
 	detail if USB_SUPPORT_EXTERNAL
@@ -1242,6 +1337,7 @@ config DNP3_SUPPORT
 		connections
 
 config BACNET_SUPPORT
+	visible_in_feature_list
 	tristate "Bacnet"
 	label "Industrial Protocols"
 	maintainer "Apps/Apps2"
@@ -1256,6 +1352,7 @@ config BACNET_SUPPORT
 		connections
 
 config MBUS_SUPPORT
+	visible_in_feature_list
 	bool "MBUS"
 	label "Industrial Protocols"
 	maintainer "Apps/Apps2"
@@ -1268,6 +1365,7 @@ config MBUS_SUPPORT
 		up to 250 client devices, power supply for up to 6 client devices
 
 config OPCUA_SUPPORT
+	visible_in_feature_list
 	tristate "OPC UA"
 	label "Industrial Protocols"
 	maintainer "Apps/Apps2"
@@ -1279,6 +1377,7 @@ config OPCUA_SUPPORT
 		Client and Server modes for industrial data exchange
 
 config DLMS_SUPPORT
+	visible_in_feature_list
 	tristate "DLMS/Cosem"
 	label "Industrial Protocols"
 	maintainer "Apps/Apps2"
@@ -1298,6 +1397,7 @@ config DLMS_SUPPORT
 		connections
 
 config CAN_GATEWAY_SUPPORT
+	visible_in_feature_list
 	bool "CAN Gateway"
 	label "Industrial Protocols"
 	maintainer "Apps/Apps2"
@@ -1308,7 +1408,20 @@ config CAN_GATEWAY_SUPPORT
 	detail
 		CAN to IP gateway
 
+config CANOPEN_CLIENT_SUPPORT
+	visible_in_feature_list
+	bool "CANopen SDO Client"
+	label "Industrial Protocols"
+	maintainer "Apps/Apps2"
+	depends on CAN_BUS_STM
+	default y
+	imply PACKAGE_canopen_client
+	imply PACKAGE_vuci-app-canopen-client-ui
+	detail
+		CANopen SDO Client support
+
 config IEC60870_SUPPORT
+	visible_in_feature_list
 	tristate "IEC 60870-5"
 	label "Industrial Protocols"
 	maintainer "Apps/Apps2"
@@ -1326,6 +1439,7 @@ config IEC60870_SUPPORT
 #
 
 config EVENTS_SUBSYSTEM
+	visible_in_feature_list
 	tristate "Events Reporting"
 	label "Monitoring & Management"
 	maintainer "Apps/Apps1"
@@ -1341,6 +1455,7 @@ config EVENTS_SUBSYSTEM
 		and SMS
 
 config EASYCWMP_SUPPORT
+	visible_in_feature_list
 	tristate "TR-069"
 	label "Monitoring & Management"
 	maintainer "Apps/Apps1"
@@ -1356,6 +1471,7 @@ config EASYCWMP_SUPPORT
 		monitoring parameters
 
 config SNMP_SUPPORT
+	visible_in_feature_list
 	tristate "SNMP"
 	label "Monitoring & Management"
 	maintainer "Apps/Apps1"
@@ -1374,6 +1490,7 @@ config SNMP_SUPPORT
 		\, Input/Output and events log notifications traps
 
 config MQTT_SUPPORT
+	visible_in_feature_list
 	tristate "MQTT"
 	label "Monitoring & Management"
 	maintainer "Apps/Apps1"
@@ -1386,6 +1503,7 @@ config MQTT_SUPPORT
 		MQTT Publisher: Client instance that can send messages to the Broker, who can forward these messages to other clients (subscribers)
 
 config NF_LOGGING_SUPPORT
+	visible_in_feature_list
 	tristate "Traffic Logging"
 	label "Monitoring & Management"
 	maintainer "Apps/Apps1"
@@ -1398,6 +1516,7 @@ config NF_LOGGING_SUPPORT
 		Netfilter userpace logging that provides the ability to set up periodic transfers of the selected traffic log to an FTP server
 
 config EVENT_JUGGLER_SUPPORT
+	visible_in_feature_list
 	tristate "Event Juggler"
 	label "Monitoring & Management"
 	maintainer "Apps/Apps1"
@@ -1438,6 +1557,7 @@ config EVENT_JUGGLER_SUPPORT
 		Event Juggler: \, WiFi management actions
 
 config DATA_SENDER_SUPPORT
+	visible_in_feature_list
 	tristate "Data To Server"
 	label "Monitoring & Management"
 	maintainer "Apps/Apps1"
@@ -1451,6 +1571,7 @@ config DATA_SENDER_SUPPORT
 	imply PACKAGE_DATA_SENDER_BASE64
 	imply PACKAGE_data-sender-mod-gzip
 	imply PACKAGE_data-sender-mod-deflate
+	imply PACKAGE_vuci-app-data-sender-api-mod-canopen if CANOPEN_CLIENT_SUPPORT
 	imply PACKAGE_vuci-app-data-sender-api-mod-gsm if MOBILE_SUPPORT
 	imply PACKAGE_vuci-app-data-sender-api-mod-mdcollect if MOBILE_SUPPORT
 	imply PACKAGE_vuci-app-data-sender-api-mod-bluetooth if BLUETOOTH_SUPPORT
@@ -1475,6 +1596,8 @@ config DATA_SENDER_SUPPORT
 		\, DNP3
 	detail if MBUS_SUPPORT
 		\, M-Bus
+	detail if CANOPEN_CLIENT_SUPPORT
+		\, CANopen
 	detail if IMPULSE_COUNTER_SUPPORT
 		\, Impulse Counter
 	detail if IO_MODBUS_SUPPORT
@@ -1506,7 +1629,13 @@ config DATA_SENDER_ADVANCED_SUPPORT
 	default y
 	imply PACKAGE_vuci-app-data-sender-api-mod-advanced
 
+config LWM2M_SUPPORT
+	tristate "LwM2M"
+	label "Monitoring & Management"
+	maintainer "Apps/Apps1"
+
 config JSON_RPC
+	visible_in_feature_list
 	tristate "JSON-RPC"
 	label "Monitoring & Management"
 	maintainer "SysApp"
@@ -1517,6 +1646,7 @@ config JSON_RPC
 		Remote procedure call (RPC) system configuration protocol
 
 config SSH
+	visible_in_feature_list
 	tristate "SSH"
 	label "Monitoring & Management"
 	maintainer "SysApp"
@@ -1525,6 +1655,7 @@ config SSH
 		Network protocol that enables secure communication between two computers over an unsecured network
 
 config WebUI
+	visible_in_feature_list
 	tristate "WebUI"
 	label "Monitoring & Management"
 	maintainer "SysApp"
@@ -1533,6 +1664,7 @@ config WebUI
 		Graphical interface that allows users to interact with system through a web browser
 
 config API
+	visible_in_feature_list
 	tristate "API"
 	label "Monitoring & Management"
 	maintainer "SysApp"
@@ -1541,6 +1673,7 @@ config API
 		REST API, HTTP/HTTPS protocol, GET/POST/PUT/DELETE methods, bulk requests, Session token and HTTP basic authentication methods, ACLs. Documentation\: https\://developers.teltonika-networks.com
 
 config HTTP
+	visible_in_feature_list
 	tristate "HTTP/HTTPS"
 	label "Monitoring & Management"
 	maintainer "SysApp"
@@ -1549,18 +1682,43 @@ config HTTP
 		HTTP and HTTPS protocols used for communication between web browsers and devices
 
 config SERIAL_SUPPORT
+	visible_in_feature_list
 	bool
 	maintainer "Apps/Apps2"
 	label "Monitoring & Management"
 	imply PACKAGE_serial
 	imply PACKAGE_modbusgwd
 	imply PACKAGE_gpiod-tools
-	imply PACKAGE_vuci-app-overip-ui
 	imply PACKAGE_vuci-app-modbus-serial-gateway-ui
-	imply PACKAGE_vuci-app-getty-ui
+	imply PACKAGE_api-core-mod-serial
 	imply BUSYBOX_DEFAULT_STTY
 
+config SERIAL_CONSOLE
+	visible_in_feature_list
+	bool
+	tristate "Console"
+	maintainer "Apps/Apps2"
+	label "Serial Utilities"
+	depends on SERIAL_SUPPORT
+	default y
+	imply PACKAGE_vuci-app-getty-ui
+	detail
+		Command-line access to the device over a serial connection
+
+config SERIAL_OVERIP
+	visible_in_feature_list
+	bool
+	tristate "Serial over IP"
+	maintainer "Apps/Apps2"
+	label "Serial Utilities"
+	depends on SERIAL_SUPPORT
+	default y
+	imply PACKAGE_vuci-app-overip-ui
+	detail
+		Serial data transmission over TCP/UDP in client and server modes
+
 config SERIAL_USB_DRIVERS
+	visible_in_feature_list
 	bool
 	maintainer "Embedded/BBU"
 	label "Monitoring & Management"
@@ -1574,6 +1732,7 @@ config SERIAL_USB_DRIVERS
 		Serial USB drivers: Support of usb serial drivers used inside devices
 
 config SERIAL_USB_DRIVERS_EXT
+	visible_in_feature_list
 	bool
 	maintainer "Embedded/BBU"
 	label "Monitoring & Management"
@@ -1588,6 +1747,7 @@ config SERIAL_USB_DRIVERS_EXT
 		External serial USB drivers: Support of usb serial drivers available as plugable module
 
 config USB_STORAGE_SUPPORT
+	visible_in_feature_list
 	bool
 	maintainer "Embedded/BBU"
 	label "Monitoring & Management"
@@ -1614,6 +1774,7 @@ config USB_STORAGE_SUPPORT
 	imply KERNEL_EXT4_FS_SECURITY
 
 config APP_SAMBA
+	visible_in_feature_list
 	tristate "Network Shares"
 	label "Monitoring & Management"
 	maintainer "Networks/Networks2"
@@ -1627,6 +1788,7 @@ config APP_SAMBA
 		External storage mount, custom config, users management
 
 config PRINTER_SUPPORT
+	visible_in_feature_list
 	tristate "Printer Server"
 	label "Monitoring & Management"
 	maintainer "Apps/Apps2"
@@ -1644,6 +1806,7 @@ config PRINTER_SUPPORT
 #
 
 config GPS_SUPPORT
+	visible_in_feature_list
 	bool "Location Tracking"
 	maintainer "Apps/Apps2"
 	label "Location Tracking"
@@ -1659,6 +1822,7 @@ config GPS_SUPPORT
 		Geofencing: Configurable multiple geofence zones
 
 config NTRIP_SUPPORT
+	visible_in_feature_list
 	tristate "NTRIP"
 	maintainer "Apps/Apps2"
 	label "Location Tracking"
@@ -1685,6 +1849,7 @@ config NTRIP_SUPPORT
 #
 
 config IO_UTILS
+	visible_in_feature_list
 	bool "Input/Output"
 	label "Input/Output"
 	maintainer "Apps/Apps1"
@@ -1696,6 +1861,7 @@ config IO_UTILS
 		I/O Juggler: Utility to create automated rules that perform certain actions based on Input state changes and other conditions
 
 config IO_SUPPORT
+	visible_in_feature_list
 	bool
 	label "Input/Output"
 	detail
@@ -1707,6 +1873,7 @@ config IO_SUPPORT
 	imply PACKAGE_gpiod-tools
 
 config IO_SCHEDULER
+	visible_in_feature_list
 	tristate
 	label "Input/Output"
 	maintainer "Apps/Apps1"
@@ -1715,9 +1882,10 @@ config IO_SCHEDULER
 	default y
 	imply PACKAGE_vuci-app-io-scheduler-ui
 	detail
-		Scheduler: Can be used to configure a timetable of when an I/O pin state should change, based on days of the week or month and hours of the day.
+		Scheduler: Can be used to configure a timetable of when an I/O pin state should change, based on days of the week or month and hours of the day. 
 
 config IO_JUGGLER
+	visible_in_feature_list
 	tristate
 	label "Input/Output"
 	maintainer "Apps/Apps1"
@@ -1727,6 +1895,7 @@ config IO_JUGGLER
 	imply PACKAGE_vuci-app-io-juggler-api
 
 config POWER_CONTROL_SUPPORT
+	visible_in_feature_list
 	bool "Power Control"
 	maintainer "Apps/Apps1"
 	label "Input/Output"
@@ -1737,6 +1906,7 @@ config POWER_CONTROL_SUPPORT
 		Power Control monitoring with device shut down configuration on low battery and ignition changes
 
 config IMPULSE_COUNTER_SUPPORT
+	visible_in_feature_list
 	tristate "Impulse Counter"
 	maintainer "Apps/Apps2"
 	label "Input/Output"
@@ -1752,6 +1922,7 @@ config IMPULSE_COUNTER_SUPPORT
 #
 
 config NTP_SUPPORT
+	visible_in_feature_list
 	bool "NTP"
 	label "System"
 	maintainer "Apps/Apps1"
@@ -1773,6 +1944,7 @@ config NTP_SUPPORT
 		NTPD: Utility with advanced NTP features which includes NTPv4
 
 config NTPD_SUPPORT
+	visible_in_feature_list
 	tristate
 	maintainer "Apps/Apps1"
 	depends on PKG_SUPPORT
@@ -1781,6 +1953,7 @@ config NTPD_SUPPORT
 	imply PACKAGE_vuci-app-ntpd-ui
 
 config PROFILES_SUPPORT
+	visible_in_feature_list
 	bool "Configuration Profiles"
 	label "System"
 	maintainer "SysApp"
@@ -1790,6 +1963,7 @@ config PROFILES_SUPPORT
 		Switching between multiple profiles, profile scheduler
 
 config PKG_SUPPORT
+	visible_in_feature_list
 	bool "Package Manager"
 	label "System"
 	maintainer "Apps/Apps1"
@@ -1801,6 +1975,7 @@ config PKG_SUPPORT
 		Download/upgrade from server, offline upload
 
 config FOTA_SUPPORT
+	visible_in_feature_list
 	bool "Firmware From Server (FOTA)"
 	label "System"
 	maintainer "SysApp"
@@ -1810,6 +1985,7 @@ config FOTA_SUPPORT
 		Download suggested firmware from server
 
 config MOBILE_DFOTA_SUPPORT
+	visible_in_feature_list
 	bool "Module Firmware Update From Server"
 	label "System"
 	maintainer "Mobile"
@@ -1822,6 +1998,7 @@ config MOBILE_DFOTA_SUPPORT
 		Availability varies by order code
 
 config MODEM_UPDATER_SUPPORT
+	visible_in_feature_list
 	tristate
 	label "System"
 	maintainer "Mobile"
@@ -1840,6 +2017,7 @@ config MODEM_UPDATER_SUPPORT
 		Possibility to upgrade/downgrade mobile module using suggested firmwares from server or perform procedure locally
 
 config LED_SUPPORT
+	visible_in_feature_list
 	bool "LED Management"
 	label "System"
 	maintainer "Embedded/BBU"
@@ -1851,9 +2029,12 @@ config LED_SUPPORT
 		Provides services for controlling hardware LEDs
 
 config 2FA_SUPPORT
-	bool "2FA"
+	visible_in_feature_list
+	tristate "2FA"
 	label "System"
 	maintainer "SysApp"
+	depends on PKG_SUPPORT
+	default m if SMALL_FLASH
 	default y
 	imply PACKAGE_vuci-app-2fa-ui
 	imply RPCD_2FA
@@ -1861,6 +2042,7 @@ config 2FA_SUPPORT
 	imply BUSYBOX_CONFIG_FEATURE_2FA
 
 config PAM_SUPPORT
+	visible_in_feature_list
 	tristate "Privileged Access Management (PAM)"
 	label "System"
 	maintainer "SysApp"
@@ -1874,16 +2056,19 @@ config PAM_SUPPORT
 		Authorisation service priority, external users support, required/requisite/sufficient/optional types
 
 config SSO_SUPPORT
+	visible_in_feature_list
 	tristate "Single Sign-On"
 	label "System"
 	maintainer "SysApp"
 	depends on PKG_SUPPORT
-	default n
+	default m if SMALL_FLASH
+	default y
 	imply PACKAGE_vuci-app-sso-ui
 	detail
 		Authorization service for OpenID Connect
 
 config PORT_MIRRORING_SUPPORT
+	visible_in_feature_list
 	tristate "Port Mirroring"
 	label "Network"
 	maintainer "Networks/Networks2"
@@ -1900,6 +2085,7 @@ config PORT_MIRRORING_SUPPORT
 		Mirror incoming and outgoing packets
 
 config ENCHANCED_SECURITY_SUPPORT
+	visible_in_feature_list
 	bool "Enhanced Security"
 	label "System"
 	maintainer "Apps/Apps1"
@@ -1910,6 +2096,7 @@ config ENCHANCED_SECURITY_SUPPORT
 	imply KERNEL_EXT4_FS_SECURITY
 
 config REALTIME_GRAPH_SUPPORT
+	visible_in_feature_list
 	bool "Realtime Data"
 	label "Monitoring & Management"
 	maintainer "Networks/Networks1"
@@ -1925,6 +2112,7 @@ config REALTIME_GRAPH_SUPPORT
 		\, real time mobile signal strength values, mobile data usage values over different periods of time
 
 config CERTIFICATE_SUPPORT
+	visible_in_feature_list
 	bool "Certificate Manager"
 	label "System"
 	maintainer "SysApp"
@@ -1941,6 +2129,7 @@ config CERTIFICATE_SUPPORT
 		certificates
 
 config LETS_ENCRYPT_SUPPORT
+	visible_in_feature_list
 	tristate "Lets Encrypt Certificate Generation"
 	label "System"
 	maintainer "SysApp"
@@ -1950,6 +2139,7 @@ config LETS_ENCRYPT_SUPPORT
 	imply PACKAGE_letsencrypt
 
 config EMAIL_RECIPIENTS_SUPPORT
+	visible_in_feature_list
 	bool
 	maintainer "SysApp"
 	label "System"
@@ -1958,6 +2148,7 @@ config EMAIL_RECIPIENTS_SUPPORT
 	imply PACKAGE_vuci-app-email-recipients-ui
 
 config PHONE_RECIPIENTS_SUPPORT
+	visible_in_feature_list
 	bool
 	maintainer "SysApp"
 	label "System"
@@ -1966,6 +2157,7 @@ config PHONE_RECIPIENTS_SUPPORT
 	imply PACKAGE_vuci-app-phone-recipients-ui
 
 config IP_BLOCK_SUPPORT
+	visible_in_feature_list
 	bool "IP Block"
 	label "System"
 	maintainer "SysApp"
@@ -1977,6 +2169,7 @@ config IP_BLOCK_SUPPORT
 		authorisation attempts, supports timed or permanent blocking
 
 config MULTIUSERS_SUPPORT
+	visible_in_feature_list
 	bool "Multiple Users"
 	label "System"
 	maintainer "SysApp"
@@ -1987,6 +2180,7 @@ config MULTIUSERS_SUPPORT
 		Multiple Web users with configurable access permissions
 
 config MULTI_LANGUAGE_SUPPORT
+	visible_in_feature_list
 	tristate "Multi Language"
 	label "System"
 	maintainer "SysApp"
@@ -2003,6 +2197,7 @@ config MULTI_LANGUAGE_SUPPORT
 		Change the WebUI language from English to German, Turkish, Spanish, Portuguese, Japanese, Ukrainian or Polish
 
 config WEB_CLI_SUPPORT
+	visible_in_feature_list
 	bool "CLI"
 	label "System"
 	maintainer "SysApp"
@@ -2012,6 +2207,7 @@ config WEB_CLI_SUPPORT
 		Command line interface in Web
 
 config SMTP
+	visible_in_feature_list
 	tristate "SMTP"
 	label "System"
 	maintainer "SysApp"
@@ -2035,6 +2231,7 @@ config PORT_EVENTS_SUPPORT
 	imply PACKAGE_port_eventsd
 
 config TPM_SUPPORT
+	visible_in_feature_list
 	bool "TPM"
 	label "System"
 	maintainer "Embedded/PoC"
@@ -2046,6 +2243,7 @@ config TPM_SUPPORT
 #
 
 config REBOOT_UTILS
+	visible_in_feature_list
 	bool "Auto Reboot"
 	maintainer "Apps/Apps1"
 	label "Utilities"
@@ -2061,6 +2259,7 @@ config REBOOT_UTILS
 		\, power over Ethernet control service restart
 
 config REBOOT_UTILS_WIRELESS
+	visible_in_feature_list
 	tristate "Auto Reboot Wireless"
 	maintainer "Apps/Apps1"
 	label "Utilities"
@@ -2070,6 +2269,7 @@ config REBOOT_UTILS_WIRELESS
 	imply PACKAGE_vuci-app-wireless-reboot-ui
 
 config HTTPS_DNS_PROXY_SUPPORT
+	visible_in_feature_list
 	tristate "DNS over HTTPS"
 	maintainer "Networks/Networks1"
 	label "Utilities"
@@ -2081,6 +2281,7 @@ config HTTPS_DNS_PROXY_SUPPORT
 		DNS over HTTPS proxy enables secure DNS resolution by routing DNS queries over HTTPS
 
 config SCEP_SUPPORT
+	visible_in_feature_list
 	tristate "SCEP"
 	maintainer "SysApp"
 	label "Utilities"
@@ -2092,6 +2293,7 @@ config SCEP_SUPPORT
 		SCEP (Simple Certificate Enrollment Protocol) is a standard protocol used for the automated issuance and management of digital certificates
 
 config FRR_VTYSH_SUPPORT
+	visible_in_feature_list
 	tristate "VTYSH"
 	maintainer "Networks/Networks2"
 	label "Utilities"
@@ -2103,6 +2305,7 @@ config FRR_VTYSH_SUPPORT
 		Command line interface for dynamic route protocols
 
 config FRR_VTYSH8_SUPPORT
+	visible_in_feature_list
 	tristate "VTYSH8"
 	maintainer "Networks/Networks2"
 	label "Utilities"
@@ -2114,6 +2317,7 @@ config FRR_VTYSH8_SUPPORT
 		Command line interface for dynamic route protocols
 
 config TCP_DUMP_SUPPORT
+	visible_in_feature_list
 	tristate "Tcpdump"
 	maintainer "Networks/Networks1"
 	label "Utilities"
@@ -2125,6 +2329,7 @@ config TCP_DUMP_SUPPORT
 		Incoming/Outgoing Internet packet analyzer for troubleshooting connectivity issues
 
 config WOL_SUPPORT
+	visible_in_feature_list
 	tristate "Wake On LAN"
 	maintainer "Networks/Networks2"
 	label "Utilities"
@@ -2136,6 +2341,7 @@ config WOL_SUPPORT
 		Allows waking up a network device from sleep mode, supports Broadcast, wake on boot, wake all saved devices
 
 config SPEEDTEST_SUPPORT
+	visible_in_feature_list
 	tristate "Speedtest"
 	maintainer "Networks/Networks2"
 	label "Utilities"
@@ -2147,6 +2353,7 @@ config SPEEDTEST_SUPPORT
 		Provides a quick snapshot of Internet connection speed performance
 
 config DDNS_SUPPORT
+	visible_in_feature_list
 	tristate "Dynamic DNS"
 	maintainer "Networks/Networks2"
 	label "Utilities"
@@ -2158,6 +2365,7 @@ config DDNS_SUPPORT
 		77 service providers, others can be configured manually
 
 config WEB_FILTER_SUPPORT
+	visible_in_feature_list
 	tristate "Web Filter"
 	maintainer "Networks/Networks2"
 	label "Utilities"
@@ -2169,6 +2377,7 @@ config WEB_FILTER_SUPPORT
 		Helps control access to Internet web pages, supports blocklist or allowlist
 
 config UPNP_SUPPORT
+	visible_in_feature_list
 	tristate "UPNP"
 	maintainer "Networks/Networks2"
 	label "Network Utilities"
@@ -2182,6 +2391,7 @@ config UPNP_SUPPORT
 		ACLs, secure mode, additional logging
 
 config DLNA_SUPPORT
+	visible_in_feature_list
 	tristate "DLNA"
 	maintainer "Networks/Networks2"
 	label "Utilities"
@@ -2195,6 +2405,7 @@ config DLNA_SUPPORT
 		Multiple media directories, auto discovery, TiVo
 
 config SSHFS_SUPPORT
+	visible_in_feature_list
 	tristate "SSHFS"
 	maintainer "Networks/Networks1"
 	label "Utilities"
@@ -2207,6 +2418,7 @@ config SSHFS_SUPPORT
 		SSHFS filesystem client for mounting remote directories over a Secure Shell connection
 
 config TELNET_SUPPORT
+	visible_in_feature_list
 	tristate "Telnet"
 	maintainer "SysApp"
 	label "Utilities"
@@ -2218,6 +2430,7 @@ config TELNET_SUPPORT
 		Telnet is a network protocol used to connect to remote machines and manage them through network
 
 config EMAILRELAY
+	visible_in_feature_list
 	tristate "Emailrelay"
 	maintainer "SysApp"
 	label "Utilities"
@@ -2229,6 +2442,7 @@ config EMAILRELAY
 		Lightweight SMTP store-and-forward mail server, supports Server, Proxy, Command line modes
 
 config WIFI_SCANNER_SUPPORT
+	visible_in_feature_list
 	tristate "WiFi Scanner"
 	maintainer "Networks/Networks2"
 	label "Network Utilities"
@@ -2240,6 +2454,7 @@ config WIFI_SCANNER_SUPPORT
 		WiFi Scanner scans and collects information about wireless devices in surrounding area
 
 config WPA_CLI_SUPPORT
+	visible_in_feature_list
 	tristate "WPA CLI"
 	maintainer "Networks/Networks1"
 	label "Utilities"
@@ -2251,15 +2466,19 @@ config WPA_CLI_SUPPORT
 		WPA Supplicant command line control utility
 
 config IPERF3_SUPPORT
-	tristate
+	visible_in_feature_list
+	tristate "iPerf3"
 	maintainer "Networks/Networks1"
 	label "Utilities"
 	depends on PKG_SUPPORT
 	default y if TEST_IMAGE
 	default m
 	imply PACKAGE_iperf3
+	detail
+		A tool for performing network throughput measurements
 
 config IPERF_SUPPORT
+	visible_in_feature_list
 	tristate
 	maintainer "Networks/Networks1"
 	label "Utilities"
@@ -2268,7 +2487,7 @@ config IPERF_SUPPORT
 	imply PACKAGE_iperf
 
 config STRESS_NG_SUPPORT
-	tristate
+	tristate "Stress NG"
 	maintainer "Networks/Networks1"
 	label "Utilities"
 	depends on PKG_SUPPORT
@@ -2276,6 +2495,7 @@ config STRESS_NG_SUPPORT
 	imply PACKAGE_stress-ng
 
 config 7Z_ARCHIVER_SUPPORT
+	visible_in_feature_list
 	tristate "7-zip"
 	maintainer "Apps/Apps1"
 	label "Utilities"
@@ -2287,6 +2507,7 @@ config 7Z_ARCHIVER_SUPPORT
 		Minified 7-zip archiver with 7z archive and AES-256 encryption
 
 config DOCKER_SUPPORT
+	visible_in_feature_list
 	tristate "Docker"
 	label "Utilities"
 	maintainer "Apps/Apps1"
@@ -2303,6 +2524,7 @@ config DOCKER_SUPPORT
 		Open-source platform that enables developers to build, deploy, run, update and manage containers
 
 config APP_SOCAT
+	visible_in_feature_list
 	tristate "Socat"
 	maintainer "Apps/Apps2"
 	label "Utilities"
@@ -2313,6 +2535,7 @@ config APP_SOCAT
 		Bidirectional data relay between two byte streams
 
 config FREERADIUS_SUPPORT
+	visible_in_feature_list
 	tristate "FreeRADIUS"
 	maintainer "SysApp"
 	label "Utilities"
@@ -2324,6 +2547,7 @@ config FREERADIUS_SUPPORT
 		One of the top open source RADIUS servers, can be used as an Authentication Server in 802.1X and therefore for WPA/WPA2/WPA3 Enterprise setup
 
 config KMOD_FS_CIFS
+	visible_in_feature_list
 	tristate "CIFS Client Support"
 	maintainer "SysApp"
 	label "Utilities"
@@ -2338,6 +2562,7 @@ config KMOD_FS_CIFS
 #
 
 config FIRMWARE_CUSTOMISATION
+	visible_in_feature_list
 	bool "Firmware Customisation"
 	label "Other"
 	maintainer "SysApp"
@@ -2352,6 +2577,7 @@ config FIRMWARE_CUSTOMISATION
 		Supported Languages: \, Java
 
 config PYTHON_SUPPORT
+	visible_in_feature_list
 	tristate "Python"
 	label "Other"
 	maintainer "Apps/Apps1"
@@ -2362,6 +2588,7 @@ config PYTHON_SUPPORT
 	imply PYTHON3_NOT_INCLUDE_PYCS if TARGET_sdxnightjar
 
 config JAVA_SUPPORT
+	visible_in_feature_list
 	tristate "JAVA"
 	label "Other"
 	maintainer "Apps/Apps1"
@@ -2406,6 +2633,7 @@ config CORE_UI_PACKAGES
 	imply BUSYBOX_CONFIG_FEATURE_PASSWORD_POLICY
 
 config TROUBLESHOOT_SUPPORT
+	visible_in_feature_list
 	bool
 	label "System"
 	maintainer "SysApp"
@@ -2415,6 +2643,7 @@ config TROUBLESHOOT_SUPPORT
 		Troubleshoot: System diagnostic and troubleshooting tools
 
 config BACKUP_SUPPORT
+	visible_in_feature_list
 	bool
 	label "System"
 	maintainer "SysApp"
@@ -2424,6 +2653,7 @@ config BACKUP_SUPPORT
 		Backup: Tool for creating and restoring configuration backups
 
 config EVENTSLOG_SUPPORT
+	visible_in_feature_list
 	bool
 	label "System"
 	maintainer "SysApp"
@@ -2433,6 +2663,7 @@ config EVENTSLOG_SUPPORT
 		Events Log: Centralized log viewer for main system and service events
 
 config POE_SUPPORT
+	visible_in_feature_list
 	bool
 	maintainer "Embedded/BBU"
 	imply PACKAGE_poeman
@@ -2448,6 +2679,7 @@ config SU_SUPPORT
 		Allows to run a command as another user
 
 config NETCAT_SERVER
+	visible_in_feature_list
 	bool "Netcat Server"
 	default y if TEST_IMAGE
 	default n
@@ -2466,7 +2698,7 @@ config EMMC_SUPPORT
 	imply BUSYBOX_CONFIG_FEATURE_VOLUMEID_F2FS
 
 config CAN_BUS_STM
-	bool
+	bool "CANBUS STM"
 	maintainer "Embedded/BBU"
 	imply PACKAGE_dfu-util
 	imply PACKAGE_canutils
@@ -2482,7 +2714,13 @@ config HID_BUTTON_SUPPORT
 	maintainer "Embedded/BBU"
 	imply PACKAGE_cmdpad
 
+config POWER_MANAGER_SUPPORT
+	bool
+	maintainer "Embedded/BBU"
+	imply PACKAGE_power_manager
+
 config BLUETOOTH_SUPPORT
+	visible_in_feature_list
 	bool "Bluetooth"
 	maintainer "Apps/Apps2"
 	imply PACKAGE_blesemd
@@ -2502,7 +2740,7 @@ config CRYPTO
 	imply PACKAGE_kmod-crypto-gcm
 
 config HNAT
-	bool
+	bool "HNAT"
 	maintainer "Embedded/PoC"
 	imply PACKAGE_qssdk-hnat
 
@@ -2548,7 +2786,7 @@ config TPM_OPENSSL
 		Library that provides OpenSSL API for handling TPM
 
 config TPM_MANAGER
-	tristate
+	tristate "TPM Manager"
 	maintainer "Embedded/PoC"
 	depends on TPM_SUPPORT
 	default y
@@ -2566,6 +2804,7 @@ config TPM_FLASHER
 		Utility meant for flashing TPM devices
 
 config ITXPT_SUPPORT
+	visible_in_feature_list
 	bool "ITxPT Service"
 	maintainer "Apps/Apps2"
 	default n
@@ -2602,7 +2841,8 @@ config SITE_MANAGER_CLIENT_SUPPORT
 		Client application that runs on Teltonika devices to enable remote management by a Site Manager Server. Handles server discovery, certificate-based pairing, and ongoing MQTT communication for API and UCI config requests.
 
 config DS_LITE_SUPPORT
-	tristate
+	visible_in_feature_list
+	tristate "DS Lite"
 	maintainer "Network"
 	depends on ADVANCED_NETWORK
 	default m if SMALL_FLASH
@@ -2610,5 +2850,14 @@ config DS_LITE_SUPPORT
 	imply PACKAGE_ds-lite
 	detail
 		DS-lite: Dual-Stack Lite B4 configuration
+
+#
+# Third party
+#
+
+config BONDIX_SUPPORT
+	tristate "Bondix packages"
+	default m if !GPL_BUILD && (TARGET_ramips_mt7621_DEVICE_teltonika_rutm || TARGET_ipq40xx_generic_DEVICE_teltonika_rutx || TARGET_ramips_mt76x8_DEVICE_teltonika_rut9m || TARGET_ramips_mt76x8_DEVICE_teltonika_rut2m || TARGET_mediatek_mt7981_DEVICE_teltonika_rutc || TARGET_ramips_mt76x8_DEVICE_teltonika_rute || TARGET_ramips_mt7621_DEVICE_teltonika_otd5 || TARGET_ramips_mt7621_DEVICE_teltonika_atrm50)
+	imply PACKAGE_vuci-app-bondix-ui
 
 endmenu

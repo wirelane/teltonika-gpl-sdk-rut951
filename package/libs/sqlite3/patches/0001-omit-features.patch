@@ -1,0 +1,40 @@
+Index: sqlite-autoconf-3500400/sqlite3.c
+===================================================================
+--- sqlite-autoconf-3500400.orig/sqlite3.c
++++ sqlite-autoconf-3500400/sqlite3.c
+@@ -125969,7 +125969,7 @@ SQLITE_PRIVATE void sqlite3EndTable(
+ #endif
+ }
+ 
+-#ifndef SQLITE_OMIT_VIEW
++
+ /*
+ ** The parser calls this routine in order to create a new VIEW
+ */
+@@ -125991,7 +125991,7 @@ SQLITE_PRIVATE void sqlite3CreateView(
+   Token *pName = 0;
+   int iDb;
+   sqlite3 *db = pParse->db;
+-
++#ifndef SQLITE_OMIT_VIEW
+   if( pParse->nVar>0 ){
+     sqlite3ErrorMsg(pParse, "parameters are not allowed in views");
+     goto create_view_fail;
+@@ -126053,6 +126053,9 @@ SQLITE_PRIVATE void sqlite3CreateView(
+   sqlite3EndTable(pParse, 0, &sEnd, 0, 0);
+ 
+ create_view_fail:
++#else
++  sqlite3ErrorMsg(pParse, "views are not supported");
++#endif /* SQLITE_OMIT_VIEW */
+   sqlite3SelectDelete(db, pSelect);
+   if( IN_RENAME_OBJECT ){
+     sqlite3RenameExprlistUnmap(pParse, pCNames);
+@@ -126060,7 +126063,6 @@ create_view_fail:
+   sqlite3ExprListDelete(db, pCNames);
+   return;
+ }
+-#endif /* SQLITE_OMIT_VIEW */
+ 
+ #if !defined(SQLITE_OMIT_VIEW) || !defined(SQLITE_OMIT_VIRTUALTABLE)
+ /*

@@ -4,10 +4,6 @@
 
 / {
 	reserved-memory {
-		#address-cells = <1>;
-		#size-cells = <1>;
-		ranges;
-
 		/* 64 KiB reserved for ramoops/pstore */
 		ramoops_reserved: ramoops@fe00000 {
 			compatible = "ramoops";
@@ -16,6 +12,10 @@
 			console-size = <0x3800>;
 			pmsg-size = <0x800>;
 		};
+	};
+	memory {
+		device_type = "memory";
+		reg = <0x00000000 0x10000000>;
 	};
 };
 

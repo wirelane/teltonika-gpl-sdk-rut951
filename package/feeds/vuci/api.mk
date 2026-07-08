@@ -5,7 +5,7 @@ APP_CATEGORY?=VuCI
 PKG_NAME?=$(APP_NAME)
 PKG_RELEASE?=1
 PKG_LICENSE?=Teltonika-nda-source
-PKG_BUILD_DEPENDS:=VUCI_MINIFY_LUA:luasrcdiet/host VUCI_COMPILE_LUA:luajit2/host
+PKG_BUILD_DEPENDS:=VUCI_MINIFY_LUA:luasrcdiet/host VUCI_COMPILE_LUA:luajit2/host python3/host
 
 include $(INCLUDE_DIR)/package.mk
 include ../utils.mk
@@ -34,25 +34,6 @@ ifdef APP_USERID
 endif
 endef
 
-define Package/$(PKG_NAME)/post/Default
-#!/bin/sh
-[ -z "$${IPKG_INSTROOT}" ] || exit 0
-ubus call session reload_acls
-exit 0
-endef
-
-ifndef Package/$(PKG_NAME)/postinst
-define Package/$(PKG_NAME)/postinst
-$(call Package/$(PKG_NAME)/post/Default,$(1))
-endef
-endif
-
-ifndef Package/$(PKG_NAME)/postrm
-define Package/$(PKG_NAME)/postrm
-$(call Package/$(PKG_NAME)/post/Default,$(1))
-endef
-endif
-
 define Build/Prepare
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)
 	if [[ -d ./files ]] && [[ "$$$$(ls -A ./files)" ]]; then $(CP) -R ./files $(PKG_BUILD_DIR)/files; fi
@@ -60,7 +41,21 @@ define Build/Prepare
 	if [[ -d ./src ]] && [[ "$$$$(ls -A ./src)" ]]; then $(CP) ./src/* $(PKG_BUILD_DIR)/; fi
 endef
 
+ifeq ($(CONFIG_GPL_INCLUDE_WEB_SOURCES), y)
+VUCI_DIR:="$(CURDIR)/.."
+VUCI_BACKUP_API_DIR:="$(VUCI_DIR)/vuci-app-backup-api"
+else
+# This assumes that the package is stored at `applications/vuci-app-<name>/vuci-app-<name>-api`
+VUCI_DIR:="$(CURDIR)/../../.."
+VUCI_BACKUP_API_DIR:="$(VUCI_DIR)/applications/vuci-app-backup/vuci-app-backup-api"
+endif
+
+define Build/CompileBackupOrder
+endef
+
 define Build/Compile
+	$(call Build/CompileBackupOrder,$(1))
+
 	$(if $(CONFIG_VUCI_MINIFY_LUA),$(call MinifyLua,$(PKG_BUILD_DIR)/files),true);
 	$(if $(CONFIG_VUCI_COMPILE_LUA),$(call CompileLua,$(PKG_BUILD_DIR)/files),true);
 	$(if $(CONFIG_VUCI_MINIFY_JSON),$(call JsonMin,$(PKG_BUILD_DIR)/files),true);
@@ -90,9 +85,13 @@ define install_closed_gpl
 	$(CP) $(PKG_BUILD_DIR)/files/* $(PKG_GPL_BUILD_DIR)/files
 endef
 
-define Build/InstallGPL
+define Build/InstallGPLAPI
 	$(if $(CONFIG_GPL_INCLUDE_WEB_SOURCES), \
 		$(Build/InstallGPL/Default),$(install_closed_gpl))
+endef
+
+define Build/InstallGPL
+	$(Build/InstallGPLAPI)
 endef
 
 ifndef Package/$(PKG_NAME)/install

@@ -1,0 +1,1 @@
+[{"endpoint":"/bfd/profiles/{service_group}/{?sid}","lua_service":"network/bfd_profile","backup_order":365},{"endpoint":"/bfd/peers/{service_group}/{?sid}","lua_service":"network/bfd_peer","backup_order":366}]

@@ -72,3 +72,43 @@ ds_remove_plugin_cfg() {
     uci_commit data_sender 2> /dev/null
     /etc/init.d/data_sender reload 2> /dev/null
 }
+
+ds_restart_if_plugin_enabled() {
+	local plg="$1" active="" found=0
+
+	_ds_chk_input() {
+		local pl en
+		config_get pl "$1" plugin
+		[ "$pl" = "$plg" ] || return
+		config_get en "$1" enabled 0
+		[ "$en" = "1" ] && active="$active $1"
+	}
+
+	_ds_chk_output() {
+		local pl
+		config_get pl "$1" plugin
+		[ "$pl" = "$plg" ] || return
+		active="$active $1"
+	}
+
+	_ds_chk_coll() {
+		[ "$found" = "1" ] && return
+		local en out inp sec ref
+		config_get en "$1" enabled 0
+		[ "$en" = "1" ] || return
+		config_get out "$1" output
+		config_get inp "$1" input
+		for sec in $active; do
+			for ref in $out $inp; do
+				[ "$ref" = "$sec" ] && { found=1; return; }
+			done
+		done
+	}
+
+	config_load data_sender
+	config_foreach _ds_chk_input input
+	config_foreach _ds_chk_output output
+	[ -z "$active" ] && return 0
+	config_foreach _ds_chk_coll collection
+	[ "$found" = "1" ] && /etc/init.d/data_sender restart
+}

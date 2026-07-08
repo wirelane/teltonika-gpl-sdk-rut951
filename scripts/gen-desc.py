@@ -100,6 +100,7 @@ class Profile:
         self.regulatory_tooltip = {}
         self.technical = {}
         self.technical_tooltip = {}
+        self.visible_in_feature_list = False
         self.conf = {}
         self.features = []
         self.features_profile = []
@@ -495,6 +496,7 @@ class Feature:
         self.packages = []
         self.detail = []
         self.tooltip = []
+        self.visible_in_feature_list = False
 
     def copy(self):
         new_feature = Feature(self.name)
@@ -505,6 +507,7 @@ class Feature:
         new_feature.packages = self.packages.copy()
         new_feature.detail = self.detail.copy()
         new_feature.tooltip = self.tooltip.copy()
+        new_feature.visible_in_feature_list = self.visible_in_feature_list
         return new_feature
 
     def parse_extra(self, line, expr):
@@ -586,6 +589,8 @@ class Feature:
                 tooltip_parse = False
                 detail_parse = False
                 self.label = l[8:-2]
+            elif is_match('^\tvisible_in_feature_list', l):
+                self.visible_in_feature_list = True
             elif is_match('^\tdepends on ', l):
                 tooltip_parse = False
                 detail_parse = False
@@ -708,6 +713,8 @@ def dump_features(data, descriptions_only=False, dump_list=False):
             continue
 
         for item in f.detail:
+            if not f.visible_in_feature_list:
+                continue
             item['value'] = item['value'].lstrip('\\, ')
             if not item['key'] or not item['value']:
                 continue
@@ -827,7 +834,101 @@ def initialize_packageinfo():
 
         f.close()
 
-def save_json_ouput(name, json_data):
+def dump_device_feature_map(root_name="RUTOS1"):
+    matrix = {}
+
+    for f in list_features:
+        label = f.label
+        if not label:
+            continue
+        if label not in matrix:
+            matrix[label] = {'detail': [], 'devices': set()}
+        detail_entries = f.detail if f.detail else ([{'key': f.title}] if f.title else [])
+        for d in detail_entries:
+            key = d['key']
+            if key and not any(entry['key'] == key for entry in matrix[label]['detail']):
+                matrix[label]['detail'].append({'key': key, 'devices': set()})
+
+    seen_devices = set()
+
+    for profile in list_profiles:
+        raw_name = profile.name
+        device_name = raw_name.removeprefix("TELTONIKA ").strip()
+        
+        if "TEMPLATE" not in profile.profile:
+            # Skip non-TEMPLATE profiles (these are variants)
+            continue
+        
+        # Extract the base device name from the profile ID
+        base_name = profile.profile.removeprefix("DEVICE_TEMPLATE_teltonika_").upper()
+        
+        # Use the base_name as the device identifier
+        if base_name in seen_devices:
+            print(f'Skipping duplicate: {base_name}')
+            continue
+        seen_devices.add(base_name)
+
+        print(f'Processing {base_name}...')
+
+        profile.prepare_dotconfig()
+        profile.read_config()
+        profile.fetch_features()
+
+        for f in profile.features:
+            label = f.label
+            if not label:
+                continue
+
+            if label not in matrix:
+                matrix[label] = {'detail': [], 'devices': set()}
+
+            matrix[label]['devices'].add(base_name)
+
+            detail_entries = f.detail if f.detail else ([{'key': f.title, 'value': f.title}] if f.title else [])
+
+            for d in detail_entries:
+                dk = d['key']
+                dv = d['value'].lstrip('\\, ') if d.get('value') else ''
+                if not dk or not dv:
+                    continue
+                # Ensure key exists in matrix
+                if not any(entry['key'] == dk for entry in matrix[label]['detail']):
+                    matrix[label]['detail'].append({'key': dk, 'devices': set()})
+                for entry in matrix[label]['detail']:
+                    if entry['key'] == dk:
+                        entry['devices'].add(base_name)
+                        break
+
+    features_out = {}
+    for label, data in matrix.items():
+        # Skip only if no device supports this label at all
+        if not data['devices']:
+            continue
+
+        detail_list = [
+            {
+                "key": entry['key'],
+                "devices": sorted(list(entry['devices']))
+            }
+            for entry in data['detail']
+        ]
+
+        features_out[label] = {
+            "devices": sorted(list(data['devices'])),
+            "detail": detail_list
+        }
+
+    return {root_name: {"features": features_out}}
+
+def main_device_feature_map():
+    print('Generating device feature map...')
+    initialize_features()
+    initialize_targets()
+    output = dump_device_feature_map()
+    path = save_json_ouput('device_feature_map.json', output, 4)
+    print(f'Device feature map written to {path}')
+
+def save_json_ouput(name, json_data, indent_default=2):
     default_dir = 'out'
 
     if not os.path.exists(default_dir):
@@ -835,7 +936,7 @@ def save_json_ouput(name, json_data):
 
     default_path = os.path.join(default_dir, name)
     with open(default_path, 'w') as file:
-        json.dump(json_data, file, indent=2, ensure_ascii=False)
+        json.dump(json_data, file, indent=indent_default, ensure_ascii=False)
 
     return default_path
 
@@ -963,6 +1064,7 @@ def main():
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--dump', action='store_true', help='Generate all possible device features')
     group.add_argument('--dump-packages', action='store_true', help='Dump all available packages')
+    group.add_argument('--device-feature-map', action='store_true', help='Generate per-device feature map with shared-device info per detail key')
     group.add_argument('--target', action='extend', nargs='*', help='Generate device features for a specific target device')
     group.add_argument('--family', action='extend', nargs='*', help='Generate device features for a specific device family')
     group.add_argument('--device-features', action='store_true', help='Show the DEVICE_FEATURES of all devices')
@@ -979,6 +1081,8 @@ def main():
         main_generate_family(args.family, args.descriptions_only)
     elif args.device_features:
         main_device_features()
+    elif args.device_feature_map:
+        main_device_feature_map()
     else:
         parser.print_help()
         sys.exit(1)

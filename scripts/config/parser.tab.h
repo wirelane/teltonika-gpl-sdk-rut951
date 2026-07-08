@@ -71,41 +71,42 @@ extern int yydebug;
     T_ENDIF = 272,                 /* T_ENDIF  */
     T_ENDMENU = 273,               /* T_ENDMENU  */
     T_HELP = 274,                  /* T_HELP  */
-    T_DETAIL = 275,                /* T_DETAIL  */
-    T_TOOLTIP = 276,               /* T_TOOLTIP  */
-    T_HEX = 277,                   /* T_HEX  */
-    T_IF = 278,                    /* T_IF  */
-    T_IMPLY = 279,                 /* T_IMPLY  */
-    T_INT = 280,                   /* T_INT  */
-    T_MAINMENU = 281,              /* T_MAINMENU  */
-    T_MENU = 282,                  /* T_MENU  */
-    T_MENUCONFIG = 283,            /* T_MENUCONFIG  */
-    T_MODULES = 284,               /* T_MODULES  */
-    T_ON = 285,                    /* T_ON  */
-    T_OPEN_PAREN = 286,            /* T_OPEN_PAREN  */
-    T_OPTIONAL = 287,              /* T_OPTIONAL  */
-    T_PLUS_EQUAL = 288,            /* T_PLUS_EQUAL  */
-    T_PROMPT = 289,                /* T_PROMPT  */
-    T_RANGE = 290,                 /* T_RANGE  */
-    T_RESET = 291,                 /* T_RESET  */
-    T_MAINTAINER = 292,            /* T_MAINTAINER  */
-    T_LABEL = 293,                 /* T_LABEL  */
-    T_SELECT = 294,                /* T_SELECT  */
-    T_SOURCE = 295,                /* T_SOURCE  */
-    T_STRING = 296,                /* T_STRING  */
-    T_TRISTATE = 297,              /* T_TRISTATE  */
-    T_VISIBLE = 298,               /* T_VISIBLE  */
-    T_EOL = 299,                   /* T_EOL  */
-    T_ASSIGN_VAL = 300,            /* T_ASSIGN_VAL  */
-    T_OR = 301,                    /* T_OR  */
-    T_AND = 302,                   /* T_AND  */
-    T_EQUAL = 303,                 /* T_EQUAL  */
-    T_UNEQUAL = 304,               /* T_UNEQUAL  */
-    T_LESS = 305,                  /* T_LESS  */
-    T_LESS_EQUAL = 306,            /* T_LESS_EQUAL  */
-    T_GREATER = 307,               /* T_GREATER  */
-    T_GREATER_EQUAL = 308,         /* T_GREATER_EQUAL  */
-    T_NOT = 309                    /* T_NOT  */
+    T_VISIBLE_IN_FEATURE_LIST = 275, /* T_VISIBLE_IN_FEATURE_LIST  */
+    T_DETAIL = 276,                /* T_DETAIL  */
+    T_TOOLTIP = 277,               /* T_TOOLTIP  */
+    T_HEX = 278,                   /* T_HEX  */
+    T_IF = 279,                    /* T_IF  */
+    T_IMPLY = 280,                 /* T_IMPLY  */
+    T_INT = 281,                   /* T_INT  */
+    T_MAINMENU = 282,              /* T_MAINMENU  */
+    T_MENU = 283,                  /* T_MENU  */
+    T_MENUCONFIG = 284,            /* T_MENUCONFIG  */
+    T_MODULES = 285,               /* T_MODULES  */
+    T_ON = 286,                    /* T_ON  */
+    T_OPEN_PAREN = 287,            /* T_OPEN_PAREN  */
+    T_OPTIONAL = 288,              /* T_OPTIONAL  */
+    T_PLUS_EQUAL = 289,            /* T_PLUS_EQUAL  */
+    T_PROMPT = 290,                /* T_PROMPT  */
+    T_RANGE = 291,                 /* T_RANGE  */
+    T_RESET = 292,                 /* T_RESET  */
+    T_MAINTAINER = 293,            /* T_MAINTAINER  */
+    T_LABEL = 294,                 /* T_LABEL  */
+    T_SELECT = 295,                /* T_SELECT  */
+    T_SOURCE = 296,                /* T_SOURCE  */
+    T_STRING = 297,                /* T_STRING  */
+    T_TRISTATE = 298,              /* T_TRISTATE  */
+    T_VISIBLE = 299,               /* T_VISIBLE  */
+    T_EOL = 300,                   /* T_EOL  */
+    T_ASSIGN_VAL = 301,            /* T_ASSIGN_VAL  */
+    T_OR = 302,                    /* T_OR  */
+    T_AND = 303,                   /* T_AND  */
+    T_EQUAL = 304,                 /* T_EQUAL  */
+    T_UNEQUAL = 305,               /* T_UNEQUAL  */
+    T_LESS = 306,                  /* T_LESS  */
+    T_LESS_EQUAL = 307,            /* T_LESS_EQUAL  */
+    T_GREATER = 308,               /* T_GREATER  */
+    T_GREATER_EQUAL = 309,         /* T_GREATER_EQUAL  */
+    T_NOT = 310                    /* T_NOT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -114,6 +115,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
+#line 37 "parser.y"
 
 	char *string;
 	struct symbol *symbol;
@@ -122,6 +124,7 @@ union YYSTYPE
 	enum symbol_type type;
 	enum variable_flavor flavor;
 
+#line 128 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

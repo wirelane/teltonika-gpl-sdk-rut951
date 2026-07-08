@@ -1,0 +1,1 @@
+[{"endpoint":"/call_utilities/global","lua_service":"services/call_utilities/call_general","backup_order":92},{"endpoint":"/call_utilities/rules/{service_group}/{?sid}","lua_service":"services/call_utilities/call_rules","backup_order":93}]

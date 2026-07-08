@@ -171,7 +171,7 @@ add_simcard_config() {
 	[ -n "$pin" ] && [ "$pin" != "N/A" ] && uci_set simcard $CONFIG_SECTION pincode "$pin"
 	uci_commit simcard
 
-	[ -x "/bin/trigger_vuci_routes_reload" ] && /bin/trigger_vuci_routes_reload
+	ubus send vuci.notify '{"event":"reload_routes"}'
 }
 
 add_modem_settings_config() {
@@ -225,7 +225,7 @@ add_sim_switch_config() {
 
 	uci_commit sim_switch
 
-	[ -x "/bin/trigger_vuci_routes_reload" ] && /bin/trigger_vuci_routes_reload
+	ubus send vuci.notify '{"event":"reload_routes"}'
 }
 
 configure_bootstrap_sim_switch_rules() {

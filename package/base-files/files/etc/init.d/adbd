@@ -19,6 +19,10 @@ get_model_data() {
 	json_select ..
 
 	case $pid in
+	0x0007)
+		ifname="usb"
+		udc_name="ci_hdrc.0"
+		;;
 	0x0005|0x0006)
 		ifname="usb"
 		udc_name="a600000.dwc3"
@@ -47,15 +51,15 @@ setup_diag_functionfs() {
 	qdss_func="qdss.qdss_mdm"
 	funcs=$(echo $func_str |tr "," "\n")
 
-	mkdir "$p/functions/ffs.diag"
-	mkdir "$p/functions/diag.diag"
+	# return early if diag functions aren't supported
+	mkdir "$p/functions/diag.diag" 2> /dev/null || return
 	mkdir "$p/functions/diag.diag_mdm"
 	mkdir "$p/functions/qdss.qdss"
 	mkdir "$p/functions/qdss.qdss_mdm"
+	mkdir "$p/functions/ffs.diag"
 
 	echo 0xA0 > "$p/configs/c.1/bmAttributes"
 	echo "DIAG_SER_RMNET" > "$p/configs/c.1/strings/0x409/configuration"
-
 
 	for func in $funcs
 	do

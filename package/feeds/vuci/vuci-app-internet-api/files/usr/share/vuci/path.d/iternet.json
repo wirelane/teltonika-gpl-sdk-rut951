@@ -1,0 +1,1 @@
+[{"endpoint":"/internet_connection/global","lua_service":"network/internet","backup_order":338},{"/internet_connection/{service_group}":"network/internet_status"}]

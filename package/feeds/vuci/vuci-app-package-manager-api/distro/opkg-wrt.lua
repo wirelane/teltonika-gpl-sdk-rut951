@@ -5,8 +5,7 @@ local util = require "vuci.util"
 
 local OPKG_CONF_FILE = "/etc/opkg.conf"
 
-o_utils.OPKG_CMD = "opkg --force_feeds /etc/opkg/teltonikafeeds.conf -f %s --force-removal-of-essential-packages " % OPKG_CONF_FILE
-o_utils.OPKG_DATA = { "--force_feeds", "/etc/opkg/teltonikafeeds.conf", "--conf", OPKG_CONF_FILE, "--force-removal-of-essential-packages"}
+o_utils.OPKG_DATA = { "--conf", OPKG_CONF_FILE, "--force-removal-of-essential-packages" }
 o_utils.legacy = true
 
 function o_utils._get_info(pkg_dir, pkg_file_name)

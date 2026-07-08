@@ -1,0 +1,1 @@
+[{"endpoint":"/modbus/server/tcp/{service_group}/{?sid}","lua_service":"services/modbus_server","backup_order":238},{"endpoint":"/modbus/server/tcp/registers/{service_group}/{?sid}","lua_service":"services/modbus_server_tag","backup_order":239}]

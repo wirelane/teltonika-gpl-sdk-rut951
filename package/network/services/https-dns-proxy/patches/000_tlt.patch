@@ -1,0 +1,2303 @@
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/.github/workflows/cmake.yml src/.github/workflows/cmake.yml
+--- upstream/.github/workflows/cmake.yml	2021-07-30 06:04:34.000000000 +0000
++++ src/.github/workflows/cmake.yml	2025-03-13 09:07:40.000000000 +0000
+@@ -1,10 +1,6 @@
+ name: CMake
+ 
+-on:
+-  push:
+-    branches: [ master ]
+-  pull_request:
+-    branches: [ master ]
++on: [push, pull_request]
+ 
+ jobs:
+   build:
+@@ -12,28 +8,46 @@
+     # well on Windows or Mac.  You can convert this to a matrix build if you need
+     # cross-platform coverage.
+     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+-    runs-on: ubuntu-latest
++    runs-on: ubuntu-24.04
+ 
+     strategy:
++      fail-fast: false
+       matrix:
+-        compiler: [gcc, clang]
++        compiler: [gcc-13, clang-18]
+ 
+     steps:
+-    - uses: actions/checkout@v2
+-    
++    - uses: actions/checkout@main
++
+     - name: Update APT
+       run: sudo apt-get update
+ 
+     - name: Setup Dependencies
+-      run: sudo apt-get install cmake libc-ares-dev libcurl4-openssl-dev libev-dev build-essential clang clang-tidy
++      run: sudo apt-get install cmake libc-ares-dev libcurl4-openssl-dev libev-dev build-essential clang-tidy dnsutils python3-pip python3-venv valgrind ${{ matrix.compiler }}
++
++    - name: Setup Python Virtual Environment
++      run: python3 -m venv ${{github.workspace}}/venv
++
++    - name: Setup Robot Framework
++      run: ${{github.workspace}}/venv/bin/pip3 install robotframework
+ 
+     - name: Configure CMake
+       env:
+         CC: ${{ matrix.compiler }}
+-      run: cmake -B ${{github.workspace}}/
++      run: cmake -D CMAKE_BUILD_TYPE=Debug -D PYTHON3_EXE=${{github.workspace}}/venv/bin/python3 -B ${{github.workspace}}/
+ 
+     - name: Build
+       env:
+         CC: ${{ matrix.compiler }}
+       # Build your program with the given configuration
+       run: make -C ${{github.workspace}}/
++
++    - name: Test
++      run: make -C ${{github.workspace}}/ test ARGS="--verbose"
++
++    - uses: actions/upload-artifact@v4
++      if: ${{ success() || failure() }}
++      with:
++        name: robot-logs-${{ matrix.compiler }}
++        path: |
++          ${{github.workspace}}/tests/robot/*.html
++          ${{github.workspace}}/tests/robot/valgrind-*.log
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/.gitignore src/.gitignore
+--- upstream/.gitignore	2021-07-30 06:04:34.000000000 +0000
++++ src/.gitignore	2025-03-13 09:07:40.000000000 +0000
+@@ -13,3 +13,8 @@
+ .ninja_log
+ build.ninja
+ rules.ninja
++log.html
++output.xml
++report.html
++custom_curl/
++valgrind-*.log
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/CMakeLists.txt src/CMakeLists.txt
+--- upstream/CMakeLists.txt	2021-07-30 06:04:34.000000000 +0000
++++ src/CMakeLists.txt	2025-03-13 09:07:40.000000000 +0000
+@@ -1,5 +1,7 @@
+-project(HttpsDnsProxy C)
+ cmake_minimum_required(VERSION 3.7)
++project(HttpsDnsProxy C)
++
++# FUNCTIONS
+ 
+ # source: https://stackoverflow.com/a/27990434
+ function(define_file_basename_for_sources targetname)
+@@ -12,11 +14,19 @@
+   endforeach()
+ endfunction()
+ 
+-set(CMAKE_BUILD_TYPE "Debug")
+-#set(CMAKE_BUILD_TYPE "Release")
++# CONFIG
++
++if(NOT CMAKE_BUILD_TYPE)
++  set(CMAKE_BUILD_TYPE "Release")
++  message(STATUS "Setting build type to '${CMAKE_BUILD_TYPE}' as none was specified.")
++endif()
++
++if (NOT CMAKE_INSTALL_BINDIR)
++  set(CMAKE_INSTALL_BINDIR bin)
++endif()
+ 
+-set(CMAKE_C_FLAGS "-Wall -Wextra --pedantic -Wno-strict-aliasing -Wno-variadic-macros")
+-set(CMAKE_C_FLAGS_DEBUG "-g -DDEBUG")
++set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra --pedantic -Wno-strict-aliasing -Wno-variadic-macros")
++set(CMAKE_C_FLAGS_DEBUG "-gdwarf-4 -DDEBUG")
+ set(CMAKE_C_FLAGS_RELEASE "-O2")
+ 
+ if ((CMAKE_C_COMPILER_ID MATCHES GNU   AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 9) OR
+@@ -24,6 +34,9 @@
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-gnu-zero-variadic-macro-arguments -Wno-gnu-folding-constant")
+ endif()
+ 
++# VERSION
++# It is possible to define external default value like: cmake -DSW_VERSION=1.2-custom
++
+ find_package(Git)
+ if(Git_FOUND)
+   execute_process(
+@@ -31,36 +44,65 @@
+     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+     OUTPUT_VARIABLE GIT_VERSION
+     OUTPUT_STRIP_TRAILING_WHITESPACE)
+-  message(STATUS "Version: ${GIT_VERSION}")
++
++  if(GIT_VERSION)
++    set(SW_VERSION "${GIT_VERSION}")
++  else()
++    message(WARNING "Could not find out version from git command!")
++  endif()
+ 
+   # May not update version in some cases (example: git commit --amend)
+   set_property(GLOBAL APPEND
+     PROPERTY CMAKE_CONFIGURE_DEPENDS
+     "${CMAKE_SOURCE_DIR}/.git/index")
+ else()
+-  set(GIT_VERSION "UNKNOWN")
+-  message(WARNING "Could not find git command! Version is set to: ${GIT_VERSION}")
++  message(WARNING "Could not find git command!")
++endif()
++
++if(NOT SW_VERSION)
++  message(WARNING "Version unset, using hardcoded!")
+ endif()
+ 
++# LIBRARY DEPENDENCIES
++
+ find_path(LIBCARES_INCLUDE_DIR ares.h)
+-find_path(LIBCURL_INCLUDE_DIR curl/curl.h)
+ find_path(LIBEV_INCLUDE_DIR ev.h)
++
++if(CUSTOM_LIBCURL_INSTALL_PATH)
++  message(STATUS "Using custom libcurl from: ${CUSTOM_LIBCURL_INSTALL_PATH}")
++  set(LIBCURL_INCLUDE_DIR "${CUSTOM_LIBCURL_INSTALL_PATH}/include")
++  link_directories(BEFORE "${CUSTOM_LIBCURL_INSTALL_PATH}/lib")
++else()
++  message(STATUS "Using system libcurl")
++  find_path(LIBCURL_INCLUDE_DIR curl/curl.h)
++endif()
++
+ include_directories(
+   ${LIBCARES_INCLUDE_DIR} ${LIBCURL_INCLUDE_DIR}
+   ${LIBEV_INCLUDE_DIR} src)
+ 
+-find_program(
+-  CLANG_TIDY_EXE
+-  NAMES "clang-tidy"
+-  DOC "Path to clang-tidy executable"
+-  )
+-if(NOT CLANG_TIDY_EXE)
+-  message(STATUS "clang-tidy not found.")
++# CLANG TIDY
++
++option(USE_CLANG_TIDY "Use clang-tidy during compilation" ON)
++
++if(USE_CLANG_TIDY)
++  find_program(
++    CLANG_TIDY_EXE
++    NAMES "clang-tidy"
++    DOC "Path to clang-tidy executable"
++    )
++  if(NOT CLANG_TIDY_EXE)
++    message(STATUS "clang-tidy not found.")
++  else()
++    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
++    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-fix" "-fix-errors" "-checks=*,-cert-err34-c,-readability-identifier-length,-altera-unroll-loops,-bugprone-easily-swappable-parameters,-concurrency-mt-unsafe,-*magic-numbers,-hicpp-signed-bitwise,-readability-function-cognitive-complexity,-altera-id-dependent-backward-branch,-google-readability-todo,-misc-include-cleaner")
++  endif()
+ else()
+-  message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
+-  set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-fix" "-checks=*,-clang-analyzer-alpha.*,-misc-unused-parameters,-cert-err34-c,-google-readability-todo,-hicpp-signed-bitwise,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers,-gnu-folding-constant,-gnu-zero-variadic-macro-arguments")
++  message(STATUS "Not using clang-tidy.")
+ endif()
+ 
++# BUILD
++
+ # The main binary
+ set(TARGET_NAME "https_dns_proxy")
+ aux_source_directory(src SRC_LIST)
+@@ -68,12 +110,16 @@
+ add_executable(${TARGET_NAME} ${SRC_LIST})
+ set(LIBS ${LIBS} cares curl ev resolv)
+ target_link_libraries(${TARGET_NAME} ${LIBS})
++set_property(TARGET ${TARGET_NAME} PROPERTY C_STANDARD 11)
+ 
+ define_file_basename_for_sources("https_dns_proxy")
+ 
+-set_source_files_properties(
+-  src/main.c src/options.c
+-  PROPERTIES COMPILE_FLAGS "-DGIT_VERSION='\"${GIT_VERSION}\"'")
++
++if(SW_VERSION)
++  set_source_files_properties(
++    src/options.c
++    PROPERTIES COMPILE_FLAGS "-DSW_VERSION='\"${SW_VERSION}\"'")
++endif()
+ 
+ if(CLANG_TIDY_EXE)
+   set_target_properties(
+@@ -82,7 +128,9 @@
+   )
+ endif()
+ 
+-install(TARGETS ${TARGET_NAME} DESTINATION bin)
++# INSTALL
++
++install(TARGETS ${TARGET_NAME} DESTINATION ${CMAKE_INSTALL_BINDIR})
+ 
+ set(SERVICE_EXTRA_OPTIONS "")
+ if(IS_DIRECTORY "/etc/munin/plugins" AND
+@@ -98,5 +146,22 @@
+ 
+ configure_file(${TARGET_NAME}.service.in ${TARGET_NAME}.service)
+ 
+-install(FILES ${TARGET_NAME}.service
++install(FILES ${CMAKE_BINARY_DIR}/${TARGET_NAME}.service
+         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system/)
++
++# TESTING
++
++find_program(
++  PYTHON3_EXE
++  NAMES "python3"
++  DOC "Path to python3 executable"
++  )
++if(NOT PYTHON3_EXE)
++  message(STATUS "python3 not found, robot testing not possible")
++else()
++  message(STATUS "python3 found: ${PYTHON3_EXE}")
++
++  enable_testing()
++  add_test(NAME robot COMMAND ${PYTHON3_EXE} -m robot.run functional_tests.robot
++           WORKING_DIRECTORY tests/robot)
++endif()
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/README.md src/README.md
+--- upstream/README.md	2021-07-30 06:04:34.000000000 +0000
++++ src/README.md	2025-03-13 09:07:40.000000000 +0000
+@@ -43,7 +43,7 @@
+ 
+ ## Build
+ 
+-Depends on `c-ares (>=1.11.0)`, `libcurl (>=7.64.0)`, `libev (>=4.25)`.
++Depends on `c-ares (>=1.11.0)`, `libcurl (>=7.65.0)`, `libev (>=4.25)`.
+ 
+ On Debian-derived systems those are libc-ares-dev,
+ libcurl4-{openssl,nss,gnutls}-dev and libev-dev respectively.
+@@ -66,6 +66,20 @@
+ $ make
+ ```
+ 
++### Build with HTTP/3 support
++
++* If system libcurl supports it by default nothing else has to be done
++
++* If a custom build of libcurl supports HTTP/3 which is installed in a different location, that can be set when running cmake:
++```
++$ cmake -D CUSTOM_LIBCURL_INSTALL_PATH=/absolute/path/to/custom/libcurl/install .
++```
++
++* Just to test HTTP/3 support for development purpose, simply run the following command and wait for a long time:
++```
++$ ./development_build_with_http3.sh
++```
++
+ ## INSTALL
+ 
+ ### Install built program
+@@ -122,7 +136,7 @@
+ 
+ There is also an externally maintained [AUR package](https://aur.archlinux.org/packages/https-dns-proxy-git/) for latest git version. You can install as follows:
+ ```
+-user@arch:~# yaourt -S https-dns-proxy-git
++user@arch:~# yay -S https-dns-proxy-git
+ ```
+ 
+ ### Docker install
+@@ -145,46 +159,78 @@
+ 
+ ```
+ Usage: ./https_dns_proxy [-a <listen_addr>] [-p <listen_port>]
+-        [-d] [-u <user>] [-g <group>] [-b <dns_servers>]
+-        [-r <resolver_url>] [-e <subnet_addr>]
+-        [-t <proxy_server>] [-l <logfile>] -c <dscp_codepoint>
+-        [-x] [-v]+
++        [-b <dns_servers>] [-i <polling_interval>] [-4]
++        [-r <resolver_url>] [-t <proxy_server>] [-x] [-q] [-C <ca_path>] [-c <dscp_codepoint>]
++        [-d] [-u <user>] [-g <group>]
++        [-v]+ [-l <logfile>] [-s <statistic_interval>] [-F <log_limit>] [-V] [-h]
++
++ DNS server
++  -a listen_addr         Local IPv4/v6 address to bind to. (Default: 127.0.0.1)
++  -p listen_port         Local port to bind to. (Default: 5053)
+ 
+-  -a listen_addr         Local IPv4/v6 address to bind to. (127.0.0.1)
+-  -p listen_port         Local port to bind to. (5053)
+-  -d                     Daemonize.
+-  -u user                Optional user to drop to if launched as root.
+-  -g group               Optional group to drop to if launched as root.
++ DNS client
+   -b dns_servers         Comma-separated IPv4/v6 addresses and ports (addr:port)
+                          of DNS servers to resolve resolver host (e.g. dns.google).
+                          When specifying a port for IPv6, enclose the address in [].
+-                         (8.8.8.8,1.1.1.1,8.8.4.4,1.0.0.1,145.100.185.15,145.100.185.16,185.49.141.37)
++                         (Default: 8.8.8.8,1.1.1.1,8.8.4.4,1.0.0.1,145.100.185.15,145.100.185.16,185.49.141.37)
+   -i polling_interval    Optional polling interval of DNS servers.
+                          (Default: 120, Min: 5, Max: 3600)
+   -4                     Force IPv4 hostnames for DNS resolvers non IPv6 networks.
+-  -r resolver_url        The HTTPS path to the resolver URL. default: https://dns.google/dns-query
++
++ HTTPS client
++  -r resolver_url        The HTTPS path to the resolver URL. (Default: https://dns.google/dns-query)
+   -t proxy_server        Optional HTTP proxy. e.g. socks5://127.0.0.1:1080
+                          Remote name resolution will be used if the protocol
+                          supports it (http, https, socks4a, socks5h), otherwise
+                          initial DNS resolution will still be done via the
+                          bootstrap DNS servers.
+-  -l logfile             Path to file to log to. ("-")
+-  -c dscp_codepoint      Optional DSCP codepoint[0-63] to set on upstream DNS server
+-                         connections.
+   -x                     Use HTTP/1.1 instead of HTTP/2. Useful with broken
+-                         or limited builds of libcurl. (false)
++                         or limited builds of libcurl.
++  -q                     Use HTTP/3 (QUIC) only.
++  -m max_idle_time       Maximum idle time in seconds allowed for reusing a HTTPS connection.
++                         (Default: 118, Min: 0, Max: 3600)
++  -C ca_path             Optional file containing CA certificates.
++  -c dscp_codepoint      Optional DSCP codepoint to set on upstream HTTPS server
++                         connections. (Min: 0, Max: 63)
++
++ Process
++  -d                     Daemonize.
++  -u user                Optional user to drop to if launched as root.
++  -g group               Optional group to drop to if launched as root.
++
++ Logging
++  -v                     Increase logging verbosity. (Default: error)
++                         Levels: fatal, stats, error, warning, info, debug
++                         Request issues are logged on warning level.
++  -l logfile             Path to file to log to. (Default: standard output)
+   -s statistic_interval  Optional statistic printout interval.
+                          (Default: 0, Disabled: 0, Min: 1, Max: 3600)
+-  -v                     Increase logging verbosity. (INFO)
++  -F log_limit           Flight recorder: storing desired amount of logs from all levels
++                         in memory and dumping them on fatal error or on SIGUSR2 signal.
++                         (Default: 0, Disabled: 0, Min: 100, Max: 100000)
+   -V                     Print version and exit.
++  -h                     Print help and exit.
++```
++
++## Testing
++
++Functional tests can be executed using [Robot Framework](https://robotframework.org/).
++
++dig and valgrind commands are expected to be available.
++
++```
++pip3 install robotframework
++python3 -m robot.run tests/robot/functional_tests.robot
+ ```
+ 
+ ## TODO
+ 
+ * Add some tests.
++* Improve IPv6 handling and add automatic fallback to IPv4
+ 
+ ## Authors
+ 
+ * Aaron Drew (aarond10@gmail.com): Original https_dns_proxy.
+ * Soumya ([github.com/soumya92](https://github.com/soumya92)): RFC 8484 implementation.
++* baranyaib90 ([github.com/baranyaib90](https://github.com/baranyaib90)): fixes and improvements.
+ 
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/development_build_with_http3.sh src/development_build_with_http3.sh
+--- upstream/development_build_with_http3.sh	1970-01-01 00:00:00.000000000 +0000
++++ src/development_build_with_http3.sh	2025-03-13 09:07:40.000000000 +0000
+@@ -0,0 +1,69 @@
++#!/bin/bash
++
++set -e
++
++echo
++echo "WARNING !!!"
++echo
++echo "Use only for development and testing!"
++echo "It is highly highly not recommended, to use in production!"
++echo "This script was based on: https://github.com/curl/curl/blob/curl-8_12_1/docs/HTTP3.md"
++echo
++echo "Extra packages suggested to be installed: autoconf libtool"
++echo
++
++sleep 5
++
++set -x
++
++INSTALL_DIR=$PWD/custom_curl/install
++mkdir -p $INSTALL_DIR
++cd custom_curl
++
++###
++
++git clone --depth 1 -b openssl-3.1.4+quic https://github.com/quictls/openssl
++cd openssl
++./config enable-tls1_3 --prefix=$INSTALL_DIR
++make -j build_libs
++make install_dev
++cd ..
++
++git clone --depth 1 -b v1.1.0 https://github.com/ngtcp2/nghttp3
++cd nghttp3
++git submodule update --init
++autoreconf -fi
++./configure --prefix=$INSTALL_DIR --enable-lib-only
++make -j
++make install
++cd ..
++
++git clone --depth 1 -b v1.2.0 https://github.com/ngtcp2/ngtcp2
++cd ngtcp2
++autoreconf -fi
++./configure PKG_CONFIG_PATH=$INSTALL_DIR/lib64/pkgconfig:$INSTALL_DIR/lib64/pkgconfig LDFLAGS="-Wl,-rpath,$INSTALL_DIR/lib64" --prefix=$INSTALL_DIR --enable-lib-only --with-openssl
++make -j
++make install
++cd ..
++
++git clone --depth 1 -b v1.64.0 https://github.com/nghttp2/nghttp2
++cd nghttp2
++autoreconf -fi
++./configure PKG_CONFIG_PATH=$INSTALL_DIR/lib64/pkgconfig:$INSTALL_DIR/lib64/pkgconfig LDFLAGS="-Wl,-rpath,$INSTALL_DIR/lib64" --prefix=$INSTALL_DIR --enable-lib-only --with-openssl
++make -j
++make install
++cd ..
++
++git clone --depth 1 -b curl-8_12_1 https://github.com/curl/curl
++cd curl
++autoreconf -fi
++LDFLAGS="-Wl,-rpath,$INSTALL_DIR/lib64" ./configure --with-openssl=$INSTALL_DIR --with-nghttp2=$INSTALL_DIR --with-nghttp3=$INSTALL_DIR --with-ngtcp2=$INSTALL_DIR --prefix=$INSTALL_DIR
++make -j
++make install
++cd ..
++
++###
++
++cd ..
++cmake -D CUSTOM_LIBCURL_INSTALL_PATH=$INSTALL_DIR -D CMAKE_BUILD_TYPE=Debug .
++make -j
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/https_dns_proxy.service.in src/https_dns_proxy.service.in
+--- upstream/https_dns_proxy.service.in	2021-07-30 06:04:34.000000000 +0000
++++ src/https_dns_proxy.service.in	2025-03-13 09:07:40.000000000 +0000
+@@ -7,9 +7,10 @@
+ 
+ [Service]
+ Type=simple
++DynamicUser=yes
+ Restart=on-failure
+ ExecStart=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/https_dns_proxy \
+-  -u nobody -g nogroup -v -v ${SERVICE_EXTRA_OPTIONS}
++  -v -v ${SERVICE_EXTRA_OPTIONS}
+ TimeoutStopSec=10
+ 
+ [Install]
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/dns_poller.c src/src/dns_poller.c
+--- upstream/src/dns_poller.c	2021-07-30 06:04:34.000000000 +0000
++++ src/src/dns_poller.c	2025-03-13 09:07:40.000000000 +0000
+@@ -1,4 +1,3 @@
+-#include <math.h>        // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <netdb.h>       // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <string.h>      // NOLINT(llvmlibc-restrict-system-libc-headers)
+ 
+@@ -36,7 +35,7 @@
+   // reserve and start new event on unused slot
+   io_event_ptr = get_io_event(d, 0);
+   if (!io_event_ptr) {
+-    FLOG("c-ares needed more event, than nameservers count: %d", d->io_events_count);
++    FLOG("c-ares needed more IO event handler, than the number of provided nameservers: %d", d->io_events_count);
+   }
+   DLOG("Reserved new io event: %p", io_event_ptr);
+   // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+@@ -76,9 +75,9 @@
+   ev_tstamp interval = 5;  // retry by default after some time
+ 
+   if (status != ARES_SUCCESS) {
+-    WLOG("DNS lookup failed: %s", ares_strerror(status));
++    WLOG("DNS lookup of '%s' failed: %s", d->hostname, ares_strerror(status));
+   } else if (!h || h->h_length < 1) {
+-    WLOG("No hosts.");
++    WLOG("No hosts found for '%s'", d->hostname);
+   } else {
+     interval = d->polling_interval;
+     d->cb(d->hostname, d->cb_data, get_addr_listing(h->h_addr_list, h->h_addrtype));
+@@ -97,6 +96,7 @@
+     static struct timeval max_tv = {.tv_sec = 5, .tv_usec = 0};
+     struct timeval tv;
+     struct timeval *tvp = ares_timeout(d->ares, &max_tv, &tv);
++    // NOLINTNEXTLINE(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+     ev_tstamp after = tvp->tv_sec + tvp->tv_usec * 1e-6;
+     return after ? after : 0.1;
+ }
+@@ -134,8 +134,8 @@
+                      int bootstrap_dns_polling_interval,
+                      const char *hostname,
+                      int family, dns_poller_cb cb, void *cb_data) {
+-  int r = 0;
+-  if ((r = ares_library_init(ARES_LIB_INIT_ALL)) != ARES_SUCCESS) {
++  int r = ares_library_init(ARES_LIB_INIT_ALL);
++  if (r != ARES_SUCCESS) {
+     FLOG("ares_library_init error: %s", ares_strerror(r));
+   }
+ 
+@@ -147,11 +147,13 @@
+   };
+   int optmask = ARES_OPT_TIMEOUTMS | ARES_OPT_TRIES | ARES_OPT_SOCK_STATE_CB;
+ 
+-  if ((r = ares_init_options(&d->ares, &options, optmask)) != ARES_SUCCESS) {
++  r = ares_init_options(&d->ares, &options, optmask);
++  if (r != ARES_SUCCESS) {
+     FLOG("ares_init_options error: %s", ares_strerror(r));
+   }
+ 
+-  if((r = ares_set_servers_ports_csv(d->ares, bootstrap_dns)) != ARES_SUCCESS) {
++  r = ares_set_servers_ports_csv(d->ares, bootstrap_dns);
++  if (r != ARES_SUCCESS) {
+     FLOG("ares_set_servers_ports_csv error: %s", ares_strerror(r));
+   }
+ 
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/dns_server.c src/src/dns_server.c
+--- upstream/src/dns_server.c	2021-07-30 06:04:34.000000000 +0000
++++ src/src/dns_server.c	2025-03-13 09:07:40.000000000 +0000
+@@ -1,8 +1,8 @@
+ #include <ares.h>           // NOLINT(llvmlibc-restrict-system-libc-headers)
+-#include <arpa/inet.h>      // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <errno.h>          // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <netdb.h>          // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <netinet/in.h>     // NOLINT(llvmlibc-restrict-system-libc-headers)
++#include <stdint.h>
+ #include <string.h>         // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <sys/socket.h>     // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <unistd.h>         // NOLINT(llvmlibc-restrict-system-libc-headers)
+@@ -10,6 +10,12 @@
+ #include "dns_server.h"
+ #include "logging.h"
+ 
++
++enum {
++REQUEST_MAX = 1500  // A default MTU. We don't do TCP so any bigger is likely a waste
++};
++
++
+ // Creates and bind a listening UDP socket for incoming requests.
+ static int get_listen_sock(const char *listen_addr, int listen_port,
+                            unsigned int *addrlen) {
+@@ -40,7 +46,8 @@
+     FLOG("Error creating socket");
+   }
+ 
+-  if ((res = bind(sock, ai->ai_addr, ai->ai_addrlen)) < 0) {
++  res = bind(sock, ai->ai_addr, ai->ai_addrlen);
++  if (res < 0) {
+     FLOG("Error binding %s:%d: %s (%d)", listen_addr, listen_port,
+          strerror(errno), res);
+   }
+@@ -51,9 +58,6 @@
+   return sock;
+ }
+ 
+-// A default MTU. We don't do TCP so any bigger is likely a waste.
+-#define REQUEST_MAX 1500
+-
+ static void watcher_cb(struct ev_loop __attribute__((unused)) *loop,
+                        ev_io *w, int __attribute__((unused)) revents) {
+   dns_server_t *d = (dns_server_t *)w->data;
+@@ -65,8 +69,8 @@
+   struct sockaddr_storage raddr;
+   /* recvfrom can write to addrlen */
+   socklen_t tmp_addrlen = d->addrlen;
+-  int len = recvfrom(w->fd, buf, REQUEST_MAX, 0, (struct sockaddr*)&raddr,
+-                     &tmp_addrlen);
++  ssize_t len = recvfrom(w->fd, buf, REQUEST_MAX, 0, (struct sockaddr*)&raddr,
++                         &tmp_addrlen);
+   if (len < 0) {
+     ELOG("recvfrom failed: %s", strerror(errno));
+     return;
+@@ -96,7 +100,7 @@
+ }
+ 
+ void dns_server_respond(dns_server_t *d, struct sockaddr *raddr, char *buf,
+-                        int blen) {
++                        size_t blen) {
+   ssize_t len = sendto(d->sock, buf, blen, 0, raddr, d->addrlen);
+   if(len == -1) {
+     DLOG("sendto failed: %s", strerror(errno));
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/dns_server.h src/src/dns_server.h
+--- upstream/src/dns_server.h	2021-07-30 06:04:34.000000000 +0000
++++ src/src/dns_server.h	2025-03-13 09:07:40.000000000 +0000
+@@ -26,7 +26,7 @@
+ 
+ // Sends a DNS response 'buf' of length 'blen' to 'raddr'.
+ void dns_server_respond(dns_server_t *d, struct sockaddr *raddr, char *buf,
+-                        int blen);
++                        size_t blen);
+ 
+ void dns_server_stop(dns_server_t *d);
+ 
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/https_client.c src/src/https_client.c
+--- upstream/src/https_client.c	2021-07-30 06:04:34.000000000 +0000
++++ src/src/https_client.c	2025-03-13 09:07:40.000000000 +0000
+@@ -3,16 +3,21 @@
+ #include <ev.h>            // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <math.h>          // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <netinet/in.h>    // NOLINT(llvmlibc-restrict-system-libc-headers)
++#include <stdint.h>
+ #include <stdio.h>         // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <string.h>        // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <sys/socket.h>    // NOLINT(llvmlibc-restrict-system-libc-headers)
+-#include <unistd.h>
++#include <unistd.h>        // NOLINT(llvmlibc-restrict-system-libc-headers)
+ 
+ #include "https_client.h"
+ #include "logging.h"
+ #include "options.h"
++#include "stat.h"
+ 
+ #define DOH_CONTENT_TYPE "application/dns-message"
++enum {
++DOH_MAX_RESPONSE_SIZE = 65535
++};
+ 
+ // the following macros require to have ctx pointer to https_fetch_ctx structure
+ // else: compilation failure will occur
+@@ -45,30 +50,50 @@
+     FLOG("Unexpected NULL pointer for " #var_name "(" #type ")"); \
+   }
+ 
++static void https_fetch_ctx_cleanup(https_client_t *client,
++                                    struct https_fetch_ctx *prev,
++                                    struct https_fetch_ctx *ctx,
++                                    int curl_result_code);
++
+ static size_t write_buffer(void *buf, size_t size, size_t nmemb, void *userp) {
+   GET_PTR(struct https_fetch_ctx, ctx, userp);
+-  char *new_buf = (char *)realloc(
+-      ctx->buf, ctx->buflen + size * nmemb + 1);
++  size_t write_size = size * nmemb;
++  size_t new_size = ctx->buflen + write_size;
++  if (new_size > DOH_MAX_RESPONSE_SIZE) {
++    WLOG_REQ("Response size is too large!");
++    return 0;
++  }
++  char *new_buf = (char *)realloc(ctx->buf, new_size + 1);
+   if (new_buf == NULL) {
+     ELOG_REQ("Out of memory!");
+     return 0;
+   }
+   ctx->buf = new_buf;
+   // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+-  memcpy(&(ctx->buf[ctx->buflen]), buf, size * nmemb);
+-  ctx->buflen += size * nmemb;
++  memcpy(&(ctx->buf[ctx->buflen]), buf, write_size);
++  ctx->buflen = new_size;
+   // We always expect to receive valid non-null ASCII but just to be safe...
+   ctx->buf[ctx->buflen] = '\0';
+-  return size * nmemb;
++  return write_size;
+ }
+ 
+ static curl_socket_t opensocket_callback(void *clientp, curlsocktype purpose,
+                                          struct curl_sockaddr *addr) {
+   GET_PTR(https_client_t, client, clientp);
+ 
++  if (client->connections >= HTTPS_SOCKET_LIMIT) {
++    ELOG("curl needed more socket, than the number of maximum sockets: %d", HTTPS_SOCKET_LIMIT);
++    return CURL_SOCKET_BAD;
++  }
++
+   curl_socket_t sock = socket(addr->family, addr->socktype, addr->protocol);
++  if (sock == -1) {
++    ELOG("Could not open curl socket %d:%s", errno, strerror(errno));
++    return CURL_SOCKET_BAD;
++  }
+ 
+   DLOG("curl opened socket: %d", sock);
++  client->connections++;
+ 
+   if (client->stat) {
+     stat_connection_opened(client->stat);
+@@ -79,19 +104,17 @@
+     return sock;
+   }
+ 
+-  if (sock != -1) {
+-    if (addr->family == AF_INET) {
+-        setsockopt(sock, IPPROTO_IP, IP_TOS,
+-                   &client->opt->dscp, sizeof(client->opt->dscp));
+-    }
++  if (addr->family == AF_INET) {
++    setsockopt(sock, IPPROTO_IP, IP_TOS,
++               &client->opt->dscp, sizeof(client->opt->dscp));
++  }
+ #if defined(IPV6_TCLASS)
+-    else if (addr->family == AF_INET6) {
+-        setsockopt(sock, IPPROTO_IPV6, IPV6_TCLASS,
+-                   &client->opt->dscp, sizeof(client->opt->dscp));
+-    }
+-#endif
++  else if (addr->family == AF_INET6) {
++    setsockopt(sock, IPPROTO_IPV6, IPV6_TCLASS,
++               &client->opt->dscp, sizeof(client->opt->dscp));
+   }
+ #endif
++#endif
+ 
+   return sock;
+ }
+@@ -100,12 +123,14 @@
+ {
+   GET_PTR(https_client_t, client, clientp);
+ 
+-  if (close(sock) == 0) {
+-    DLOG("curl closed socket: %d", sock);
+-  } else {
+-    FLOG("Could not close curl socket %d:%s", errno, strerror(errno));
++  if (close(sock) != 0) {
++    ELOG("Could not close curl socket %d:%s", errno, strerror(errno));
++    return 1;
+   }
+ 
++  DLOG("curl closed socket: %d", sock);
++  client->connections--;
++
+   if (client->stat) {
+     stat_connection_closed(client->stat);
+   }
+@@ -151,7 +176,7 @@
+                      char *data, size_t size, void *userp)
+ {
+   GET_PTR(struct https_fetch_ctx, ctx, userp);
+-  const char *prefix = "";
++  const char *prefix = NULL;
+ 
+   switch (type) {
+     case CURLINFO_TEXT:
+@@ -203,6 +228,59 @@
+   return 0;
+ }
+ 
++static const char * http_version_str(const long version) {
++  switch (version) {
++    case CURL_HTTP_VERSION_1_0:
++      return "1.0";
++    case CURL_HTTP_VERSION_1_1:
++      return "1.1";
++    case CURL_HTTP_VERSION_2_0: // fallthrough
++    case CURL_HTTP_VERSION_2TLS:
++      return "2";
++#ifdef CURL_VERSION_HTTP3
++    case CURL_HTTP_VERSION_3:
++      return "3";
++#endif
++    default:
++      FLOG("Unsupported HTTP version: %d", version);
++  }
++  return "UNKNOWN"; // unreachable code
++}
++
++static void https_set_request_version(https_client_t *client,
++                                      struct https_fetch_ctx *ctx) {
++  long http_version_int = CURL_HTTP_VERSION_2TLS;
++  switch (client->opt->use_http_version) {
++    case 1:
++      http_version_int = CURL_HTTP_VERSION_1_1;
++      // fallthrough
++    case 2:
++      break;
++    case 3:
++#ifdef CURL_VERSION_HTTP3
++      http_version_int = CURL_HTTP_VERSION_3;
++#endif
++      break;
++    default:
++      FLOG_REQ("Invalid HTTP version: %d", client->opt->use_http_version);
++  }
++  DLOG_REQ("Requesting HTTP/%s", http_version_str(http_version_int));
++
++  CURLcode easy_code = curl_easy_setopt(ctx->curl, CURLOPT_HTTP_VERSION, http_version_int);
++  if (easy_code != CURLE_OK) {
++    ELOG_REQ("Setting HTTP/%s version failed with %d: %s",
++             http_version_str(http_version_int), easy_code, curl_easy_strerror(easy_code));
++
++    if (client->opt->use_http_version == 3) {
++      ELOG("Try to run application without -q argument!");  // fallback unknown for current request
++      client->opt->use_http_version = 2;
++    } else if (client->opt->use_http_version == 2) {
++      ELOG("Try to run application with -x argument! Falling back to HTTP/1.1 version.");
++      client->opt->use_http_version = 1;
++    }
++  }
++}
++
+ static void https_fetch_ctx_init(https_client_t *client,
+                                  struct https_fetch_ctx *ctx, const char *url,
+                                  const char* data, size_t datalen,
+@@ -219,145 +297,153 @@
+ 
+   ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_RESOLVE, resolv);
+ 
+-  DLOG_REQ("Requesting HTTP/1.1: %d", client->opt->use_http_1_1);
+-  CURLcode easy_code = curl_easy_setopt(ctx->curl, CURLOPT_HTTP_VERSION,
+-                                        client->opt->use_http_1_1 ?
+-                                        CURL_HTTP_VERSION_1_1 :
+-                                        CURL_HTTP_VERSION_2_0);
+-  if (easy_code != CURLE_OK) {
+-    ELOG_REQ("CURLOPT_HTTP_VERSION error %d: %s",
+-             easy_code, curl_easy_strerror(easy_code));
+-    if (!client->opt->use_http_1_1) {
+-      ELOG("Try to run application with -x argument! Forcing HTTP/1.1 version.");
+-      client->opt->use_http_1_1 = 1;
+-    }
+-  }
++  https_set_request_version(client, ctx);
+ 
+   if (logging_debug_enabled()) {
+     ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_VERBOSE, 1L);
+     ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_DEBUGFUNCTION, https_curl_debug);
+     ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_DEBUGDATA, ctx);
+   }
+-  if (logging_debug_enabled() || client->stat || client->opt->dscp) {
+-    ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_OPENSOCKETFUNCTION, opensocket_callback);
+-    ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_OPENSOCKETDATA, client);
+-  }
+-  if (logging_debug_enabled() || client->stat) {
+-    ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_CLOSESOCKETFUNCTION, closesocket_callback);
+-    ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_CLOSESOCKETDATA, client);
+-  }
++  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_OPENSOCKETFUNCTION, opensocket_callback);
++  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_OPENSOCKETDATA, client);
++  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_CLOSESOCKETFUNCTION, closesocket_callback);
++  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_CLOSESOCKETDATA, client);
+   ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_URL, url);
+   ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_HTTPHEADER, client->header_list);
+   ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_POSTFIELDSIZE, datalen);
+   ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_POSTFIELDS, data);
+   ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_WRITEFUNCTION, &write_buffer);
+   ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_WRITEDATA, ctx);
+-#ifdef CURLOPT_MAXAGE_CONN
+-  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_TCP_KEEPALIVE, 1L);
+-  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_TCP_KEEPIDLE, 50L);
+-  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_TCP_KEEPINTVL, 50L);
+-  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_MAXAGE_CONN, 300L);
+-#endif
+-  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_USERAGENT, "dns-to-https-proxy/0.2");
++  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_MAXAGE_CONN, client->opt->max_idle_time);
++  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_PIPEWAIT, client->opt->use_http_version > 1);
++  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_USERAGENT, "https_dns_proxy/0.3");
+   ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_FOLLOWLOCATION, 0);
+   ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_NOSIGNAL, 0);
+-  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_TIMEOUT, 10 /* seconds */);
++  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_TIMEOUT, client->connections > 0 ? 5 : 10 /* seconds */);
+   // We know Google supports this, so force it.
+   ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
++  ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_ERRORBUFFER, ctx->curl_errbuf); // zeroed by calloc
+   if (client->opt->curl_proxy) {
+     DLOG_REQ("Using curl proxy: %s", client->opt->curl_proxy);
+     ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_PROXY, client->opt->curl_proxy);
+   }
++  if (client->opt->ca_info) {
++    ASSERT_CURL_EASY_SETOPT(ctx, CURLOPT_CAINFO, client->opt->ca_info);
++  }
+   CURLMcode multi_code = curl_multi_add_handle(client->curlm, ctx->curl);
+   if (multi_code != CURLM_OK) {
+-    FLOG_REQ("curl_multi_add_handle error %d: %s",
+-             multi_code, curl_multi_strerror(multi_code));
++    ELOG_REQ("curl_multi_add_handle error %d: %s", multi_code, curl_multi_strerror(multi_code));
++    if (multi_code == CURLM_ABORTED_BY_CALLBACK) {
++      WLOG_REQ("Resetting HTTPS client to recover from faulty state!");
++      https_client_reset(client);
++    } else {
++      https_fetch_ctx_cleanup(client, NULL, client->fetches, -1);  // dropping current failed request
++    }
+   }
+ }
+ 
+ static int https_fetch_ctx_process_response(https_client_t *client,
+-                                            struct https_fetch_ctx *ctx)
++                                            struct https_fetch_ctx *ctx,
++                                            int curl_result_code)
+ {
+   CURLcode res = 0;
+   long long_resp = 0;
+   char *str_resp = NULL;
+   int faulty_response = 1;
+ 
+-  if ((res = curl_easy_getinfo(
+-        ctx->curl, CURLINFO_RESPONSE_CODE, &long_resp)) != CURLE_OK) {
+-    ELOG_REQ("CURLINFO_RESPONSE_CODE: %s", curl_easy_strerror(res));
+-  } else {
+-    if (long_resp == 200) {
++  switch (curl_result_code) {
++    case CURLE_OK:
++      DLOG_REQ("curl request succeeded");
+       faulty_response = 0;
+-    } else if (long_resp == 0) {
++      break;
++    case CURLE_WRITE_ERROR:
++      WLOG_REQ("curl request failed with write error (probably response content was too large)");
++      break;
++    default:
++      WLOG_REQ("curl request failed with %d: %s", res, curl_easy_strerror(res));
++      if (ctx->curl_errbuf[0] != 0) {
++        WLOG_REQ("curl error message: %s", ctx->curl_errbuf);
++      }
++  }
++
++  res = curl_easy_getinfo(ctx->curl, CURLINFO_RESPONSE_CODE, &long_resp);
++  if (res != CURLE_OK) {
++    ELOG_REQ("CURLINFO_RESPONSE_CODE: %s", curl_easy_strerror(res));
++    faulty_response = 1;
++  } else if (long_resp != 200) {
++    faulty_response = 1;
++    if (long_resp == 0) {
+       curl_off_t uploaded_bytes = 0;
+       if (curl_easy_getinfo(ctx->curl, CURLINFO_SIZE_UPLOAD_T, &uploaded_bytes) == CURLE_OK &&
+           uploaded_bytes > 0) {
+-        ELOG_REQ("Connecting and sending request to resolver was successful, "
++        WLOG_REQ("Connecting and sending request to resolver was successful, "
+                  "but no response was sent back");
+-        if (client->opt->use_http_1_1) {
++        if (client->opt->use_http_version == 1) {
+           // for example Unbound DoH servers does not support HTTP/1.x, only HTTP/2
+-          ELOG("Resolver may not support current HTTP/1.1 protocol version");
++          WLOG("Resolver may not support current HTTP/%s protocol version",
++               http_version_str(client->opt->use_http_version));
+         }
+       } else {
+         // in case of HTTP/1.1 this can happen very often depending on DNS query frequency
+         // example: server side closes the connection or curl force closes connections
+         // that have been opened a long time ago (if CURLOPT_MAXAGE_CONN can not be increased
+         // it is 118 seconds)
++        // also: when no internet connection, this floods the log for every failed request
+         WLOG_REQ("No response (probably connection has been closed or timed out)");
+       }
+     } else {
+-      ELOG_REQ("curl response code: %d, content length: %zu", long_resp, ctx->buflen);
++      WLOG_REQ("curl response code: %d, content length: %zu", long_resp, ctx->buflen);
+       if (ctx->buflen > 0) {
+-        https_log_data(LOG_ERROR, ctx, ctx->buf, ctx->buflen);
++        https_log_data(LOG_WARNING, ctx, ctx->buf, ctx->buflen);
+       }
+     }
+   }
+ 
+   if (!faulty_response)
+   {
+-    if ((res = curl_easy_getinfo(
+-          ctx->curl, CURLINFO_CONTENT_TYPE, &str_resp)) != CURLE_OK) {
++    res = curl_easy_getinfo(ctx->curl, CURLINFO_CONTENT_TYPE, &str_resp);
++    if (res != CURLE_OK) {
+       ELOG_REQ("CURLINFO_CONTENT_TYPE: %s", curl_easy_strerror(res));
+-    } else {
+-      if (str_resp == NULL ||
+-          strncmp(str_resp, DOH_CONTENT_TYPE, sizeof(DOH_CONTENT_TYPE) - 1) != 0) {  // at least, start with it
+-        ELOG_REQ("Invalid response Content-Type: %s", str_resp ? str_resp : "UNSET");
+-        faulty_response = 1;
+-      }
++    } else if (str_resp == NULL ||
++        strncmp(str_resp, DOH_CONTENT_TYPE, sizeof(DOH_CONTENT_TYPE) - 1) != 0) {  // at least, start with it
++      WLOG_REQ("Invalid response Content-Type: %s", str_resp ? str_resp : "UNSET");
++      faulty_response = 1;
+     }
+   }
+ 
+   if (logging_debug_enabled() || faulty_response || ctx->buflen == 0) {
+-    if ((res = curl_easy_getinfo(
+-            ctx->curl, CURLINFO_REDIRECT_URL, &str_resp)) != CURLE_OK) {
++    res = curl_easy_getinfo(ctx->curl, CURLINFO_REDIRECT_URL, &str_resp);
++    if (res != CURLE_OK) {
+       ELOG_REQ("CURLINFO_REDIRECT_URL: %s", curl_easy_strerror(res));
+     } else if (str_resp != NULL) {
+-      ELOG_REQ("Request would be redirected to: %s", str_resp);
++      WLOG_REQ("Request would be redirected to: %s", str_resp);
+       if (strcmp(str_resp, client->opt->resolver_url) != 0) {
+-        ELOG("Please update Resolver URL to avoid redirection!");
++        WLOG("Please update Resolver URL to avoid redirection!");
+       }
+     }
+-    if ((res = curl_easy_getinfo(
+-            ctx->curl, CURLINFO_SSL_VERIFYRESULT, &long_resp)) != CURLE_OK) {
++
++    res = curl_easy_getinfo(ctx->curl, CURLINFO_SSL_VERIFYRESULT, &long_resp);
++    if (res != CURLE_OK) {
+       ELOG_REQ("CURLINFO_SSL_VERIFYRESULT: %s", curl_easy_strerror(res));
+     } else if (long_resp != CURLE_OK) {
+-      ELOG_REQ("CURLINFO_SSL_VERIFYRESULT: %s", curl_easy_strerror(long_resp));
++      WLOG_REQ("CURLINFO_SSL_VERIFYRESULT: %s", curl_easy_strerror(long_resp));
+     }
+-    if ((res = curl_easy_getinfo(
+-            ctx->curl, CURLINFO_OS_ERRNO, &long_resp)) != CURLE_OK) {
++
++    res = curl_easy_getinfo(ctx->curl, CURLINFO_OS_ERRNO, &long_resp);
++    if (res != CURLE_OK) {
+       ELOG_REQ("CURLINFO_OS_ERRNO: %s", curl_easy_strerror(res));
+     } else if (long_resp != 0) {
+-      ELOG_REQ("CURLINFO_OS_ERRNO: %d %s", long_resp, strerror(long_resp));
++      WLOG_REQ("CURLINFO_OS_ERRNO: %d %s", long_resp, strerror(long_resp));
+       if (long_resp == ENETUNREACH && !client->opt->ipv4) {
+-        ELOG("Try to run application with -4 argument!");
++        // this can't be fixed here with option overwrite because of dns_poller
++        WLOG("Try to run application with -4 argument!");
+       }
+     }
+   }
+ 
+   if (logging_debug_enabled() || client->stat) {
+-    if ((res = curl_easy_getinfo(
+-            ctx->curl, CURLINFO_NUM_CONNECTS , &long_resp)) != CURLE_OK) {
++    res = curl_easy_getinfo(ctx->curl, CURLINFO_NUM_CONNECTS , &long_resp);
++    if (res != CURLE_OK) {
+       ELOG_REQ("CURLINFO_NUM_CONNECTS: %s", curl_easy_strerror(res));
+     } else {
+       DLOG_REQ("CURLINFO_NUM_CONNECTS: %d", long_resp);
+@@ -368,35 +454,25 @@
+   }
+ 
+   if (logging_debug_enabled()) {
+-    if ((res = curl_easy_getinfo(
+-            ctx->curl, CURLINFO_EFFECTIVE_URL, &str_resp)) != CURLE_OK) {
++    res = curl_easy_getinfo(ctx->curl, CURLINFO_EFFECTIVE_URL, &str_resp);
++    if (res != CURLE_OK) {
+       ELOG_REQ("CURLINFO_EFFECTIVE_URL: %s", curl_easy_strerror(res));
+     } else {
+       DLOG_REQ("CURLINFO_EFFECTIVE_URL: %s", str_resp);
+     }
+-    if ((res = curl_easy_getinfo(
+-            ctx->curl, CURLINFO_HTTP_VERSION, &long_resp)) != CURLE_OK) {
++
++    res = curl_easy_getinfo(ctx->curl, CURLINFO_HTTP_VERSION, &long_resp);
++    if (res != CURLE_OK) {
+       ELOG_REQ("CURLINFO_HTTP_VERSION: %s", curl_easy_strerror(res));
+-    } else {
+-      switch (long_resp) {
+-        case CURL_HTTP_VERSION_1_0:
+-          DLOG_REQ("CURLINFO_HTTP_VERSION: 1.0");
+-          break;
+-        case CURL_HTTP_VERSION_1_1:
+-          DLOG_REQ("CURLINFO_HTTP_VERSION: 1.1");
+-          break;
+-        case CURL_HTTP_VERSION_2_0:
+-          DLOG_REQ("CURLINFO_HTTP_VERSION: 2");
+-          break;
+-        default:
+-          DLOG_REQ("CURLINFO_HTTP_VERSION: %d", long_resp);
+-      }
++    } else if (long_resp != CURL_HTTP_VERSION_NONE) {
++      DLOG_REQ("CURLINFO_HTTP_VERSION: %s", http_version_str(long_resp));
+     }
+-    if ((res = curl_easy_getinfo(
+-            ctx->curl, CURLINFO_PROTOCOL, &long_resp)) != CURLE_OK) {
+-      ELOG_REQ("CURLINFO_PROTOCOL: %s", curl_easy_strerror(res));
+-    } else if (long_resp != CURLPROTO_HTTPS) {
+-      DLOG_REQ("CURLINFO_PROTOCOL: %d", long_resp);
++
++    res = curl_easy_getinfo(ctx->curl, CURLINFO_SCHEME, &str_resp);
++    if (res != CURLE_OK) {
++      ELOG_REQ("CURLINFO_SCHEME: %s", curl_easy_strerror(res));
++    } else if (strcasecmp(str_resp, "https") != 0) {
++      DLOG_REQ("CURLINFO_SCHEME: %s", str_resp);
+     }
+ 
+     double namelookup_time = NAN;
+@@ -429,36 +505,36 @@
+ }
+ 
+ static void https_fetch_ctx_cleanup(https_client_t *client,
+-                                    struct https_fetch_ctx *ctx) {
+-  struct https_fetch_ctx *last = NULL;
+-  struct https_fetch_ctx *cur = client->fetches;
+-  while (cur) {
+-    if (cur == ctx) {
+-      CURLMcode code = curl_multi_remove_handle(client->curlm, ctx->curl);
+-      if (code != CURLM_OK) {
+-        FLOG_REQ("curl_multi_remove_handle error %d: %s", code, curl_multi_strerror(code));
+-      }
+-      if (https_fetch_ctx_process_response(client, ctx) != 0) {
+-        ILOG_REQ("Response was faulty, skipping DNS reply.");
+-        free(ctx->buf);
+-        ctx->buf = NULL;
+-        ctx->buflen = 0;
+-      }
+-      // callback must be called to avoid memleak
+-      ctx->cb(ctx->cb_data, ctx->buf, ctx->buflen);
+-      curl_easy_cleanup(ctx->curl);
+-      free(ctx->buf);
+-      if (last) {
+-        last->next = ctx->next;
+-      } else {
+-        client->fetches = ctx->next;
+-      }
+-      free(ctx);
+-      return;
+-    }
+-    last = cur;
+-    cur = cur->next;
++                                    struct https_fetch_ctx *prev,
++                                    struct https_fetch_ctx *ctx,
++                                    int curl_result_code) {
++  CURLMcode code = curl_multi_remove_handle(client->curlm, ctx->curl);
++  if (code != CURLM_OK) {
++    FLOG_REQ("curl_multi_remove_handle error %d: %s", code, curl_multi_strerror(code));
++  }
++  int drop_reply = 0;
++  if (curl_result_code < 0) {
++    WLOG_REQ("Request was aborted");
++    drop_reply = 1;
++  } else if (https_fetch_ctx_process_response(client, ctx, curl_result_code) != 0) {
++    ILOG_REQ("Response was faulty, skipping DNS reply");
++    drop_reply = 1;
++  }
++  if (drop_reply) {
++    free(ctx->buf);
++    ctx->buf = NULL;
++    ctx->buflen = 0;
++  }
++  // callback must be called to avoid memleak
++  ctx->cb(ctx->cb_data, ctx->buf, ctx->buflen);
++  curl_easy_cleanup(ctx->curl);
++  free(ctx->buf);
++  if (prev) {
++    prev->next = ctx->next;
++  } else {
++    client->fetches = ctx->next;
+   }
++  free(ctx);
+ }
+ 
+ static void check_multi_info(https_client_t *c) {
+@@ -466,44 +542,57 @@
+   int msgs_left = 0;
+   while ((msg = curl_multi_info_read(c->curlm, &msgs_left))) {
+     if (msg->msg == CURLMSG_DONE) {
+-      struct https_fetch_ctx *n = c->fetches;
+-      while (n) {
+-        if (n->curl == msg->easy_handle) {
+-          https_fetch_ctx_cleanup(c, n);
++      struct https_fetch_ctx *prev = NULL;
++      struct https_fetch_ctx *cur = c->fetches;
++      while (cur) {
++        if (cur->curl == msg->easy_handle) {
++          https_fetch_ctx_cleanup(c, prev, cur, msg->data.result);
+           break;
+         }
+-        n = n->next;
++        prev = cur;
++        cur = cur->next;
+       }
+     }
++    else {
++      ELOG("Unhandled curl message: %d", msg->msg);  // unlikely
++    }
+   }
+ }
+ 
+ static void sock_cb(struct ev_loop __attribute__((unused)) *loop,
+                     struct ev_io *w, int revents) {
+   GET_PTR(https_client_t, c, w->data);
++  int ignore = 0;
+   CURLMcode code = curl_multi_socket_action(
+       c->curlm, w->fd, (revents & EV_READ ? CURL_CSELECT_IN : 0) |
+                        (revents & EV_WRITE ? CURL_CSELECT_OUT : 0),
+-      &c->still_running);
+-  if (code != CURLM_OK) {
++      &ignore);
++  if (code == CURLM_OK) {
++    check_multi_info(c);
++  }
++  else {
+     FLOG("curl_multi_socket_action error %d: %s", code, curl_multi_strerror(code));
++    if (code == CURLM_ABORTED_BY_CALLBACK) {
++      WLOG("Resetting HTTPS client to recover from faulty state!");
++      https_client_reset(c);
++    }
+   }
+-  check_multi_info(c);
+ }
+ 
+ static void timer_cb(struct ev_loop __attribute__((unused)) *loop,
+                      struct ev_timer *w, int __attribute__((unused)) revents) {
+   GET_PTR(https_client_t, c, w->data);
++  int ignore = 0;
+   CURLMcode code = curl_multi_socket_action(c->curlm, CURL_SOCKET_TIMEOUT, 0,
+-                                            &c->still_running);
++                                            &ignore);
+   if (code != CURLM_OK) {
+-    FLOG("curl_multi_socket_action error %d: %s", code, curl_multi_strerror(code));
++    ELOG("curl_multi_socket_action error %d: %s", code, curl_multi_strerror(code));
+   }
+   check_multi_info(c);
+ }
+ 
+ static struct ev_io * get_io_event(struct ev_io io_events[], curl_socket_t sock) {
+-  for (int i = 0; i < MAX_TOTAL_CONNECTIONS; i++) {
++  for (int i = 0; i < HTTPS_SOCKET_LIMIT; i++) {
+     if (io_events[i].fd == sock) {
+       return &io_events[i];
+     }
+@@ -511,6 +600,15 @@
+   return NULL;
+ }
+ 
++static void dump_io_events(struct ev_io io_events[]) {
++  for (int i = 0; i < HTTPS_SOCKET_LIMIT; i++) {
++    ILOG("IO event #%d: fd=%d, events=%d/%s%s",
++         i+1, io_events[i].fd, io_events[i].events,
++         (io_events[i].events & EV_READ ? "R" : ""),
++         (io_events[i].events & EV_WRITE ? "W" : ""));
++  }
++}
++
+ static int multi_sock_cb(CURL *curl, curl_socket_t sock, int what,
+                          void *userp, void __attribute__((unused)) *sockp) {
+   GET_PTR(https_client_t, c, userp);
+@@ -530,7 +628,10 @@
+   // reserve and start new event on unused slot
+   io_event_ptr = get_io_event(c->io_events, 0);
+   if (!io_event_ptr) {
+-    FLOG("curl needed more event, than max connections: %d", MAX_TOTAL_CONNECTIONS);
++    ELOG("curl needed more IO event handler, than the number of maximum sockets: %d", HTTPS_SOCKET_LIMIT);
++    dump_io_events(c->io_events);
++    logging_flight_recorder_dump();
++    return -1;
+   }
+   DLOG("Reserved new io event: %p", io_event_ptr);
+   // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+@@ -564,17 +665,15 @@
+     "Content-Type: " DOH_CONTENT_TYPE);
+   c->fetches = NULL;
+   c->timer.data = c;
+-  for (int i = 0; i < MAX_TOTAL_CONNECTIONS; i++) {
++  for (int i = 0; i < HTTPS_SOCKET_LIMIT; i++) {
+     c->io_events[i].data = c;
+   }
+   c->opt = opt;
+   c->stat = stat;
+ 
+-  ASSERT_CURL_MULTI_SETOPT(c->curlm, CURLMOPT_PIPELINING,
+-                           c->opt->use_http_1_1 ?
+-                           CURLPIPE_HTTP1 :
+-                           CURLPIPE_MULTIPLEX);
+-  ASSERT_CURL_MULTI_SETOPT(c->curlm, CURLMOPT_MAX_TOTAL_CONNECTIONS, MAX_TOTAL_CONNECTIONS);
++  ASSERT_CURL_MULTI_SETOPT(c->curlm, CURLMOPT_PIPELINING, CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX);
++  ASSERT_CURL_MULTI_SETOPT(c->curlm, CURLMOPT_MAX_TOTAL_CONNECTIONS, HTTPS_CONNECTION_LIMIT);
++  ASSERT_CURL_MULTI_SETOPT(c->curlm, CURLMOPT_MAX_HOST_CONNECTIONS, HTTPS_CONNECTION_LIMIT);
+   ASSERT_CURL_MULTI_SETOPT(c->curlm, CURLMOPT_SOCKETDATA, c);
+   ASSERT_CURL_MULTI_SETOPT(c->curlm, CURLMOPT_SOCKETFUNCTION, multi_sock_cb);
+   ASSERT_CURL_MULTI_SETOPT(c->curlm, CURLMOPT_TIMERDATA, c);
+@@ -603,7 +702,7 @@
+ 
+ void https_client_cleanup(https_client_t *c) {
+   while (c->fetches) {
+-    https_fetch_ctx_cleanup(c, c->fetches);
++    https_fetch_ctx_cleanup(c, NULL, c->fetches, -1);
+   }
+   curl_slist_free_all(c->header_list);
+   curl_multi_cleanup(c->curlm);
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/https_client.h src/src/https_client.h
+--- upstream/src/https_client.h	2021-07-30 06:04:34.000000000 +0000
++++ src/src/https_client.h	2025-03-13 09:07:40.000000000 +0000
+@@ -6,7 +6,10 @@
+ #include "options.h"
+ #include "stat.h"
+ 
+-#define MAX_TOTAL_CONNECTIONS 8
++enum {
++  HTTPS_SOCKET_LIMIT = 12,
++  HTTPS_CONNECTION_LIMIT = 8,
++};
+ 
+ // Callback type for receiving data when a transfer finishes.
+ typedef void (*https_response_cb)(void *data, char *buf, size_t buflen);
+@@ -14,6 +17,7 @@
+ // Internal: Holds state on an individual transfer.
+ struct https_fetch_ctx {
+   CURL *curl;
++  char curl_errbuf[CURL_ERROR_SIZE];
+ 
+   uint16_t id;
+ 
+@@ -34,8 +38,8 @@
+   struct https_fetch_ctx *fetches;
+ 
+   ev_timer timer;
+-  ev_io io_events[MAX_TOTAL_CONNECTIONS];
+-  int still_running;
++  ev_io io_events[HTTPS_SOCKET_LIMIT];
++  int connections;
+ 
+   options_t *opt;
+   stat_t *stat;
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/logging.c src/src/logging.c
+--- upstream/src/logging.c	2021-07-30 06:04:34.000000000 +0000
++++ src/src/logging.c	2025-03-13 09:07:40.000000000 +0000
+@@ -1,18 +1,26 @@
++#include <inttypes.h>
+ #include <stdarg.h>
++#include <stdint.h>
+ #include <stdio.h>         // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <sys/time.h>      // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <unistd.h>        // NOLINT(llvmlibc-restrict-system-libc-headers)
+ 
+ #include "logging.h"
++#include "ring_buffer.h"
+ 
+-/* logs of this severity or higher are flushed immediately after write */
++// logs of this severity or higher are flushed immediately after write
+ #define LOG_FLUSH_LEVEL LOG_WARNING
++enum {
++LOG_LINE_SIZE = 2048  // Log line should be at least 100
++};
+ 
+-static FILE *logf = NULL;        // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+-static int loglevel = LOG_ERROR; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+-static ev_timer logging_timer;   // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
++static FILE *logfile = NULL;                         // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
++static int loglevel = LOG_ERROR;                     // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
++static ev_timer logging_timer;                       // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
++static ev_signal sigusr2;                            // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
++static struct ring_buffer * flight_recorder = NULL;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+ 
+-static const char *SeverityStr[] = {
++static const char * const SeverityStr[] = {
+   "[D]",
+   "[I]",
+   "[W]",
+@@ -21,74 +29,133 @@
+   "[F]"
+ };
+ 
+-static void logging_timer_cb(struct ev_loop __attribute__((unused)) *loop,
+-                             ev_timer __attribute__((unused)) *w,
+-                             int __attribute__((unused)) revents) {
+-  if (logf) {
+-    fflush(logf);
++void logging_timer_cb(struct ev_loop __attribute__((unused)) *loop,
++    ev_timer __attribute__((unused)) *w,
++    int __attribute__((unused)) revents) {
++  if (logfile) {
++    (void)fflush(logfile);
+   }
+ }
+ 
+-void logging_flush_init(struct ev_loop *loop) {
+-  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+-  ev_timer_init(&logging_timer, logging_timer_cb, 0, 10);
++void logging_flight_recorder_dump(void) {
++  if (flight_recorder) {
++    ILOG("Flight recorder dump");  // will be also at the end of the dump :)
++    ring_buffer_dump(flight_recorder, logfile);
++  } else {
++    ILOG("Flight recorder is disabled");
++  }
++}
++
++static void logging_flight_recorder_dump_cb(struct ev_loop __attribute__((unused)) *loop,
++    ev_signal __attribute__((__unused__)) *w,
++    int __attribute__((__unused__)) revents) {
++  logging_flight_recorder_dump();
++}
++
++void logging_events_init(struct ev_loop *loop) {
+   /* don't start timer if we will never write messages that are not flushed */
+-  if (loglevel >= LOG_FLUSH_LEVEL) {
+-    return;
++  if (loglevel < LOG_FLUSH_LEVEL) {
++    DLOG("starting periodic log flush timer");
++    // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
++    ev_timer_init(&logging_timer, logging_timer_cb, 0, 10);
++    ev_timer_start(loop, &logging_timer);
+   }
+-  DLOG("starting periodic log flush timer");
+-  ev_timer_start(loop, &logging_timer);
++
++  DLOG("starting SIGUSR2 handler");
++  ev_signal_init(&sigusr2, logging_flight_recorder_dump_cb, SIGUSR2);
++  ev_signal_start(loop, &sigusr2);
+ }
+ 
+-void logging_flush_cleanup(struct ev_loop *loop) {
++void logging_events_cleanup(struct ev_loop *loop) {
+   ev_timer_stop(loop, &logging_timer);
++  ev_signal_stop(loop, &sigusr2);
+ }
+ 
+-void logging_init(int fd, int level) {
+-  if (logf) {
+-    fclose(logf);
++void logging_init(int fd, int level, uint32_t flight_recorder_size) {
++  if (logfile) {
++    (void)fclose(logfile);
+   }
+-  logf = fdopen(fd, "a");
++  logfile = fdopen(fd, "a");
+   loglevel = level;
++
++  ring_buffer_init(&flight_recorder, flight_recorder_size);
+ }
+ 
+-void logging_cleanup() {
+-  if (logf) {
+-    fclose(logf);
++void logging_cleanup(void) {
++  if (flight_recorder) {
++    ring_buffer_free(&flight_recorder);
++    flight_recorder = NULL;
++  }
++
++  if (logfile) {
++    (void)fclose(logfile);
+   }
+-  logf = NULL;
++  logfile = NULL;
+ }
+ 
+-int logging_debug_enabled() {
+-  return loglevel <= LOG_DEBUG;
++int logging_debug_enabled(void) {
++  return loglevel <= LOG_DEBUG || flight_recorder;
+ }
+ 
++// NOLINTNEXTLINE(misc-no-recursion) because of severity check
+ void _log(const char *file, int line, int severity, const char *fmt, ...) {
+-  if (severity < loglevel) {
++  if (severity < loglevel && !flight_recorder) {
+     return;
+   }
+   if (severity < 0 || severity >= LOG_MAX) {
+-    FLOG("Unknown log severity: %d\n", severity);
++    FLOG("Unknown log severity: %d", severity);
+   }
+-  if (!logf) {
+-    logf = fdopen(STDOUT_FILENO, "w");
++  if (!logfile) {
++    logfile = fdopen(STDOUT_FILENO, "w");
+   }
+ 
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+-  fprintf(logf, "%s %8ld.%06ld %s:%d ", SeverityStr[severity], tv.tv_sec,
+-          tv.tv_usec, file, line);
++
++  char buff[LOG_LINE_SIZE];
++  uint32_t buff_pos = 0;
++
++  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
++  int chars = snprintf(buff, LOG_LINE_SIZE, "%s %8"PRIu64".%06"PRIu64" %s:%d ",
++                       SeverityStr[severity], (uint64_t)tv.tv_sec, (uint64_t)tv.tv_usec, file, line);
++  if (chars < 0 || chars >= LOG_LINE_SIZE/2) {
++    abort();  // must be impossible
++  }
++  buff_pos += chars;
+ 
+   va_list args;
+   va_start(args, fmt);
+-  vfprintf(logf, fmt, args);
++  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
++  chars = vsnprintf(buff + buff_pos, LOG_LINE_SIZE - buff_pos, fmt, args);
+   va_end(args);
+-  fprintf(logf, "\n");
++
++  if (chars < 0) {
++    abort();  // must be impossible
++  }
++  buff_pos += chars;
++  if (buff_pos >= LOG_LINE_SIZE) {
++    buff_pos = LOG_LINE_SIZE - 1;
++    buff[buff_pos - 1] = '$'; // indicate truncation
++  }
++
++  if (flight_recorder) {
++    ring_buffer_push_back(flight_recorder, buff, buff_pos);
++  }
++
++  if (severity < loglevel) {
++    return;
++  }
++
++  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
++  (void)fprintf(logfile, "%s\n", buff);
+ 
+   if (severity >= LOG_FLUSH_LEVEL) {
+-    fflush(logf);
++    (void)fflush(logfile);
+   }
+   if (severity == LOG_FATAL) {
++    if (flight_recorder) {
++      ring_buffer_dump(flight_recorder, logfile);
++    }
+ #ifdef DEBUG
+     abort();
+ #else
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/logging.h src/src/logging.h
+--- upstream/src/logging.h	2021-07-30 06:04:34.000000000 +0000
++++ src/src/logging.h	2025-03-13 09:07:40.000000000 +0000
+@@ -1,28 +1,34 @@
+ #ifndef _LOGGING_H_
+ #define _LOGGING_H_
+ 
++#include <stdio.h>         // NOLINT(llvmlibc-restrict-system-libc-headers)
+ #include <stdlib.h>        // NOLINT(llvmlibc-restrict-system-libc-headers)
+-#include <ev.h>
++#include <ev.h>            // NOLINT(llvmlibc-restrict-system-libc-headers)
+ 
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
++
+ // Initializes logging.
+ // Writes logs to descriptor 'fd' for log levels above or equal to 'level'.
+-void logging_init(int fd, int level);
++void logging_init(int fd, int level, unsigned flight_recorder_size);
+ 
+ // Initialize periodic timer to flush logs.
+-void logging_flush_init(struct ev_loop *loop);
+-void logging_flush_cleanup(struct ev_loop *loop);
++void logging_events_init(struct ev_loop *loop);
++void logging_events_cleanup(struct ev_loop *loop);
+ 
+ // Cleans up and flushes open logs.
+-void logging_cleanup();
++void logging_cleanup(void);
+ 
+ // Returns 1 if debug logging is enabled.
+-int logging_debug_enabled();
++int logging_debug_enabled(void);
++
++// Dump flight recorder.
++void logging_flight_recorder_dump(void);
+ 
+ // Internal. Don't use.
+ void _log(const char *file, int line, int severity, const char *fmt, ...);
++
+ #ifdef __cplusplus
+ }
+ #endif
+@@ -44,7 +50,7 @@
+ #define ELOG(...) _log(__FILENAME__, __LINE__, LOG_ERROR, __VA_ARGS__)
+ #define SLOG(...) _log(__FILENAME__, __LINE__, LOG_STATS, __VA_ARGS__)
+ #define FLOG(...) do { \
+-  _log(__FILE__, __LINE__, LOG_FATAL, __VA_ARGS__); \
++  _log(__FILENAME__, __LINE__, LOG_FATAL, __VA_ARGS__); \
+   exit(1); /* for clang-tidy! */ \
+ } while(0)
+ 
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/main.c src/src/main.c
+--- upstream/src/main.c	2021-07-30 06:04:34.000000000 +0000
++++ src/src/main.c	2025-03-13 09:07:40.000000000 +0000
+@@ -17,56 +17,57 @@
+ #include "stat.h"
+ 
+ // Holds app state required for dns_server_cb.
++// NOLINTNEXTLINE(altera-struct-pack-align)
+ typedef struct {
+   https_client_t *https_client;
+   struct curl_slist *resolv;
+   const char *resolver_url;
+-  uint8_t using_dns_poller;
+   stat_t *stat;
++  uint8_t using_dns_poller;
+ } app_state_t;
+ 
++// NOLINTNEXTLINE(altera-struct-pack-align)
+ typedef struct {
+-  uint16_t tx_id;
+-  struct sockaddr_storage raddr;
+   dns_server_t *dns_server;
+   char* dns_req;
+-  ev_tstamp start_tstamp;
+   stat_t *stat;
++  ev_tstamp start_tstamp;
++  uint16_t tx_id;
++  struct sockaddr_storage raddr;
+ } request_t;
+ 
+-// Very very basic hostname parsing.
+-// Note: Performs basic checks to see if last digit is non-alpha.
+-// Non-alpha hostnames are assumed to be IP addresses. e.g. foo.1
+-// Returns non-zero on success, zero on failure.
+-static int hostname_from_uri(const char* uri,
+-                             char* hostname, int hostname_len) {
+-  if (strncmp(uri, "https://", 8) != 0) { return 0; }  // not https://
+-  uri += 8;
+-  const char *end = uri;
+-  while (*end && *end != '/') { end++; }
+-  if (end - uri >= hostname_len) {
+-    return 0;
+-  }
+-  if (end == uri) { return 0; }  // empty string.
+-  if (!isalpha(*(end - 1))) { return 0; }  // last digit non-alpha.
++static int is_ipv4_address(char *str) {
++    struct in6_addr addr;
++    return inet_pton(AF_INET, str, &addr) == 1;
++}
+ 
+-  // If using basic authentication in URL, chop off prefix.
+-  char *tmp = NULL;
+-  if ((tmp = strchr(uri, '@'))) {
+-    tmp++;
+-    if (tmp < end) {
+-      uri = tmp;
++static int hostname_from_url(const char* url_in,
++                             char* hostname, const size_t hostname_len) {
++  int res = 0;
++  CURLU *url = curl_url();
++  if (url != NULL) {
++    CURLUcode rc = curl_url_set(url, CURLUPART_URL, url_in, 0);
++    if (rc == CURLUE_OK) {
++      char *host = NULL;
++      rc = curl_url_get(url, CURLUPART_HOST, &host, 0);
++      const size_t host_len = strlen(host);
++      if (rc == CURLUE_OK && host_len < hostname_len &&
++          host[0] != '[' && host[host_len-1] != ']' && // skip IPv6 address
++          !is_ipv4_address(host)) {
++        strncpy(hostname, host, hostname_len-1); // NOLINT(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
++        hostname[hostname_len-1] = '\0';
++        res = 1; // success
++      }
++      curl_free(host);
+     }
++    curl_url_cleanup(url);
+   }
+-
+-  strncpy(hostname, uri, end - uri); // NOLINT(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+-  hostname[end - uri] = 0;
+-  return 1;
++  return res;
+ }
+ 
+-static void sigint_cb(struct ev_loop *loop,
+-                      ev_signal __attribute__((__unused__)) *w,
+-                      int __attribute__((__unused__)) revents) {
++static void signal_shutdown_cb(struct ev_loop *loop,
++                               ev_signal __attribute__((__unused__)) *w,
++                               int __attribute__((__unused__)) revents) {
+   ILOG("Shutting down gracefully. To force exit, send signal again.");
+   ev_break(loop, EVBREAK_ALL);
+ }
+@@ -167,7 +168,7 @@
+   memset(buf, 0, sizeof(buf)); // NOLINT(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+   if (strlen(hostname) > 254) { FLOG("Hostname too long."); }
+   int ip_start = snprintf(buf, sizeof(buf) - 1, "%s:443:", hostname);  // NOLINT(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+-  snprintf(buf + ip_start, sizeof(buf) - 1 - ip_start, "%s", addr_list); // NOLINT(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
++  (void)snprintf(buf + ip_start, sizeof(buf) - 1 - ip_start, "%s", addr_list); // NOLINT(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+   if (app->resolv && app->resolv->data) {
+     char * old_addr_list = strstr(app->resolv->data, ":443:");
+     if (old_addr_list) {
+@@ -212,10 +213,10 @@
+     exit(1);
+   }
+ 
+-  logging_init(opt.logfd, opt.loglevel);
++  logging_init(opt.logfd, opt.loglevel, opt.flight_recorder_size);
+ 
+-  ILOG("Version " GIT_VERSION);
+-  ILOG("Built "__DATE__" "__TIME__".");
++  ILOG("Version: %s", options_sw_version());
++  ILOG("Built: " __DATE__ " " __TIME__);
+   ILOG("System c-ares: %s", ares_version(NULL));
+   ILOG("System libcurl: %s", curl_version());
+ 
+@@ -224,6 +225,22 @@
+   // through to errors about use of uninitialized values in our code. :(
+   curl_global_init(CURL_GLOBAL_DEFAULT);
+ 
++  curl_version_info_data *curl_ver = curl_version_info(CURLVERSION_NOW);
++  if (!(curl_ver->features & CURL_VERSION_HTTP2)) {
++    WLOG("HTTP/2 is not supported by current libcurl");
++  }
++#ifdef CURL_VERSION_HTTP3
++  if (!(curl_ver->features & CURL_VERSION_HTTP3))
++  {
++    WLOG("HTTP/3 is not supported by current libcurl");
++  }
++#else
++  WLOG("HTTP/3 was not available at build time, it will not work at all");
++#endif
++  if (!(curl_ver->features & CURL_VERSION_IPV6)) {
++    WLOG("IPv6 is not supported by current libcurl");
++  }
++
+   // Note: This calls ev_default_loop(0) which never cleans up.
+   //       valgrind will report a leak. :(
+   struct ev_loop *loop = EV_DEFAULT;
+@@ -245,11 +262,14 @@
+   dns_server_init(&dns_server, loop, opt.listen_addr, opt.listen_port,
+                   dns_server_cb, &app);
+ 
++  if (opt.gid != (uid_t)-1 && setgroups(1, &opt.gid)) {
++    FLOG("Failed to set groups");
++  }
+   if (opt.gid != (uid_t)-1 && setgid(opt.gid)) {
+-    FLOG("Failed to set gid.");
++    FLOG("Failed to set gid");
+   }
+   if (opt.uid != (uid_t)-1 && setuid(opt.uid)) {
+-    FLOG("Failed to set uid.");
++    FLOG("Failed to set uid");
+   }
+ 
+   if (opt.daemonize) {
+@@ -266,15 +286,20 @@
+ 
+   ev_signal sigint;
+   // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+-  ev_signal_init(&sigint, sigint_cb, SIGINT);
++  ev_signal_init(&sigint, signal_shutdown_cb, SIGINT);
+   ev_signal_start(loop, &sigint);
+ 
+-  logging_flush_init(loop);
++  ev_signal sigterm;
++  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
++  ev_signal_init(&sigterm, signal_shutdown_cb, SIGTERM);
++  ev_signal_start(loop, &sigterm);
++
++  logging_events_init(loop);
+ 
+   dns_poller_t dns_poller;
+-  char hostname[255];  // Domain names shouldn't exceed 253 chars.
++  char hostname[255] = {0};  // Domain names shouldn't exceed 253 chars.
+   if (!proxy_supports_name_resolution(opt.curl_proxy)) {
+-    if (hostname_from_uri(opt.resolver_url, hostname, 254)) {
++    if (hostname_from_url(opt.resolver_url, hostname, sizeof(hostname))) {
+       app.using_dns_poller = 1;
+       dns_poller_init(&dns_poller, loop, opt.bootstrap_dns,
+                       opt.bootstrap_dns_polling_interval, hostname,
+@@ -295,7 +320,8 @@
+   }
+   curl_slist_free_all(app.resolv);
+ 
+-  logging_flush_cleanup(loop);
++  logging_events_cleanup(loop);
++  ev_signal_stop(loop, &sigterm);
+   ev_signal_stop(loop, &sigint);
+   ev_signal_stop(loop, &sigpipe);
+   dns_server_stop(&dns_server);
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/options.c src/src/options.c
+--- upstream/src/options.c	2021-07-30 06:04:34.000000000 +0000
++++ src/src/options.c	2025-03-13 09:07:40.000000000 +0000
+@@ -15,11 +15,24 @@
+ #define O_CLOEXEC 0
+ #endif
+ 
++enum {
++DEFAULT_HTTP_VERSION = 2
++};
++
++
++const char * options_sw_version(void) {
++#ifdef SW_VERSION
++  return SW_VERSION;
++#else
++  return "2023.10.10-atLeast";  // update date sometimes, like 1-2 times a year
++#endif
++}
++
+ void options_init(struct Options *opt) {
+   opt->listen_addr = "127.0.0.1";
+   opt->listen_port = 5053;
+   opt->logfile = "-";
+-  opt->logfd = -1;
++  opt->logfd = STDOUT_FILENO;
+   opt->loglevel = LOG_ERROR;
+   opt->daemonize = 0;
+   opt->dscp = 0;
+@@ -33,13 +46,16 @@
+   opt->ipv4 = 0;
+   opt->resolver_url = "https://dns.google/dns-query";
+   opt->curl_proxy = NULL;
+-  opt->use_http_1_1 = 0;
++  opt->use_http_version = DEFAULT_HTTP_VERSION;
++  opt->max_idle_time = 118;
+   opt->stats_interval = 0;
++  opt->ca_info = NULL;
++  opt->flight_recorder_size = 0;
+ }
+ 
+ int options_parse_args(struct Options *opt, int argc, char **argv) {
+   int c = 0;
+-  while ((c = getopt(argc, argv, "a:c:p:du:g:b:i:4r:e:t:l:vxs:hV")) != -1) {
++  while ((c = getopt(argc, argv, "a:c:p:du:g:b:i:4r:e:t:l:vxqm:s:C:F:hV")) != -1) {
+     switch (c) {
+     case 'a': // listen_addr
+       opt->listen_addr = optarg;
+@@ -82,19 +98,35 @@
+         opt->loglevel--;
+       }
+       break;
+-    case 'x': // http/1.1
+-      opt->use_http_1_1 = 1;
++    case 'x': // http/1.1 fallthrough
++    case 'q': // http/3
++      if (opt->use_http_version == DEFAULT_HTTP_VERSION) {
++        opt->use_http_version = (c == 'x' ? 1 : 3);
++      } else {
++        printf("HTTP version already set to: HTTP/%s\n",
++               opt->use_http_version == 1 ? "1.1" : "3");
++        return -1;
++      }
++      break;
++    case 'm':
++      opt->max_idle_time = atoi(optarg);
+       break;
+     case 's': // stats interval
+       opt->stats_interval = atoi(optarg);
+       break;
++    case 'C': // CA info
++      opt->ca_info = optarg;
++      break;
++    case 'F': // Flight recorder size
++      opt->flight_recorder_size = atoi(optarg);
++      break;
+     case '?':
+       printf("Unknown option '-%c'\n", c);
+       // fallthrough
+     case 'h':
+       return -1;
+     case 'V': // version
+-      printf("%s\n", GIT_VERSION);
++      printf("%s\n", options_sw_version());
+       exit(0);
+     default:
+       printf("Unknown state!");
+@@ -102,16 +134,16 @@
+     }
+   }
+   if (opt->user) {
+-    struct passwd *p = NULL;
+-    if (!(p = getpwnam(opt->user)) || !p->pw_uid) {
++    struct passwd *p = getpwnam(opt->user);
++    if (!p || !p->pw_uid) {
+       printf("Username (%s) invalid.\n", opt->user);
+       return -1;
+     }
+     opt->uid = p->pw_uid;
+   }
+   if (opt->group) {
+-    struct group *g = NULL;
+-    if (!(g = getgrnam(opt->group)) || !g->gr_gid) {
++    struct group *g = getgrnam(opt->group);
++    if (!g || !g->gr_gid) {
+       printf("Group (%s) invalid.\n", opt->group);
+       return -1;
+     }
+@@ -130,13 +162,13 @@
+            "----------------------------\n");
+     sleep(1);
+   }
+-  if (opt->logfile == NULL ||
+-      !strcmp(opt->logfile, "-")) {
+-    opt->logfd = STDOUT_FILENO;
+-  } else if ((opt->logfd = open(opt->logfile,
+-                                O_CREAT | O_WRONLY | O_APPEND | O_CLOEXEC,
+-                                S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) <= 0) {
+-    printf("Logfile '%s' is not writable.\n", opt->logfile);
++  if (opt->logfile != NULL && strcmp(opt->logfile, "-") != 0) {
++    opt->logfd = open(opt->logfile,
++                      O_CREAT | O_WRONLY | O_APPEND | O_CLOEXEC,
++                      S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
++    if (opt->logfd <= 0) {
++      printf("Could not open logfile '%s' for writing.\n", opt->logfile);
++    }
+   }
+   if (opt->resolver_url == NULL ||
+       strncmp(opt->resolver_url, "https://", 8) != 0) {
+@@ -149,10 +181,20 @@
+     printf("DNS servers polling interval must be between 5 and 3600.\n");
+     return -1;
+   }
++  if (opt->max_idle_time < 0 ||
++      opt->max_idle_time > 3600) {
++    printf("Maximum idle time must be between 0 and 3600.\n");
++    return -1;
++  }
+   if (opt->stats_interval < 0 || opt->stats_interval > 3600) {
+     printf("Statistic interval must be between 0 and 3600.\n");
+     return -1;
+   }
++  if (opt->flight_recorder_size != 0 &&
++      (opt->flight_recorder_size < 100 || opt->flight_recorder_size > 100000)) {
++    printf("Flight recorder limit must be between 100 and 100000.\n");
++    return -1;
++  }
+   return 0;
+ }
+ 
+@@ -160,50 +202,65 @@
+   struct Options defaults;
+   options_init(&defaults);
+   printf("Usage: %s [-a <listen_addr>] [-p <listen_port>]\n", argv[0]);
+-  printf("        [-d] [-u <user>] [-g <group>] [-b <dns_servers>]\n");
+-  printf("        [-i <polling_interval>] [-4] [-r <resolver_url>]\n");
+-  printf("        [-t <proxy_server>] [-l <logfile>] [-c <dscp_codepoint>]\n");
+-  printf("        [-x] [-q] [-s <statistic_interval>] [-v]+ [-V] [-h]\n\n");
+-  printf("  -a listen_addr         Local IPv4/v6 address to bind to. (%s)\n",
++  printf("        [-b <dns_servers>] [-i <polling_interval>] [-4]\n");
++  printf("        [-r <resolver_url>] [-t <proxy_server>] [-x] [-q] [-C <ca_path>] [-c <dscp_codepoint>]\n");
++  printf("        [-d] [-u <user>] [-g <group>] \n");
++  printf("        [-v]+ [-l <logfile>] [-s <statistic_interval>] [-F <log_limit>] [-V] [-h]\n");
++  printf("\n DNS server\n");
++  printf("  -a listen_addr         Local IPv4/v6 address to bind to. (Default: %s)\n",
+          defaults.listen_addr);
+-  printf("  -p listen_port         Local port to bind to. (%d)\n",
++  printf("  -p listen_port         Local port to bind to. (Default: %d)\n",
+          defaults.listen_port);
+-  printf("  -d                     Daemonize.\n");
+-  printf("  -u user                Optional user to drop to if launched as root.\n");
+-  printf("  -g group               Optional group to drop to if launched as root.\n");
++  printf("\n DNS client\n");
+   printf("  -b dns_servers         Comma-separated IPv4/v6 addresses and ports (addr:port)\n");
+   printf("                         of DNS servers to resolve resolver host (e.g. dns.google).\n"\
+          "                         When specifying a port for IPv6, enclose the address in [].\n"\
+-         "                         (%s)\n",
++         "                         (Default: %s)\n",
+          defaults.bootstrap_dns);
+   printf("  -i polling_interval    Optional polling interval of DNS servers.\n"\
+          "                         (Default: %d, Min: 5, Max: 3600)\n",
+          defaults.bootstrap_dns_polling_interval);
+   printf("  -4                     Force IPv4 hostnames for DNS resolvers non IPv6 networks.\n");
+-  printf("  -r resolver_url        The HTTPS path to the resolver URL. default: %s\n",
++  printf("\n HTTPS client\n");
++  printf("  -r resolver_url        The HTTPS path to the resolver URL. (Default: %s)\n",
+          defaults.resolver_url);
+   printf("  -t proxy_server        Optional HTTP proxy. e.g. socks5://127.0.0.1:1080\n");
+   printf("                         Remote name resolution will be used if the protocol\n");
+   printf("                         supports it (http, https, socks4a, socks5h), otherwise\n");
+   printf("                         initial DNS resolution will still be done via the\n");
+   printf("                         bootstrap DNS servers.\n");
+-  printf("  -l logfile             Path to file to log to. (\"%s\")\n",
+-         defaults.logfile);
+-  printf("  -c dscp_codepoint      Optional DSCP codepoint[0-63] to set on upstream DNS server\n");
+-  printf("                         connections.\n");
+   printf("  -x                     Use HTTP/1.1 instead of HTTP/2. Useful with broken\n"
+-         "                         or limited builds of libcurl. (false)\n");
++         "                         or limited builds of libcurl.\n");
++  printf("  -q                     Use HTTP/3 (QUIC) only.\n");
++  printf("  -m max_idle_time       Maximum idle time in seconds allowed for reusing a HTTPS connection.\n"\
++         "                         (Default: %d, Min: 0, Max: 3600)\n",
++         defaults.max_idle_time);
++  printf("  -C ca_path             Optional file containing CA certificates.\n");
++  printf("  -c dscp_codepoint      Optional DSCP codepoint to set on upstream HTTPS server\n");
++  printf("                         connections. (Min: 0, Max: 63)\n");
++  printf("\n Process\n");
++  printf("  -d                     Daemonize.\n");
++  printf("  -u user                Optional user to drop to if launched as root.\n");
++  printf("  -g group               Optional group to drop to if launched as root.\n");
++  printf("\n Logging\n");
++  printf("  -v                     Increase logging verbosity. (Default: error)\n");
++  printf("                         Levels: fatal, stats, error, warning, info, debug\n");
++  printf("                         Request issues are logged on warning level.\n");
++  printf("  -l logfile             Path to file to log to. (Default: standard output)\n");
+   printf("  -s statistic_interval  Optional statistic printout interval.\n"\
+          "                         (Default: %d, Disabled: 0, Min: 1, Max: 3600)\n",
+          defaults.stats_interval);
+-  printf("  -v                     Increase logging verbosity. (INFO)\n");
++  printf("  -F log_limit           Flight recorder: storing desired amount of logs from all levels\n"\
++         "                         in memory and dumping them on fatal error or on SIGUSR2 signal.\n"
++         "                         (Default: %u, Disabled: 0, Min: 100, Max: 100000)\n",
++         defaults.flight_recorder_size);
+   printf("  -V                     Print version and exit.\n");
+   printf("  -h                     Print help and exit.\n");
+   options_cleanup(&defaults);
+ }
+ 
+ void options_cleanup(struct Options *opt) {
+-  if (opt->logfd > 0) {
++  if (opt->logfd != STDOUT_FILENO && opt->logfd > 0) {
+     close(opt->logfd);
+   }
+ }
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/options.h src/src/options.h
+--- upstream/src/options.h	2021-07-30 06:04:34.000000000 +0000
++++ src/src/options.h	2025-03-13 09:07:40.000000000 +0000
+@@ -41,17 +41,28 @@
+   // e.g. "socks5://127.0.0.1:1080"
+   const char *curl_proxy;
+ 
+-  // Hack to fix OpenWRT issues due to dropping of HTTP/2 support from libcurl.
+-  int use_http_1_1;
++  // 1 = Use only HTTP/1.1 for limited OpenWRT libcurl (which is not built with HTTP/2 support)
++  // 2 = Use only HTTP/2 default
++  // 3 = Use only HTTP/3 QUIC
++  int use_http_version;
++
++  int max_idle_time;
+ 
+   // Print statistic interval
+   int stats_interval;
+-};
++
++  // Path to a file containing CA certificates
++  const char *ca_info;
++
++  // Number of logs to be kept by flight recorder
++  uint32_t flight_recorder_size;
++} __attribute__((aligned(128)));
+ typedef struct Options options_t;
+ 
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
++const char * options_sw_version(void);
+ void options_init(struct Options *opt);
+ int options_parse_args(struct Options *opt, int argc, char **argv);
+ void options_show_usage(int argc, char **argv);
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/ring_buffer.c src/src/ring_buffer.c
+--- upstream/src/ring_buffer.c	1970-01-01 00:00:00.000000000 +0000
++++ src/src/ring_buffer.c	2025-03-13 09:07:40.000000000 +0000
+@@ -0,0 +1,92 @@
++#include <stddef.h>
++#include <stdio.h>   // NOLINT(llvmlibc-restrict-system-libc-headers)
++#include <stdlib.h>  // NOLINT(llvmlibc-restrict-system-libc-headers)
++#include <string.h>  // NOLINT(llvmlibc-restrict-system-libc-headers)
++
++#include "ring_buffer.h"
++
++struct ring_buffer
++{
++    char ** storage;
++    uint32_t size;
++    uint32_t next;  // next slot to use in storage
++    uint8_t full;
++} __attribute__((packed)) __attribute__((aligned(32)));
++
++void ring_buffer_init(struct ring_buffer **rbp, uint32_t size)
++{
++    *rbp = NULL;
++    if (size < 1) {
++        return;
++    }
++    struct ring_buffer *rb = (struct ring_buffer *)calloc(1, sizeof(struct ring_buffer));
++    if (!rb) {
++        return;
++    }
++    rb->storage = (char**)calloc(size, sizeof(char*));
++    if (!rb->storage) {
++        free((void*) rb);
++        return;
++    }
++    rb->size = size;
++    *rbp = rb;
++}
++
++void ring_buffer_free(struct ring_buffer **rbp)
++{
++    struct ring_buffer *rb = *rbp;
++    if (!rb->storage) {
++        return;
++    }
++    for (uint32_t i = 0; i < rb->size; i++) {
++        if (rb->storage[i]) {
++            free(rb->storage[i]);
++        }
++    }
++    free((void*) rb->storage);
++    free((void*) rb);
++    *rbp = NULL;
++}
++
++void ring_buffer_dump(struct ring_buffer *rb, FILE * file)
++{
++    if (!rb->storage) {
++        return;
++    }
++    if (rb->next == 0 && !rb->full) {
++        return; // empty
++    }
++
++    uint32_t current = rb->full ? rb->next : 0;
++    do
++    {
++        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
++        (void)fprintf(file, "%s\n", rb->storage[current]);
++
++        if (++current == rb->size) {
++            current = 0;
++        }
++    }
++    while (current != rb->next);
++    (void)fflush(file);
++}
++
++void ring_buffer_push_back(struct ring_buffer *rb, char* data, uint32_t size)
++{
++    if (!rb->storage) {
++        return;
++    }
++
++    if (rb->storage[rb->next]) {
++        free(rb->storage[rb->next]);
++    }
++    rb->storage[rb->next] = (char*)malloc(size + 1);
++    // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
++    memcpy(rb->storage[rb->next], data, size);
++    rb->storage[rb->next][size] = '\0';
++
++    if (++rb->next == rb->size) {
++        rb->next = 0;
++        rb->full = 1;
++    }
++}
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/ring_buffer.h src/src/ring_buffer.h
+--- upstream/src/ring_buffer.h	1970-01-01 00:00:00.000000000 +0000
++++ src/src/ring_buffer.h	2025-03-13 09:07:40.000000000 +0000
+@@ -0,0 +1,21 @@
++#ifndef _FR_H_
++#define _FR_H_
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include <stdint.h>
++
++struct ring_buffer;
++
++void ring_buffer_init(struct ring_buffer **rbp, uint32_t size);
++void ring_buffer_free(struct ring_buffer **rbp);
++void ring_buffer_dump(struct ring_buffer *rb, FILE * file);
++void ring_buffer_push_back(struct ring_buffer *rb, char* data, uint32_t size);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif // _FR_H_
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/stat.c src/src/stat.c
+--- upstream/src/stat.c	2021-07-30 06:04:34.000000000 +0000
++++ src/src/stat.c	2025-03-13 09:07:40.000000000 +0000
+@@ -55,6 +55,7 @@
+   if (resp_len) {
+     s->responses_size += resp_len;
+     s->responses++;
++    // NOLINTNEXTLINE(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+     s->query_times_sum += (latency * 1000);
+   }
+ }
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/tests/robot/functional_tests.robot src/tests/robot/functional_tests.robot
+--- upstream/tests/robot/functional_tests.robot	1970-01-01 00:00:00.000000000 +0000
++++ src/tests/robot/functional_tests.robot	2025-03-13 09:07:40.000000000 +0000
+@@ -0,0 +1,110 @@
++*** Settings ***
++Documentation  Simple functional tests for https_dns_proxy
++Library        OperatingSystem
++Library        Process
++Library        Collections
++
++
++*** Variables ***
++${BINARY_PATH}  ${CURDIR}/../../https_dns_proxy
++${PORT}  55353
++
++
++*** Settings ***
++Test Teardown  Stop Proxy
++
++
++*** Keywords ***
++Common Test Setup
++  Set Test Variable  &{expected_logs}  loop destroyed=1  # last log line
++  Set Test Variable  @{error_logs}  [F]  # any fatal error
++
++Start Proxy
++  [Arguments]  @{args}
++  @{default_args} =  Create List  -v  -v  -v  -4  -p  ${PORT}
++  @{proces_args} =  Combine Lists  ${default_args}  ${args}
++  ${proxy} =  Start Process  ${BINARY_PATH}  @{proces_args}
++  ...  stderr=STDOUT  alias=proxy
++  Set Test Variable  ${proxy}
++  Set Test Variable  ${dig_timeout}  2
++  Set Test Variable  ${dig_retry}  0
++  Sleep  0.5
++  Common Test Setup
++
++Start Proxy With Valgrind
++  [Arguments]  @{args}
++  @{default_args} =  Create List  --track-fds=yes  --time-stamp=yes  --log-file=valgrind-%p.log  --suppressions=valgrind.supp
++  ...  --gen-suppressions=all  --tool=memcheck  --leak-check=full  --leak-resolution=high
++  ...  --show-leak-kinds=all  --track-origins=yes  --keep-stacktraces=alloc-and-free
++  ...  ${BINARY_PATH}  -v  -v  -v  -F 100 -4  -p  ${PORT}  # using flight recorder with smallest possible buffer size to test memory leak
++  @{proces_args} =  Combine Lists  ${default_args}  ${args}
++  ${proxy} =  Start Process  valgrind  @{proces_args}
++  ...  stderr=STDOUT  alias=proxy
++  Set Test Variable  ${proxy}
++  Set Test Variable  ${dig_timeout}  10
++  Set Test Variable  ${dig_retry}  2
++  Sleep  6  # wait for valgrind to fire up the proxy
++  Common Test Setup
++
++Stop Proxy
++  Send Signal To Process  SIGINT  ${proxy}
++  ${result} =  Wait For Process  ${proxy}  timeout=15 secs
++  Log  ${result.rc}
++  Log  ${result.stdout}
++  Log  ${result.stderr}
++  FOR  ${log}  ${times}  IN  &{expected_logs}
++    Should Contain X Times  ${result.stdout}  ${log}  ${times}
++  END
++  FOR  ${log}  IN  @{error_logs}
++    Run Keyword And Expect Error  not found
++    ...  Should Contain  ${result.stdout}  ${log}  msg=not found  values=False
++  END
++  Should Be Equal As Integers  ${result.rc}  0
++
++
++Start Dig
++  [Arguments]  ${domain}=google.com
++  ${handle} =  Start Process  dig  +timeout\=${dig_timeout}  +retry\=${dig_retry}  @127.0.0.1  -p  ${PORT}  ${domain}
++  ...  stderr=STDOUT  alias=dig
++  RETURN  ${handle}
++
++Stop Dig
++  [Arguments]  ${handle}
++  ${result} =  Wait For Process  ${handle}  timeout=15 secs
++  Log  ${result.stdout}
++  Should Be Equal As Integers  ${result.rc}  0
++  Should Contain  ${result.stdout}  ANSWER SECTION
++
++Run Dig
++  [Arguments]  ${domain}=google.com
++  ${handle} =  Start Dig  ${domain}
++  Stop Dig  ${handle}
++
++Run Dig Parallel
++  ${dig_handles} =  Create List
++  FOR  ${domain}  IN  facebook.com  microsoft.com  youtube.com  maps.google.com  wikipedia.org  amazon.com
++    ${handle} =  Start Dig  ${domain}
++    Append To List  ${dig_handles}  ${handle}
++  END
++  FOR  ${handle}  IN  @{dig_handles}
++    Stop Dig  ${handle}
++  END
++
++
++*** Test Cases ***
++Handle Unbound Server Does Not Support HTTP/1.1
++  Start Proxy  -x  -r  https://doh.mullvad.net/dns-query  # resolver uses Unbound
++  Run Keyword And Expect Error  9 != 0  # timeout exit code
++  ...  Run Dig
++
++Reuse HTTP/2 Connection
++  [Documentation]  After first successful request, further requests should not open new connections
++  Start Proxy
++  Run Dig  # Simple smoke test and opens first connection
++  Run Dig Parallel
++  Set To Dictionary  ${expected_logs}  curl opened socket=1  # curl must not open more sockets then 1
++
++Valgrind Resource Leak Check
++  Start Proxy With Valgrind
++  Run Dig Parallel
++  
+\ No newline at end of file
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/tests/robot/valgrind.supp src/tests/robot/valgrind.supp
+--- upstream/tests/robot/valgrind.supp	1970-01-01 00:00:00.000000000 +0000
++++ src/tests/robot/valgrind.supp	2025-03-13 09:07:40.000000000 +0000
+@@ -0,0 +1,18 @@
++{
++   ignore dlopen
++   Memcheck:Leak
++   match-leak-kinds: reachable
++   ...
++   fun:_dl_open
++}
++{
++   curl version ldap dependency
++   Memcheck:Leak
++   match-leak-kinds: reachable
++   ...
++   fun:ldap_int_sasl_init
++   fun:ldap_int_initialize
++   fun:ldap_get_option
++   fun:curl_version
++   fun:main
++}

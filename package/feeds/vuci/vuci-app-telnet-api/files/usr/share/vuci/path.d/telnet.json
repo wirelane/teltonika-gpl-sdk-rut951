@@ -1,0 +1,1 @@
+[{"endpoint":"/access_control/telnet/{service_group}/{?sid}","lua_service":"system/access_control_telnet","backup_order":256}]

@@ -38,6 +38,8 @@ invoke_and_print_cmd() {
 	fi
 
 	cmd_and_time=$(time -f '%e' ubus call "$modem" $method 2>&1)
+	#ignore not supported methods
+	[ $? -eq 248 ] && return
 	info_output=$(echo "$cmd_and_time" | head -n -1)
 	cmd_time=$(echo "$cmd_and_time" | tail -n1)
 

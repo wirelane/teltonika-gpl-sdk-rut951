@@ -1,0 +1,1 @@
+{"user":"uhttpd","access":{"dnp3_client":{"methods":["status"]},"dnp3_client.rpc":{"methods":["serial.test","get_tags"]}}}

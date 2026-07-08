@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-IMAGE_NAME="rutos-jammy:1.5"
+IMAGE_NAME="rutos-jammy:1.6"
 
 PROJDIR="$(pwd)"
 HOMEDIR="$PROJDIR:$PROJDIR"

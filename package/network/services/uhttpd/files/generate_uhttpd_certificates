@@ -144,7 +144,7 @@ generate_keys() {
 			-newkey $KEY_OPTS -keyout "$crt_ca_key" -out "$crt_ca_cert" -days $days &>/dev/null
 	fi
 
-	[ "$use_tpm" = "1" ] && /bin/tpm2_importer "$key" delete 2>/dev/null
+	[ "$use_tpm" = "1" ] && su -s /bin/sh uhttpd -c '/bin/tpm2_importer "$0" delete' "$key" >/dev/null 2>&1
 
 	local crt_key="$TMP_KEY"
 	local crt_final="$TMP_CERT"
@@ -160,7 +160,10 @@ generate_keys() {
 	[ "$crt_ca_cert" = "$DEFAULT_UHTTPD_CA_CERT" ] || cat "$crt_ca_cert" > "$DEFAULT_UHTTPD_CA_CERT"
 	[ "$crt_ca_key" = "$DEFAULT_UHTTPD_CA_KEY" ] || cat "$crt_ca_key" > "$DEFAULT_UHTTPD_CA_KEY"
 
-	[ "$use_tpm" = "1" ] && ! /bin/tpm2_importer "$key" import && use_tpm="0"
+	if [ "$use_tpm" = "1" ]; then
+		chown uhttpd:uhttpd "$key"
+		su -s /bin/sh uhttpd -c '/bin/tpm2_importer "$0" import' "$key" >/dev/null 2>&1 || use_tpm="0"
+	fi
 
 	register_certificate_in_config "$crt" "$key" "$days" "$key_type" "$ec_curve" "$use_tpm"
 	chown uhttpd:uhttpd "$crt" "$key"

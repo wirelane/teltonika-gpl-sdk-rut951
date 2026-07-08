@@ -6,6 +6,14 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+// Configuration constants
+#define MAX_LOG_MSG 5
+#define SPAM_WARNING                                                                                         \
+	"(Will stop printing error messages due to log spam. "                                               \
+	"That does not mean that the problem is no longer present!)"
+#define SOCKET_PATH "/var/logd.sock"
+#define BUF_SIZE    256
+
 static int initialized = 0;
 static volatile int socket_connected = 0;
 static int pid=0;
@@ -94,13 +102,11 @@ static void *socket_thread(void *arg)
 		if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 			close(fd);
 			socket_connected = 0;
-			use_stdout	 = 1;
 			sleep(1);
 			continue;
 		}
 
 		socket_connected = 1;
-		use_stdout	 = 0;
 		request_level(fd);
 
 		char buf[BUF_SIZE];
@@ -143,7 +149,6 @@ static void *socket_thread(void *arg)
 
 		close(fd);
 		socket_connected = 0;
-		use_stdout	 = 1;
 		sleep(5);
 	}
 	return NULL;
@@ -163,6 +168,7 @@ int logger_init(log_level_type _min_level, int logger_type, const char *prog_nam
 	}
 	PROGNAME = prog_name;
 	if (_min_level == L_SYSTEM) {
+		// TODO: Allow integrating with uloop to avoid spawning a thread.
 		pthread_t tid;
 		if (pthread_create(&tid, NULL, (void *(*)(void *))socket_thread, NULL) != 0) {
 			return 1;
@@ -275,6 +281,7 @@ void _log_with_count(log_counter *counter, log_id id, log_level_type level, char
 		return;
 	}
 
+	// TODO: Don't use VLA
 	char last_fmt[strlen(fmt) + strlen(SPAM_WARNING) + 1];
 	last_fmt[0] = 0;
 

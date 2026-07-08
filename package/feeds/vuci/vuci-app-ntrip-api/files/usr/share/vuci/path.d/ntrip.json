@@ -1,0 +1,1 @@
+[{"endpoint":"/ntrip/{service_group}/{?sid}","lua_service":"services/ntrip","backup_order":64}]

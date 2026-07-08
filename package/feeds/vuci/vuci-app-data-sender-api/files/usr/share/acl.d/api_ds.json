@@ -1,0 +1,1 @@
+{"user":"uhttpd","access":{"ssh-keys":{"methods":["upload_key","list_keys","remove_key"]}}}

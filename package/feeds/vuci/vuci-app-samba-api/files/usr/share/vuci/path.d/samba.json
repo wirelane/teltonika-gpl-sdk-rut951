@@ -1,0 +1,1 @@
+[{"endpoint":"/samba/global","lua_service":"services/samba","backup_order":82},{"/samba/{service_group}":"services/samba_status"},{"endpoint":"/samba/users/{service_group}/{?sid}","lua_service":"services/samba_users","backup_order":83},{"endpoint":"/samba/shares/{service_group}/{?sid}","lua_service":"services/samba_share","backup_order":84}]

@@ -5,7 +5,6 @@
 
 APP_NAME="ftp_upload.sh"
 WORK_DIR="/var/run/ulogd"
-KEY_PATH="/usr/local/home/ulogd/.ssh/id_rsa"
 LOG_FILE="${WORK_DIR}/ftp_log"
 LOGGER="logger -t $APP_NAME -s"
 CLIENT=$(which ftpput)
@@ -24,6 +23,14 @@ config_get custom_string ftp custom_string
 config_get remote_file_path ftp remote_file_path
 config_get protocol ftp protocol "ftp"
 config_get key_auth ftp key_auth
+config_get strict_key_checking ftp strict_key_checking
+config_get server_public_key ftp server_public_key
+config_get cafile ftp cafile
+config_get certfile ftp certfile
+config_get keyfile ftp keyfile
+config_get insecure ftp insecure
+config_get use_tpm ftp use_tpm
+config_get privkey ftp privkey
 
 config_get sname ftp sname
 [ -z "$sname" ] && config_get sname emu1 file "/var/run/ulogd/ulogd_wifi.log"
@@ -69,18 +76,38 @@ archive_file "$sname" "$DEST_NAME"
 
 [ -n "$remote_file_path" ] && DEST_NAME="${remote_file_path}${DEST_NAME}"
 
+case "$protocol" in
+	sftp)
+		[ "$strict_key_checking" = "1" ] && [ -n "$server_public_key" ] && {
+			mkdir -p "$WORK_DIR/.ssh"
+			echo "$server_public_key" > "$WORK_DIR/.ssh/known_hosts"
+		}
+		[ -n "$password" ] && export DROPBEAR_PASSWORD="$password"
+		;;
+	ftps)
+		[ "$use_tpm" = "1" ] && [ -n "$keyfile" ] &&
+			keyfile="handle:$(tpm2_importer "$keyfile" get_handle)"
+		;;
+	ftp|*)
+		;;
+esac
+
 for i in 1 2 3 4 5
 do
 	case "$protocol" in
 		sftp)
-			[ -n "$password" ] && export DROPBEAR_PASSWORD="$password"
-			scp $([ "$key_auth" = "1" ] && echo "-i $KEY_PATH") ${port:+-P "$port"} ${debug:+-v} \
-				-o StrictHostKeyChecking=no \
+			HOME="$WORK_DIR" scp $([ "$key_auth" = "1" ] && echo "-i $privkey") ${port:+-P "$port"} ${debug:+-v} \
+				-o StrictHostKeyChecking=$([ "$strict_key_checking" = "1" ] && echo "yes" || echo "no") \
 				"$DEST_FILE" "$username@$host:$DEST_NAME" &> $LOG_FILE
 			;;
 		ftps)
-			curl ${username:+${password:+-u "$username:$password"}} \
-				${debug:+-v} --ssl-reqd --insecure --ftp-create-dirs \
+			# OPENSSL_CONF is needed for tpm2 to work properly
+			OPENSSL_CONF=/dev/null curl ${username:+${password:+-u "$username:$password"}} \
+				${debug:+-v} --ssl-reqd --ftp-create-dirs \
+				$([ "$insecure" = "1" ] && echo --insecure) \
+				$([ -n "$cafile" ] && echo --cacert "$cafile") \
+				$([ -n "$certfile" ] && [ -n "$keyfile" ] && echo --cert "$certfile" --key "$keyfile") \
+				$([ "$use_tpm" = "1" ] && echo --engine tpm2 --key-type PROV) \
 				-T "$DEST_FILE" "ftp://${host}${port:+:$port}/${DEST_NAME}" &> $LOG_FILE
 			;;
 		ftp|*)

@@ -7,7 +7,7 @@ include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=mobutils
 
-PKG_SOURCE_VERSION:=3.22
+PKG_SOURCE_VERSION:=3.23
 PKG_RELEASE:=1
 
 PKG_LICENSE:=Teltonika-closed

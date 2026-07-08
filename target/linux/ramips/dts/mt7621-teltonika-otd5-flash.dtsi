@@ -2,6 +2,13 @@
 #include "mt7621.dtsi"
 #include "platform_name.dtsi"
 
+/ {
+	memory {
+		device_type = "memory";
+		reg = <0x00000000 0x10000000>;
+	};
+};
+
 &pcie {
     status = "okay";
 };

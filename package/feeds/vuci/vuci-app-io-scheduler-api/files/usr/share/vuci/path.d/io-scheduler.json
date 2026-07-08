@@ -1,0 +1,1 @@
+[{"endpoint":"/io/scheduler/global","lua_service":"services/io_scheduler","backup_order":184},{"endpoint":"/io/scheduler/{service_group}/{?sid}","lua_service":"services/io_scheduler_instance","backup_order":185}]

@@ -15,4 +15,3 @@ index e307d4f..8df215c 100644
  		break;
  
  	case BLOBMSG_TYPE_INT64:
-

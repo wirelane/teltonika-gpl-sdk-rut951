@@ -1,0 +1,10 @@
+[
+	{ "/package_manager/restore/{service_group}/{?sid}": "services/package_restore" },
+	{
+		"endpoint": "/package_manager/{service_group}/status/{?sid}",
+		"lua_service": "services/packages",
+		"exclude_from_backup": true
+	},
+	{ "/package_manager/{service_group}/options": "services/packages_options" },
+	{ "/package_manager/{service_group}/{?sid}": "services/packages" }
+]

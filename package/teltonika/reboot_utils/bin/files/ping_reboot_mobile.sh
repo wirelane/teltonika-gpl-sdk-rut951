@@ -154,7 +154,11 @@ get_modem() {
 }
 
 send_sms() {
-	local modem_num=$(get_modem_num "$MODEM")
+	local modem_num=""
+	[ -z "$MODEM_ID_SMS" ] && modem_num=$(get_modem_num "$MODEM") || modem_num=$(get_modem_num "$MODEM_ID_SMS")
+
+	log "Using modem $modem_num to send sms"
+
 	for phone in $PHONE_LIST; do
 		local res=$(ubus call gsm.modem"$modem_num" send_sms "{\"number\":\"${phone}\", \"text\": \"${MESSAGE}\"}")
 		res=$(echo "$res" | grep -o OK)

@@ -1,0 +1,1 @@
+[{"endpoint":"/minidlna/{service_group}/{?sid}","lua_service":"services/minidlna","backup_order":63}]

@@ -1,0 +1,1 @@
+[{"endpoint":"/modbus/client/tcp/{service_group}/{?sid}","lua_service":"services/modbus","backup_order":242},{"endpoint":"/modbus/client/tcp/{binding}/requests/{service_group}/{?sid}","lua_service":"services/modbus_request","backup_order":243},{"endpoint":"/modbus/client/tcp/{binding}/alarms/{service_group}/{?sid}","lua_service":"services/modbus_alarm","backup_order":244}]

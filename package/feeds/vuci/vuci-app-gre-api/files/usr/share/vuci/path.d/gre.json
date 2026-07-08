@@ -1,0 +1,1 @@
+[{"endpoint":"/gre/{service_group}/{?sid}","lua_service":"services/gre","backup_order":110},{"endpoint":"/gre/{binding}/routes/{service_group}/{?sid}","lua_service":"services/gre_routes_ipv4","backup_order":111},{"endpoint":"/gre/{binding}/routes6/{service_group}/{?sid}","lua_service":"services/gre_routes_ipv6","backup_order":112}]

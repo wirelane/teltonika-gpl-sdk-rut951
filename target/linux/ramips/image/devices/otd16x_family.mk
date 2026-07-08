@@ -24,7 +24,9 @@ define Device/TEMPLATE_teltonika_otd164
 	DEVICE_MODEL := OTD164
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.19
 
-	DEVICE_FEATURES := ncm poe wifi at_sim mobile networks_external tpm reset_button dual_sim ethernet nat_offloading port_link xfrm-offload dot1x-server dsa hw_nat multi_tag gigabit_port tlt-failsafe-boot portlink hw-offload modem-reset-quirk framed-routing no-wired-wan dual_band_ssid
+	DEVICE_FEATURES := ncm poe wifi mobile networks_external tpm reset_button dual_sim ethernet \
+		nat_offloading port_link xfrm-offload dot1x-server dsa hw_nat multi_tag gigabit_port tlt-failsafe-boot \
+		portlink hw-offload modem-reset-quirk framed-routing no-wired-wan dual_band_ssid esim-p
 
 	DEVICE_WLAN_BSSID_LIMIT := wlan0 8, wlan1 8
 

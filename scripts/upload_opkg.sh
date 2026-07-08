@@ -177,18 +177,26 @@ echo "${!SSH_HOST_KEY}" >>~/.ssh/known_hosts
 }
 
 url=$(show_url "$prefix" "")
+url_3rd_party=$(show_url "$prefix" "3rd_party")
 
 FOLDER="$PACKAGES_ROOT/${url#*opkg.teltonika-networks.com/}"
+THIRD_PARTY_FOLDER="$PACKAGES_ROOT/${url_3rd_party#*opkg.teltonika-networks.com/}"
 
 short_version=${CI_COMMIT_TAG:-$(git describe | awk -F "-pm" '{print $1}')-$(git -C "$TOPDIR/feeds/vuci" rev-parse --short HEAD)}
 client=$(grep 'CONFIG_TLT_VERSIONING_CLIENT' .config | cut -d'=' -f2 | tr -d '"')
 LINK="$PACKAGES_ROOT/packages/${client}/${short_version}"
 
 echo "OPKG URL: $url"
+echo "OPKG 3RD PARTY URL: $url_3rd_party"
 
 echo "UPLOADING TO ${!SSH_USER_HOST#*@}:"
 ssh -p "${!SSH_PORT}" "${!SSH_USER_HOST}" "rm -fr '${FOLDER:?}'"
 ssh -p "${!SSH_PORT}" "${!SSH_USER_HOST}" "mkdir -p '${FOLDER}' '${LINK}' && ln -fs '${FOLDER}' '${LINK}/${PLATFORM}'" || exit 1
 find "${TOPDIR}/bin/packages/" -type d -name pm_packages | while read -r pkg_dir; do
 	scp -P "${!SSH_PORT}" "${pkg_dir}"/* "${!SSH_USER_HOST}:/${FOLDER}/" || exit $?
+done
+
+ssh -p "${!SSH_PORT}" "${!SSH_USER_HOST}" "rm -fr '${THIRD_PARTY_FOLDER:?}' && mkdir -p '${THIRD_PARTY_FOLDER}'" || exit 1
+find "${TOPDIR}/bin/packages/" -type d -name pm_packages_third_party | while read -r pkg_dir; do
+	scp -P "${!SSH_PORT}" "${pkg_dir}"/* "${!SSH_USER_HOST}:/${THIRD_PARTY_FOLDER}/" || exit $?
 done

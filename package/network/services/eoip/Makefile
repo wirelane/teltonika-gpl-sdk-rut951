@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=eoip
 PKG_VERSION:=1.0
-PKG_RELEASE:=9
+PKG_RELEASE:=10
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/Nat-Lab/eoip.git
@@ -30,6 +30,10 @@ endef
 
 define Build/Install
     true
+endef
+
+define Package/eoip/conffiles
+/etc/config/eoip
 endef
 
 define Package/eoip/install

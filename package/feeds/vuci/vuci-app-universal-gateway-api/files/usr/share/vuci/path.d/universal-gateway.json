@@ -1,0 +1,1 @@
+[{"endpoint":"/universal_gateway/{service_group}/{?sid}","lua_service":"services/universal_gateway","exclude_from_backup":true}]

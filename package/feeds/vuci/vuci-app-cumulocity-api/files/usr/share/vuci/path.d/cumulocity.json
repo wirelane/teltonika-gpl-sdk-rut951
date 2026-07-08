@@ -1,0 +1,1 @@
+[{"endpoint":"/cloud_of_things/{service_group}/{?sid}","lua_service":"services/cot","backup_order":53},{"endpoint":"/cumulocity/{service_group}/{?sid}","lua_service":"services/cumulocity","backup_order":52}]

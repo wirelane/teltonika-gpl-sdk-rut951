@@ -1,0 +1,1 @@
+[{"endpoint":"/modbus/tcp_over_serial/{binding}/filters/{service_group}/{?sid}","lua_service":"services/modbus_tcp_serial_filters","backup_order":226},{"endpoint":"/modbus/tcp_over_serial/{service_group}/{?sid}","lua_service":"services/modbus_tcp_serial","backup_order":227}]

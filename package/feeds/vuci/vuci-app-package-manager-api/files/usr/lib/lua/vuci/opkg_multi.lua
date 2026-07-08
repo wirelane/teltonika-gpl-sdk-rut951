@@ -199,7 +199,8 @@ function opkg_multi.update_pkg_status_file(new_pkgs)
 		local p = {
 			type = new_pkg.type,
 			messages = new_pkg.messages,
-			errors = new_pkg.errors
+			errors = new_pkg.errors,
+			src = new_pkg.pkg_text and new_pkg.pkg_text.src or nil
 		}
 		if (p.type == PKG_TYPES.INSTALLED and #util.keys(p) == 1) or not next(p) then
 			-- if pkg successfully installed and it doesn't have any other info OR new_pkg is empty object, remove it from the file

@@ -4,7 +4,7 @@ include $(INCLUDE_DIR)/download.mk
 PKG_NAME:=data-sender
 PKG_RELEASE=1
 
-PKG_SOURCE_VERSION:=1.26.1
+PKG_SOURCE_VERSION:=1.28
 
 PKG_FIXUP:=autoreconf
 
@@ -24,7 +24,7 @@ endef
 define Package/data-sender
   $(call Package/data-sender/Default)
   DEPENDS:=+libuci +libtlt-logger +libubox +libblobmsg-json +libubus +libjson-c \
-	+TPM_SUPPORT:libtpm2_importer $(DS_DEPS) +libparam
+	+TPM_SUPPORT:libtpm2_importer $(DS_DEPS)
   TITLE:=Data sender daemon by Teltonika
   MENU:=1
   USERID:=ds=530:ds=530
@@ -59,6 +59,7 @@ $(eval $(call RegisterPlugin,modbus-alarm,+libsqlite3,Input plugin for modbus al
 $(eval $(call RegisterPlugin,iec60870,+libsqlite3 +lib60870,Input plugin for IEC 60870-5 data gathering))
 $(eval $(call RegisterPlugin,dnp3,+libsqlite3,Input plugin for DNP3 data gathering))
 $(eval $(call RegisterPlugin,opcua,+libsqlite3,Input plugin for OPC UA data gathering))
+$(eval $(call RegisterPlugin,canopen,+libsqlite3,Input plugin for CANopen data gathering))
 $(eval $(call RegisterPlugin,impulse_counter,+libsqlite3,Input plugin for impulse counter data gathering))
 $(eval $(call RegisterPlugin,mbus,+libsqlite3,Input plugin for M-Bus data gathering))
 $(eval $(call RegisterPlugin,wifiscan,+libsqlite3,Input plugin for wifi scaner data gathering))
@@ -73,7 +74,7 @@ $(eval $(call RegisterPlugin,format-custom,+libblobmsg-json,Format plugin for da
 $(eval $(call RegisterPlugin,format-csv,+libblobmsg-json,Format plugin for CSV formating))
 $(eval $(call RegisterPlugin,format-none,+libblobmsg-json,Format plugin for plain serialization))
 $(eval $(call RegisterPlugin,http,+libcurl,Output plugin for sending data over http))
-$(eval $(call RegisterPlugin,mqtt-out,+libmosquitto,Output plugin for sending data over MQTT))
+$(eval $(call RegisterPlugin,mqtt-out,+libmosquitto +libparam,Output plugin for sending data over MQTT))
 $(eval $(call RegisterPlugin,socket,,Output plugin for sending data over a UNIX socket))
 $(eval $(call RegisterPlugin,sms-out,+libgsm,Output plugin for sending data over SMS))
 $(eval $(call RegisterPlugin,smtp,+libcurl +libuci +@LIBCURL_SMTP,Output plugin for sending data over SMTP))
@@ -81,14 +82,14 @@ $(eval $(call RegisterPlugin,nflog,+libnetfilter-log +libxtables,Input plugin fo
 $(eval $(call RegisterPlugin,eventlog,,Input plugin for events log))
 $(eval $(call RegisterPlugin,lua-in,+luajit2,Input plugin for custom scripts))
 $(eval $(call RegisterPlugin,lua-out,+luajit2,Output plugin for custom scripts))
-$(eval $(call RegisterPlugin,ftp,+libcurl,Output plugin for sending data over FTP))
+$(eval $(call RegisterPlugin,ftp,+libcurl +libssh2,Output plugin for sending data over FTP/FTPS/SFTP))
 $(eval $(call RegisterPlugin,base,,Base input plugin))
 $(eval $(call RegisterPlugin,lua_format,+luajit2,Output plugin for custom formating))
 $(eval $(call RegisterPlugin,telegram,+libcurl +libopenssl,Output plugin for sending data over Telegram))
 $(eval $(call RegisterPlugin,ubus,,Output plugin for sending data over UBUS))
 $(eval $(call RegisterPlugin,file,,Output plugin for writing data to a file))
 $(eval $(call RegisterPlugin,dlms,+libsqlite3,Input plugin for M-Bus data gathering))
-$(eval $(call RegisterPlugin,mqtt-in,+libmosquitto,Input plugin for subscribing MQTT data))
+$(eval $(call RegisterPlugin,mqtt-in,+libmosquitto +libparam,Input plugin for subscribing MQTT data))
 $(eval $(call RegisterPlugin,lua_filter,+luajit2,Filter plugin for LUA scripts))
 $(eval $(call RegisterPlugin,cmp,,Filter plugin for data comparison))
 $(eval $(call RegisterPlugin,stdin,,Input plugin for reading data from stdin))
@@ -108,7 +109,7 @@ CONFIGURE_ARGS += \
 
 define Package/data-sender/install
 	$(INSTALL_DIR) $(1)/etc/config $(1)/etc/init.d $(1)/usr/sbin \
-			$(1)/lib/troubleshoot $(1)/lib/data_sender $(1)/usr/share/acl.d
+			$(1)/lib/troubleshoot $(1)/lib/data_sender $(1)/usr/share/acl.d $(1)/etc/permtab.d
 	$(INSTALL_DIR) $(1)/etc/uci-defaults/7.18/ $(1)/etc/uci-defaults/7.20
 	$(INSTALL_BIN_USR) $(PKG_BUILD_DIR)/files/data_sender.init $(1)/etc/init.d/data_sender
 	$(INSTALL_CONF_USR) $(PKG_BUILD_DIR)/files/data_sender.conf $(1)/etc/config/data_sender
@@ -119,6 +120,7 @@ define Package/data-sender/install
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/acl.d/data_sender.json $(1)/usr/share/acl.d/
 	$(CP) $(PKG_BUILD_DIR)/files/migrations/7.18/01-data_sender_move_dnp3_db $(1)/etc/uci-defaults/7.18/
 	$(CP) $(PKG_BUILD_DIR)/files/migrations/7.20/01-data_sender_enable_inputs $(1)/etc/uci-defaults/7.20/
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/data_sender.permtab $(1)/etc/permtab.d/data_sender
 endef
 
 define BuildPlugin
@@ -139,18 +141,21 @@ define BuildPlugin
 	fi
   endef
 
+# Reload datasender in postinst if this plugin is referenced by an enabled collection (happens after backup upload (RUTOS1-37067))
 ifeq ($$(CONFIG_PACKAGE_data-sender-mod-$(1)),m)
-  ifeq ($(wildcard $(PKG_BUILD_DIR)/files/acl.d/$(1).json),)
   define Package/data-sender-mod-$(1)/postinst
 #!/bin/sh
 
 [ -z "$$$${IPKG_INSTROOT}" ] || exit 0
 
-#Relaod ubusd acl rules
-pid=$$$$(pidof ubusd)
-[ -z "$$$$pid" ] || kill -HUP $$$$pid
+$(if $(wildcard $(PKG_BUILD_DIR)/files/acl.d/$(1).json),
+	#Relaod ubusd acl rules
+	pid=$$$$(pidof ubusd)
+	[ -z "$$$$pid" ] || kill -HUP $$$$pid
+)
+. /lib/data_sender/libdata_sender.sh
+ds_restart_if_plugin_enabled "$(1)" || true
   endef
-  endif
 endif
   define Package/data-sender-mod-$(1)/postrm
 	#!/bin/sh
@@ -175,6 +180,7 @@ $(eval $(call BuildPlugin,modbus-alarm,input_modbus_alarm))
 $(eval $(call BuildPlugin,iec60870,input_iec60870))
 $(eval $(call BuildPlugin,dnp3,input_dnp3))
 $(eval $(call BuildPlugin,opcua,input_opcua))
+$(eval $(call BuildPlugin,canopen,input_canopen))
 $(eval $(call BuildPlugin,impulse_counter,input_impulse_counter))
 $(eval $(call BuildPlugin,mbus,input_mbus))
 $(eval $(call BuildPlugin,wifiscan,input_wifiscan))

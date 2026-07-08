@@ -1,9 +1,11 @@
---- a/src/options.c
-+++ b/src/options.c
-@@ -20,7 +20,7 @@ void options_init(struct Options *opt) {
+Index: https-dns-proxy-2025-03-13/src/options.c
+===================================================================
+--- https-dns-proxy-2025-03-13.orig/src/options.c
++++ https-dns-proxy-2025-03-13/src/options.c
+@@ -33,7 +33,7 @@ void options_init(struct Options *opt) {
    opt->listen_port = 5053;
    opt->logfile = "-";
-   opt->logfd = -1;
+   opt->logfd = STDOUT_FILENO;
 -  opt->loglevel = LOG_ERROR;
 +  opt->loglevel = LOG_FATAL;
    opt->daemonize = 0;

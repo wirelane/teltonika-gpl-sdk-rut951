@@ -160,6 +160,7 @@ module.exports = {
       { type: 'hw', name: 'xfrm-offload' },
       { type: 'hw', name: 'xfrm-offload', value: false },
       { type: 'hw', name: 'hw_nat' },
+      { type: 'hw', name: 'is_consumer_access_point', value: false },
     ]
   },
   /** @return {Record<string, string>} */

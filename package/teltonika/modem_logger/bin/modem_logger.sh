@@ -201,7 +201,12 @@ stop_logging(){
     for l in $LOGGERS; do
         [ "$(killall -2 "$l" 2>&1)" == "" ] && stopped="$stopped $l"
     done
-    [ "$stopped" == "" ] && echo "[WARNING] Did not stop any logger" || echo "[INFO] Stopped:$stopped"
+    if [ "$stopped" == "" ]; then
+        echo "[WARNING] Did not stop any logger"
+    else 
+        echo "[INFO] Stopped:$stopped"
+        debug "[INFO] Logger was stopped."
+    fi
     cleanup
 }
 
@@ -489,6 +494,11 @@ start_logging(){
     #Primitive check for if log is getting gathered.
     if started_logging; then
         echo "[INFO] Logging started successfully."
+        if [ -z "$MODEM_ID" ]; then
+            debug "[INFO] Logger started successfully."
+        else
+            debug "[INFO] Logger started successfully (Modem ID = $MODEM_ID)."
+        fi
     else
         echo "[ERROR] Logging failed to start. .qmdl* or .sdl file not found in $LOG_DIR"
         killall "$LOGGER_PATH" # Kills logger if its failed.

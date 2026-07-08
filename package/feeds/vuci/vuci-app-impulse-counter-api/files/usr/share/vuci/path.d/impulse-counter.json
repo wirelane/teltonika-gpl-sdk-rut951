@@ -1,0 +1,1 @@
+[{"endpoint":"/impulse_counter/global","lua_service":"services/impulse_counter_global","backup_order":182},{"/impulse_counter/historic/{service_group}":"services/impulse_counter_historic"},{"endpoint":"/impulse_counter/{service_group}/{?sid}","lua_service":"services/impulse_counter_sections","backup_order":183}]

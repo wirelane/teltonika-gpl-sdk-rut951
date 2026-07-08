@@ -17,7 +17,7 @@ KERNEL_LOADADDR := 0x80000000
 define Device/tlt-mt7628-common
 	SOC := mt7628an
 
-	DEVICE_FEATURES := small_flash sw-offload dot1x-client 128mb_ram reset_button
+	DEVICE_FEATURES := small_flash sw-offload dot1x-client 128mb_ram reset_button ethernet
 
 	MTDPARTS :=
 	BLOCKSIZE := 64k
@@ -68,7 +68,7 @@ define Device/teltonika_trb2m
 	DEVICE_BOOT_NAME := tlt-trb2m
 	DEVICE_DTS := mt7628an_teltonika_trb2m
 	DEVICE_FEATURES += gateway pppmobile gps rs232 rs485 \
-			modbus ios single_port dualsim mobile ncm \
+			modbus ios single_port dual_sim mobile ncm \
 			dot1x-server xfrm-offload no-wired-wan tpm port_link
 
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
@@ -102,7 +102,7 @@ define Device/teltonika_tap100
 	DEVICE_MODEL := TAP100
 	DEVICE_BOOT_NAME := tlt-tap100
 	DEVICE_DTS := mt7628an_teltonika_tap100
-	DEVICE_FEATURES := small_flash access_point single_port wifi ledman-lite dot1x-client no-wired-wan reset_button 64mb_ram
+	DEVICE_FEATURES := small_flash access_point single_port wifi ledman-lite dot1x-client no-wired-wan reset_button 64mb_ram ethernet
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.4
 	GPL_PREFIX := GPL
@@ -128,7 +128,7 @@ define Device/teltonika_otd140
 	DEVICE_MODEL := OTD140
 	DEVICE_BOOT_NAME := tlt-otd140
 	DEVICE_DTS := mt7628an_teltonika_otd140
-	DEVICE_FEATURES += ncm rndis poe mobile dualsim port_link dot1x-server xfrm-offload \
+	DEVICE_FEATURES += ncm rndis poe mobile dual_sim port_link dot1x-server xfrm-offload \
 					   networks_external no-wired-wan tpm
 
 	DEVICE_MTD_LOG_PARTNAME := mtdblock6
@@ -197,7 +197,7 @@ define Device/teltonika_rut2m
 	DEVICE_MODEL := RUT2M
 	DEVICE_BOOT_NAME := tlt-rut2m
 	DEVICE_DTS := mt7628an_teltonika_rut2m
-	DEVICE_FEATURES += ios wifi rndis mobile port_link dualsim dot1x-server xfrm-offload
+	DEVICE_FEATURES += ios wifi rndis mobile port_link dot1x-server xfrm-offload esim-p
 
 	GPL_PREFIX := GPL
 	# Default common packages for RUT241, RUT200 series
@@ -278,7 +278,7 @@ define Device/teltonika_rut9m
 	$(Device/tlt-mt7628-common)
 	DEVICE_MODEL := RUT9M
 	DEVICE_BOOT_NAME := tlt-rut9m
-	DEVICE_FEATURES += gps usb-port modbus ios wifi dualsim \
+	DEVICE_FEATURES += gps usb-port modbus ios wifi dual_sim \
 			rndis ncm mobile port_link rs232 rs485 dot1x-server port-mirror \
 	                xfrm-offload poe ethtool-tiny
 
@@ -336,12 +336,14 @@ define Device/teltonika_rute
 	ART_SIZE := 196608
 	MASTER_IMAGE_SIZE := 32768k
 
+	HW_MODS += 144v5
+
 	DEVICE_MODEL := RUTE
 	DEVICE_BOOT_NAME := tlt-mt7628
-	DEVICE_FEATURES := large_flash sw-offload gps modbus ios wifi dualsim \
+	DEVICE_FEATURES := large_flash sw-offload gps modbus ios wifi dual_sim \
 			rndis ncm mobile port_link rs232 rs485 dot1x-server port-mirror \
 			xfrm-offload usb-sd-card usb-port dot1x-client 128mb_ram poe \
-			reset_button can-stm tpm
+			reset_button can-stm tpm ethernet
 
 	FILESYSTEMS := squashfs
 	GPL_PREFIX := GPL

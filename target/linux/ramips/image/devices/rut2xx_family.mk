@@ -90,7 +90,7 @@ define Device/TEMPLATE_teltonika_rut200
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT200
-	DEVICE_FEATURES += ios small_flash
+	DEVICE_FEATURES += ios small_flash esim-p
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
@@ -117,7 +117,7 @@ define Device/TEMPLATE_teltonika_rut202
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT202
-	DEVICE_FEATURES += ios dual_sim tpm modbus
+	DEVICE_FEATURES += ios esim-p tpm modbus
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.19
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
@@ -132,7 +132,7 @@ define Device/TEMPLATE_teltonika_rut204
 	$(Device/template_rut204_io)
 	DEVICE_MODEL := RUT204
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.19
-	DEVICE_FEATURES += dual_sim sd_card modbus stm_can
+	DEVICE_FEATURES += esim-p sd_card modbus stm_can
 
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/Modem := Quectel EC200A-EU, Meiglink SLM770A-CE
@@ -148,7 +148,6 @@ define Device/TEMPLATE_teltonika_rut204
 	TECHNICAL/Physical_Interfaces/IO :=
 	TECHNICAL/Physical_Interfaces/RS232 := 1 $(HW_INTERFACE_RS232_6PIN)
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
-	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
 	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
@@ -210,7 +209,7 @@ define Device/TEMPLATE_teltonika_rut261
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT261
-	DEVICE_FEATURES += ios dual_sim tpm modbus
+	DEVICE_FEATURES += ios tpm modbus esim-p
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.21
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
@@ -227,7 +226,7 @@ define Device/TEMPLATE_teltonika_rut271
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT271
-	DEVICE_FEATURES += ios modbus
+	DEVICE_FEATURES += ios modbus esim-p
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.12.1
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
@@ -256,7 +255,7 @@ define Device/TEMPLATE_teltonika_rut206
 	$(Device/template_rut2x6_io)
 	DEVICE_MODEL := RUT206
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
-	DEVICE_FEATURES += dual_sim sd_card
+	DEVICE_FEATURES += esim-p sd_card
 
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/Modem := Quectel EC200A-EU, Quectel EC25-AF, Quectel EC200A-AU
@@ -274,7 +273,6 @@ define Device/TEMPLATE_teltonika_rut206
 	TECHNICAL/Physical_Interfaces/RS485 := 1 $(HW_INTERFACE_RS485_6PIN)
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485_HALF)
-	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
 	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
@@ -286,7 +284,7 @@ define Device/TEMPLATE_teltonika_rut276
 	$(Device/template_rut2x6_io)
 	DEVICE_MODEL := RUT276
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.13.4
-	DEVICE_FEATURES += dual_sim sd_card
+	DEVICE_FEATURES += esim-p sd_card
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
 	HARDWARE/Mobile/Modem := Quectel RG255C-GL
@@ -303,7 +301,6 @@ define Device/TEMPLATE_teltonika_rut276
 	TECHNICAL/Physical_Interfaces/RS485 := 1 $(HW_INTERFACE_RS485_6PIN)
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485_HALF)
-	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
 	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);
@@ -316,7 +313,7 @@ define Device/TEMPLATE_teltonika_rut281
 	$(Device/teltonika_rut2x_common)
 	$(Device/template_rut2x)
 	DEVICE_MODEL := RUT281
-	DEVICE_FEATURES += ios modbus
+	DEVICE_FEATURES += ios modbus esim-p
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.15
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
@@ -331,7 +328,7 @@ define Device/TEMPLATE_teltonika_rut286
 	$(Device/template_rut2x6_io)
 	DEVICE_MODEL := RUT286
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.20.2
-	DEVICE_FEATURES += dual_sim sd_card
+	DEVICE_FEATURES += esim-p sd_card
 
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/Modem := Telit LE910C4-WWXD
@@ -348,7 +345,6 @@ define Device/TEMPLATE_teltonika_rut286
 	TECHNICAL/Physical_Interfaces/RS485 := 1 $(HW_INTERFACE_RS485_6PIN)
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485_HALF)
-	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
 	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
 	HARDWARE/SD_card/Applications := $(HW_SD_APLICATIONS)
 	HARDWARE/SD_card/Capacity := $(HW_SD_CAPACITY);

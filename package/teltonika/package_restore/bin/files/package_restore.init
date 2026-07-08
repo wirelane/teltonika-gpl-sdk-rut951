@@ -11,7 +11,8 @@ start_service() {
 	local enabled
 	config_load package_restore
 	config_get enabled package_restore enabled 0
-	[ "$enabled" != "1" ] && return 0
+	config_get third_party_packages_enabled package_restore 3rd_party_packages_enabled 0
+	[ "$enabled" != "1" ] && [ "$third_party_packages_enabled" != "1" ] && return 0
 
 	procd_open_instance $FUNC_NAME
 	procd_set_param command "$FUNC_NAME"

@@ -23,7 +23,6 @@ local opkg = {
 	err_str = o_utils.err_str,
 	acquire_lock = o_utils.acquire_lock,
 	clean_feeds = o_utils.clean_feeds,
-	opkg_cmd = o_utils.opkg_cmd,
 	_trigger_pkg_event = o_utils._trigger_pkg_event,
 	_restart_services = o_utils._restart_services,
 	_trigger_backup = o_utils._trigger_backup,
@@ -39,8 +38,8 @@ local opkg = {
 	FAILED_PKG_PATH = o_utils.FAILED_PKG_PATH,
 	PKG_TAR_PATH = o_utils.PKG_TAR_PATH,
 	PKG_MULTI_LOCK_PATH = o_utils.PKG_MULTI_LOCK_PATH,
-	OPKG_TLT_URL = o_utils.OPKG_TLT_URL,
 	DEST_ROOT = o_utils.DEST_ROOT,
+	FEED_SIDS = o_utils.FEED_SIDS
 }
 
 ---Returns old_package_v < new_package_v

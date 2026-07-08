@@ -5,9 +5,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dsa-dot1x-server
-PKG_VERSION:=2026-04-09
 PKG_SOURCE_VERSION:=1.0.5
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 PKG_LICENSE:=Teltonika-closed
 
 include $(INCLUDE_DIR)/package.mk

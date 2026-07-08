@@ -6,8 +6,8 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=opcua_client
-PKG_VERSION:=2026-04-09
-PKG_SOURCE_VERSION:=7.23
+PKG_VERSION:=2026-06-04
+PKG_SOURCE_VERSION:=7.24
 PKG_LICENSE:=Teltonika-closed
 
 include $(INCLUDE_DIR)/package.mk
@@ -53,8 +53,6 @@ define Package/$(PKG_NAME)/postinst
 		chmod 0660 /etc/vuci-uploads/cbid.opcua_client.*
 	fi
 
-	/etc/init.d/rpcd reload
-
 	[ -e /lib/data_sender/libdata_sender.sh ] || exit 0
 
 	. /lib/data_sender/libdata_sender.sh
@@ -82,11 +80,6 @@ define Package/$(PKG_NAME)/prerm
 	rm -f /var/run/opcua_client/opcua.db
 
 	exit 0
-endef
-
-define Package/$(PKG_NAME)/postrm
-	#!/bin/sh
-	/etc/init.d/rpcd reload
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))

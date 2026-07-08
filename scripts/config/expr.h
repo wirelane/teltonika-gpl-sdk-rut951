@@ -144,6 +144,7 @@ struct symbol {
 #define SYMBOL_WRITTEN    0x0800  /* track info to avoid double-write to .config */
 #define SYMBOL_NO_WRITE   0x1000  /* Symbol for internal use only; it will not be written */
 #define SYMBOL_CHECKED    0x2000  /* used during dependency checking */
+#define SYMBOL_VISIBLE_IN_FEATURE_LIST  0x4000  /* show documentation for symbol */
 #define SYMBOL_WARNED     0x8000  /* warning has been issued */
 
 /* Set when symbol.def[] is used */

@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=tinc
 PKG_VERSION:=1.0.36
-PKG_RELEASE:=10
+PKG_RELEASE:=12
 
 PKG_HASH:=40f73bb3facc480effe0e771442a706ff0488edea7a5f2505d4ccb2aa8163108
 
@@ -67,6 +67,8 @@ define Package/tinc/install
 	$(INSTALL_DATA) files/tinc.upgrade $(1)/lib/upgrade/keep.d/tinc
 	$(INSTALL_DIR) $(1)/etc/uci-defaults/7.10
 	$(INSTALL_DATA) ./files/defaults/99_tinc_rename_sections $(1)/etc/uci-defaults/7.10/99_tinc_rename_sections
+	$(INSTALL_DIR) $(1)/etc/uci-defaults/7.24
+	$(INSTALL_DATA) ./files/defaults/991_tinc_add_name_options $(1)/etc/uci-defaults/7.24/991_tinc_add_name_options
 	$(INSTALL_DIR) $(1)/etc/permtab.d
 	$(INSTALL_DATA) ./files/tinc.permtab $(1)/etc/permtab.d/tinc
 endef

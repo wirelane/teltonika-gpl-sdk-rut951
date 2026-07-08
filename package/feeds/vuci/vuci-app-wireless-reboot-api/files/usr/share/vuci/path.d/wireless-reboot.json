@@ -1,0 +1,1 @@
+[{"endpoint":"/auto_reboot/wireless/{service_group}/{?sid}","lua_service":"services/wireless_reboot","backup_order":125}]

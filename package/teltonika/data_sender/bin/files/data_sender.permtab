@@ -1,0 +1,4 @@
+/etc/data_sender ds:ds - r
+/etc/config/data_sender ds:ds 660
+/usr/local/home/root/.ssh root:root 700 cd
+/usr/local/home/root/.ssh/known_hosts root:root 644 cf

@@ -179,9 +179,11 @@ do_mount_root() {
 		sync
 		[ -x /bin/sme.sh ] && { sme.sh --preboot || echo "- sme.sh failed with code $? -"; }
 
-	elif [ -f /overlay/sysupgrade.tgz ] || [ -f /tmp/sysupgrade.tgz ] || [ -f /tmp/sysupgrade.tar ]; then
+	elif [ -f /overlay/sysupgrade.tgz ] || [ -f /tmp/sysupgrade.tgz ] || [ -f /tmp/sysupgrade.tar ] || [ -f /sysupgrade.tgz ] || [ -f /sysupgrade.tar ]; then
 		echo "- config restore -"
 		[ -f /overlay/sysupgrade.tgz ] && mv /overlay/sysupgrade.tgz /tmp/
+		[ -f /sysupgrade.tgz ] && mv /sysupgrade.tgz /tmp/
+		[ -f /sysupgrade.tar ] && mv /sysupgrade.tar /tmp/
 		cp /etc/passwd /etc/group /etc/shadow /tmp
 		[ -f /tmp/sysupgrade.tgz ] && handle_extraction /tmp/sysupgrade.tgz xzf
 		[ -f /tmp/sysupgrade.tar ] && handle_extraction /tmp/sysupgrade.tar xf

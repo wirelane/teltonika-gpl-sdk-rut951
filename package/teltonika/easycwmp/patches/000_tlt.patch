@@ -1,6 +1,6 @@
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/.gitlab-ci.yml src/.gitlab-ci.yml
 --- upstream/.gitlab-ci.yml	1970-01-01 00:00:00.000000000 +0000
-+++ src/.gitlab-ci.yml	2026-03-25 10:23:48.000000000 +0000
++++ src/.gitlab-ci.yml	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,20 @@
 +include:
 +  - project: teltonika/ci-templates
@@ -25,7 +25,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 \ No newline at end of file
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/bin/Makefile.am src/bin/Makefile.am
 --- upstream/bin/Makefile.am	2019-09-26 13:02:11.000000000 +0000
-+++ src/bin/Makefile.am	2026-03-25 10:23:48.000000000 +0000
++++ src/bin/Makefile.am	2026-05-14 06:11:27.000000000 +0000
 @@ -55,5 +55,6 @@
  	$(LIBUBUS_LIBS)		\
  	$(MICROXML_LIBS)	\
@@ -36,7 +36,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/configure.ac src/configure.ac
 --- upstream/configure.ac	2019-09-26 13:02:11.000000000 +0000
-+++ src/configure.ac	2026-03-25 10:23:48.000000000 +0000
++++ src/configure.ac	2026-05-14 06:11:27.000000000 +0000
 @@ -17,6 +17,19 @@
  AC_ARG_ENABLE(devel, [AS_HELP_STRING([--enable-devel], [enable development messages])], AC_DEFINE(DEVEL),)
  AC_ARG_ENABLE(backupdatainconfig, [AS_HELP_STRING([--enable-backupdatainconfig], [enable backup data saved in the config])], AC_DEFINE(BACKUP_DATA_IN_CONFIG),)
@@ -57,9 +57,1223 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  # checks for programs
  AC_PROG_CC
  AM_PROG_CC_C_O
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/easycwmp.puml src/easycwmp.puml
+--- upstream/easycwmp.puml	1970-01-01 00:00:00.000000000 +0000
++++ src/easycwmp.puml	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,628 @@
++@startuml
++
++left to right direction
++
++title easycwmp script logic
++
++set namespaceSeparator none
++
++
++
++' easycwmp.sh
++
++package "easycwmp.sh" {
++  class start {
++    Main case-esac statement
++  }
++
++  class "handle_action()" as handle_action {
++    Action handler
++  }
++
++  class get_value {
++    get_value action initialization
++    to get parameters' values
++  }
++
++  class get_name {
++    get_name action initialization
++    to get parameters' names
++  }
++
++  class get_notification {
++    get_notification action initialization
++    to get parameters' notification types
++  }
++
++  class set_value {
++    set_value action initialization
++    to set parameter's value
++  }
++
++  class set_notification {
++    set_notification action initialization
++    to set parameter's notification
++  }
++
++  class download {
++    Checks if there is enough free tmp space,
++    downloads the file from the given URL, with
++    optional auth.
++  }
++
++  class apply_download {
++    Applies the downloaded file as either a vendor config,
++    which calls uci import + commit/reload, or firmware
++    image, which calls sysupgrade
++  }
++
++  class factory_reset {
++    Initiates factory reset
++  }
++
++  class reboot {
++    Initiates device reboot
++  }
++
++  class apply_notification {
++    Executes pending notification set commands from the file,
++    reports any per-parameter faults, or replays pre-recorded
++    ones, and if successful updates service-change tracking
++    then commits UCI changes
++  }
++
++  class apply_value {
++    Runs all queued set commands from the file,
++    rolls back UCI changes on any failure, and
++    on success updates tracked notification
++    values, sets the ACS parameter key and commits
++  }
++
++  class apply_object {
++    Sets parameter_key in UCI
++  }
++
++  class apply_service {
++    TODO
++  }
++
++  class add_object {
++    add_object action initialization
++    to add an object
++  }
++
++  class delete_object {
++    delete_object action initialization
++    to delete an object
++  }
++
++  class inform_parameter {
++    inform_parameter action initialization
++    to inform about parameter
++  }
++
++  class inform_device_id {
++    inform_device_id action initialization
++    to get device ID for inform message
++  }
++
++  class update_value_change {
++    Clears the stored value-change cache,
++    then runs each data-model entry with
++    the update-value-change handler to
++    rebuild that list from current parameter
++    values
++  }
++
++  class check_value_change {
++    Goes through the saved notification-value list,
++    checks each parameter for a changed value and
++    outputs change events when needed, then
++    rebuilds the stored snapshot for the next check
++  }
++
++  class json_input {
++    Open up a console-like prompt for the daemon
++    to interact with by sending JSON commands
++  }
++}
++
++
++start --] handle_action : 1. calls
++
++handle_action --] get_value
++handle_action --] get_name
++handle_action --] get_notification
++handle_action --] set_value
++handle_action --] set_notification
++handle_action --] download
++handle_action --] apply_download
++handle_action --] factory_reset
++handle_action --] reboot
++handle_action --] apply_notification
++handle_action --] apply_value
++handle_action --] apply_object
++handle_action --] add_object
++handle_action --] delete_object
++handle_action --] inform_parameter
++handle_action --] inform_device_id
++handle_action --] update_value_change
++handle_action --] check_value_change
++handle_action --] json_input
++
++
++
++
++' common script
++
++package "common" {
++  class "common_json_output_fault()" as common_json_output_fault {
++    Formats fault JSON '{"parameter":"x","fault_code":"y"}'
++  }
++
++  class "common_entry_get_value()" as common_entry_get_value {
++    Determines if parameter name is a
++    root object, object or parameter
++    and iterates through all registered
++    data model handlers to execute
++    the retrieval
++  }
++
++  class "common_get_value()" as common_get_value {
++    Splits into either object or
++    parameter function to get
++    Device.<object>. parameters
++  }
++
++  class "common_get_value_param()" as common_get_value_param {
++    Executes parameter's get command and outputs it's result
++    along with parameter's name and type
++  }
++
++  class "common_get_value_obj()" as common_get_value_obj {
++    Returns 0
++  }
++
++  class "common_json_output_get_value()" as common_json_output_get_value {
++    Returns JSON '{"parameter":"x","value":"y","type":"z"}'
++  }
++
++  class "common_get_value_inparam_isobj_check()" as common_get_value_inparam_isobj_check {
++    Splits into either object or
++    parameter function to get any object under
++    Device.<object>. (e.g. Device.<object>.1.<object2>.)
++  }
++
++  class "common_get_value_inparam_isobj_check_param()" as common_get_value_inparam_isobj_check_param {
++    Iterates through list of nodes and, if at the start
++    refrenece (e.g. Device.<object>.1.<object2.>)
++    matches, executes parameter's get command
++  }
++
++  class "common_get_value_inparam_isobj_check_obj()" as common_get_value_inparam_isobj_check_obj {
++    Unused function (because $inparam is empty)
++  }
++
++  class "common_get_value_inparam_isparam_check()" as common_get_value_inparam_isparam_check {
++    Splits into either object or
++    parameter function to get any
++    parameter (not object)
++  }
++
++  class "common_get_value_inparam_isparam_check_param()" as common_get_value_inparam_isparam_check_param {
++    Calls get function for the parameter
++  }
++
++  class "common_get_value_inparam_isparam_check_obj()" as common_get_value_inparam_isparam_check_obj {
++    Returns error (because function is dedicated to parameters only)
++  }
++
++  class "common_entry_get_name()" as common_entry_get_name {
++    Routes a GetParameterNames request by inspecting
++    input param and nextlevel, choosing the
++    appropriate handler method, empty-root, object-scope,
++    or exact-parameter check, executing it across
++    registered entries, and returning the resulting
++    fault/status code
++  }
++
++  class "common_get_name_emptyin_nl1()" as common_get_name_emptyin_nl1 {
++    If input parameter is empty splits into
++    either object or parameter function
++  }
++
++  class "common_get_name_emptyin_nl1_param()" as common_get_name_emptyin_nl1_param {
++    Unused function
++  }
++
++  class "common_get_name_emptyin_nl1_obj()" as common_get_name_emptyin_nl1_obj {
++    Gets Device. object's shallow (1)
++    level with permissions
++  }
++
++  class "common_json_output_get_name()" as common_json_output_get_name {
++    Returns JSON '{"parameter":"x","writable":"y"}'
++  }
++
++  class "common_get_name()" as common_get_name {
++    Splits into either object or parameter
++    function to get Device.<object>.
++    parameters if deeper (0) level is required
++  }
++
++  class "common_get_name_param()" as common_get_name_param {
++    Gets parameter's permissions
++  }
++
++  class "common_get_name_obj()" as common_get_name_obj {
++    Gets object's permissions
++  }
++
++  class "common_get_name_inparam_isobj_check()" as common_get_name_inparam_isobj_check {
++    Splits into either object or parameter function to get Device.<object>.
++    parameters if shallow (1) level is required or to get any object under
++    Device.<object>. (e.g. Device.<object>.1.<object2>.)
++  }
++
++  class "common_get_name_inparam_isobj_check_param()" as common_get_name_inparam_isobj_check_param {
++    Gets permissions if deeper (0) level is required or
++    if parent object of the parameter matches requested object
++  }
++
++  class "common_get_name_inparam_isobj_check_obj()" as common_get_name_inparam_isobj_check_obj {
++    Gets permissions if deeper (0) level is required or
++    if parent object of the parameter matches requested object
++  }
++
++  class "common_get_name_inparam_isparam_check()" as common_get_name_inparam_isparam_check {
++    Splits into either object or parameter function
++    to parameter's (not object's) permissions
++  }
++
++  class "common_get_name_inparam_isparam_check_param()" as common_get_name_inparam_isparam_check_param {
++    Gets parameter's permissions only if
++    deeper (0) level is chosen
++  }
++
++  class "common_get_name_inparam_isparam_check_obj()" as common_get_name_inparam_isparam_check_obj {
++    Unused function
++  }
++
++  class "common_entry_get_notification()" as common_entry_get_notification {
++    Chooses the correct notification-retrieval
++    strategy based on whether the input is empty,
++    a known prefix, an object path, or an exact
++    parameter path, runs that method across all
++    registered entries, and returns the resulting fault code
++  }
++
++  class "common_get_notification()" as common_get_notification {
++    Splits into either object or parameter
++    function to get Device. or
++    Device.<object>. notifications
++  }
++
++  class "common_get_notification_param()" as common_get_notification_param {
++    Gets parameter's notification
++  }
++
++  class "common_get_parameter_notification()" as common_get_parameter_notification {
++    Gets parameter's notification level from UCI config 
++  }
++
++  class "common_json_output_get_notification()" as common_json_output_get_notification {
++    Returns JSON '{"parameter":"x","notification":"y"}'
++  }
++
++  class "common_get_notification_obj()" as common_get_notification_obj {
++    Unused function
++  }
++
++  class "common_get_notification_inparam_isobj_check()" as common_get_notification_inparam_isobj_check {
++    Splits into either object or parameter function
++    to get any object's notifiaction under
++    Device.<object>. (e.g. Device.<object>.1.<object2>.)
++  }
++
++  class "common_get_notification_inparam_isobj_check_param()" as common_get_notification_inparam_isobj_check_param {
++    Gets parameter's notification
++  }
++
++  class "common_get_notification_inparam_isobj_check_obj()" as common_get_notification_inparam_isobj_check_obj {
++    Unused function, sets error indicator to success
++  }
++
++  class "common_get_notification_inparam_isparam_check()" as common_get_notification_inparam_isparam_check {
++    Splits into either object or parameter
++    function to get any parameter's (not object)
++    notifications
++  }
++
++  class "common_get_notification_inparam_isparam_check_param()" as common_get_notification_inparam_isparam_check_param {
++    Gets parameter's notification
++  }
++
++  class "common_get_notification_inparam_isparam_check_obj()" as common_get_notification_inparam_isparam_check_obj {
++    Unused function
++  }
++
++  class "common_entry_set_value()" as common_entry_set_value {
++    Calls out value setting for each object entry
++  }
++
++  class "common_set_value_check()" as common_set_value_check {
++    Splits into either object or parameter
++    function to set parameter's value
++  }
++
++  class "common_set_value_check_param()" as common_set_value_check_param {
++    Saves parameter's set command reference to a file
++  }
++
++  class "common_set_value_check_obj()" as common_set_value_check_obj {
++    Returns error
++  }
++
++  class "common_set_parameter_fault()" as common_set_parameter_fault {
++    Save parameter's set command error to a file
++  }
++
++  class "common_entry_set_notification()" as common_entry_set_notification {
++    Calls out notification setting for each object entry
++  }
++
++  class "common_set_notification_check()" as common_set_notification_check {
++    Splits into either object or parameter
++    function to set parameter's notification
++  }
++
++  class "common_set_notification_check_param()" as common_set_notification_check_param {
++    Sets notification for parameter
++  }
++
++  class "common_set_notification_check_obj()" as common_set_notification_check_obj {
++    Sets notification for object
++  }
++
++  class "common_set_parameter_notification()" as common_set_parameter_notification {
++    Sets notification in UCI config
++  }
++
++  class "common_remove_parameter_notification()" as common_remove_parameter_notification {
++    Delete notification for parameter or object in UCI
++  }
++
++  class "common_json_output_status()" as common_json_output_status {
++    Returns JSON '{"status":"x","instance":"y","config_load":"z"}'
++  }
++
++  class "easycwmp_reboot()" as easycwmp_reboot {
++    Calls device reboot UBUS call
++  }
++
++  class "common_uci_change_packages_lookup()" as common_uci_change_packages_lookup {
++    Scans recent configuration changes, flags
++    whether the main app config changed, and
++    builds a de-duplicated list of other
++    changed configs
++  }
++
++  class "common_entry_add_object()" as common_entry_add_object {
++    Calls out object's addition to each entry
++  }
++
++  class "common_add_object()" as common_add_object {
++    Splits into either object or parameter
++    function to add an object
++  }
++
++  class "common_add_object_param()" as common_add_object_param {
++    Returns error
++  }
++
++  class "common_add_object_obj()" as common_add_object_obj {
++    Calls object's addition method
++  }
++
++  class "common_entry_delete_object()" as common_entry_delete_object {
++    Calls out object's deletion to each entry
++  }
++
++  class "common_delete_object()" as common_delete_object {
++    Splits into either object or parameter
++    function to delete an object
++  }
++
++  class "common_delete_object_param()" as common_delete_object_param {
++    Returns error
++  }
++
++  class "common_delete_object_obj()" as common_delete_object_obj {
++    Calls object's deletion method
++  }
++
++  class "common_entry_inform()" as common_entry_inform {
++    Runs the inform-check handler across all relevant entries,
++    or the forced-inform subset, to generate inform data
++  }
++
++  class "common_inform_check()" as common_inform_check {
++    Splits into either object or parameter
++    function to check if forced inform is set
++  }
++
++  class "common_inform_check()" as common_inform_check {
++    Gets parameter's value if it
++    has forced inform set
++  }
++
++  class "common_inform_check_obj()" as common_inform_check_obj {
++    Returns error
++  }
++
++  class "common_get_inform_deviceid()" as common_get_inform_deviceid {
++    Returns JSON '{"manufacturer":"x","oui":"y","product_class":"z","serial_number":"a"}'
++  }
++}
++
++get_value --] common_entry_get_value : 1. calls
++get_value --] common_json_output_fault : 2. calls if fault
++
++common_entry_get_value --] common_get_value : 1. calls OR
++common_entry_get_value --] common_get_value_inparam_isobj_check : 1. calls OR
++common_entry_get_value --] common_get_value_inparam_isparam_check : 1. calls OR
++
++common_get_value --] common_get_value_param : 1. calls OR
++common_get_value --] common_get_value_obj : 1. calls OR
++
++common_get_value_param --] common_json_output_get_value : 1. calls
++
++common_get_value_inparam_isobj_check --] common_get_value_inparam_isobj_check_param : 1. calls OR
++common_get_value_inparam_isobj_check --] common_get_value_inparam_isobj_check_obj : 1. calls OR
++
++common_get_value_inparam_isobj_check_param --] common_json_output_get_value : 1. calls
++
++common_get_value_inparam_isparam_check --] common_get_value_inparam_isparam_check_param : 1. calls OR
++common_get_value_inparam_isparam_check --] common_get_value_inparam_isparam_check_obj : 1. calls OR
++
++common_get_value_inparam_isparam_check_param --] common_json_output_get_value : 1. calls
++
++
++get_name --] common_entry_get_name : 1. calls
++get_name --] common_json_output_fault : 2. calls if fault
++
++common_entry_get_name --] common_get_name_emptyin_nl1 : 1. calls OR
++common_entry_get_name --] common_get_name : 1. calls OR
++common_entry_get_name --] common_get_name_inparam_isobj_check : 1. calls OR
++common_entry_get_name --] common_get_name_inparam_isparam_check : 1. calls OR
++
++common_get_name_emptyin_nl1 --] common_get_name_emptyin_nl1_param : 1. calls OR
++common_get_name_emptyin_nl1 --] common_get_name_emptyin_nl1_obj : 1. calls OR
++
++common_get_name_emptyin_nl1_obj --] common_json_output_get_name : 1. calls
++
++common_get_name --] common_get_name_param : 1. calls OR
++common_get_name --] common_get_name_obj : 1. calls OR
++
++common_get_name_param --] common_json_output_get_name : 1. calls
++
++common_get_name_obj --] common_json_output_get_name : 1. calls
++
++common_get_name_inparam_isobj_check --] common_get_name_inparam_isobj_check_param : 1. calls OR
++common_get_name_inparam_isobj_check --] common_get_name_inparam_isobj_check_obj : 1. calls OR
++
++common_get_name_inparam_isparam_check --] common_get_name_inparam_isparam_check_param : 1. calls OR
++common_get_name_inparam_isparam_check --] common_get_name_inparam_isparam_check_obj : 1. calls OR
++
++common_get_name_inparam_isparam_check_param --] common_json_output_get_name : 1. calls
++
++
++get_notification --] common_entry_get_notification : 1. calls
++get_notification --] common_json_output_fault : 2. calls if fault
++
++common_entry_get_notification --] common_get_notification : 1. calls OR
++common_entry_get_notification --] common_get_notification_inparam_isobj_check : 1. calls OR
++common_entry_get_notification --] common_get_notification_inparam_isparam_check : 1. calls OR
++
++common_get_notification --] common_get_notification_param : 1. calls OR
++common_get_notification --] common_get_notification_obj : 1. calls OR
++
++common_get_notification_param --] common_get_parameter_notification : 1. calls
++common_get_notification_param --] common_json_output_get_notification : 2. calls
++
++common_get_notification_inparam_isobj_check --] common_get_notification_inparam_isobj_check_param : 1. calls OR
++common_get_notification_inparam_isobj_check --] common_get_notification_inparam_isobj_check_obj : 1. calls OR
++
++common_get_notification_inparam_isobj_check_param --] common_get_parameter_notification : 1. calls
++common_get_notification_inparam_isobj_check_param --] common_json_output_get_notification : 2. calls
++
++common_get_notification_inparam_isparam_check --] common_get_notification_inparam_isparam_check_param : 1. calls OR
++common_get_notification_inparam_isparam_check --] common_get_notification_inparam_isparam_check_obj : 1. calls OR
++
++common_get_notification_inparam_isparam_check_param --] common_get_parameter_notification : 1. calls
++common_get_notification_inparam_isparam_check_param --] common_json_output_get_notification : 2. calls
++
++
++set_value --] common_entry_set_value : 1. calls
++set_value --] common_set_parameter_fault : 2. calls if fault
++
++common_entry_set_value --] common_set_value_check : 1. calls
++
++common_set_value_check --] common_set_value_check_param : 1. calls OR
++common_set_value_check --] common_set_value_check_obj : 1. calls OR
++
++common_set_parameter_fault --] common_json_output_fault : 1. calls
++
++
++set_notification --] common_entry_set_notification : 1. calls
++set_notification --] common_set_parameter_fault : 2. calls if fault
++
++common_entry_set_notification --] common_set_notification_check : 1. calls
++
++common_set_notification_check --] common_set_notification_check_param : 1. calls OR
++common_set_notification_check --] common_set_notification_check_obj : 1. calls OR
++
++common_set_notification_check_param --] common_set_parameter_notification : 1. calls
++common_set_notification_check_obj --] common_set_parameter_notification : 1. calls
++
++common_set_parameter_notification --] common_remove_parameter_notification : 1. calls
++common_set_parameter_notification --] common_get_parameter_notification : 2. calls
++
++
++download --] common_json_output_fault : 1. calls if fault
++download --] common_json_output_status : 2. calls\n"status: 1"
++
++
++apply_download --] common_json_output_fault : 1. calls if fault
++apply_download --] common_json_output_status : 2. calls\n"status: 1"
++
++
++factory_reset --] easycwmp_reboot : 1. calls
++
++
++reboot --] easycwmp_reboot : 1. calls
++
++
++apply_notification --] common_uci_change_packages_lookup : 1. calls
++apply_notification --] common_json_output_status : 2. calls\n"status: 0"
++
++
++apply_value --] common_uci_change_packages_lookup : 1. calls
++apply_value --] common_json_output_status : 2. calls\n"status: 1"
++
++
++add_object --] common_entry_add_object : 1. calls
++add_object --] common_json_output_fault : 2. calls on fault
++
++common_entry_add_object --] common_add_object : 1. calls
++
++common_add_object --] common_add_object_param : 1. calls OR
++common_add_object --] common_add_object_obj : 1. calls OR
++
++common_add_object_obj --] common_set_parameter_notification : 1. calls
++common_add_object_obj --] common_json_output_status : 2. calls\n"status: 1"
++
++
++delete_object --] common_entry_delete_object : 1. calls
++delete_object --] common_json_output_fault : 2. calls on fault
++
++common_entry_delete_object --] common_delete_object : 1. calls
++
++common_delete_object --] common_delete_object_param : 1. calls OR
++common_delete_object --] common_delete_object_obj : 1. calls OR
++
++common_delete_object_obj --] common_json_output_status : 1. calls\n"status: 1"
++
++
++inform_parameter --] common_entry_inform : 1. calls
++
++common_entry_inform --] common_inform_check : 1. calls
++
++common_inform_check --] common_inform_check_param : 1. calls OR
++common_inform_check --] common_inform_check_obj : 1. calls OR
++
++common_inform_check_param --] common_json_output_get_value : 1. calls
++
++
++inform_device_id --] common_get_inform_deviceid : 1. calls
++@enduml
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/easycwmpd.puml src/easycwmpd.puml
+--- upstream/easycwmpd.puml	1970-01-01 00:00:00.000000000 +0000
++++ src/easycwmpd.puml	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,578 @@
++@startuml
++
++left to right direction
++
++title easycwmpd daemon logic
++
++' easycwmp.c
++
++class "main()" as main {
++  Main function
++}
++
++main --] backup_init : 1. calls
++main --] external_init : 2. calls
++main --] config_load : 3. calls
++main --] cwmp_init_deviceid : 4. calls
++main --] external_exit : 5. calls
++main --] cwmp_add_event : 6. calls\n"event_code: EVENT_BOOT"
++main --] cwmp_add_inform_timer : 7. calls
++main --] cwmp_add_event : 8. calls\n"event_code: EVENT_PERIODIC"
++main --] cwmp_add_inform_timer : 9. calls
++main --] netlink_init : 10. calls
++main --] ubus_init : 11. calls
++main --] http_server_init : 12. calls
++
++class "netlink_init()" as netlink_init {
++  Sets up two netlink sockets
++  to monitor IPv4 interface
++  address changes, via event
++  subscription, and to query
++  the current interface
++  addresses at startup.
++}
++
++netlink_init --] netlink_new_msg : 1. calls
++
++class "netlink_new_msg()" as netlink_new_msg {
++  Sets up two netlink sockets
++  to monitor IPv4 interface
++  address changes, via event
++  subscription, and to query
++  the current interface
++  addresses at startup.
++}
++
++netlink_new_msg --] easycwmp_netlink_interface : 1. calls
++
++class "easycwmp_netlink_interface()" as easycwmp_netlink_interface {
++  Parses RTM_NEWADDR netlink messages to extract the local IP address for
++  the monitored interface, specified in config, detects when that IP
++  address changes by comparing it against a stored previous value,
++  and triggers a CWMP VALUE_CHANGE event to notify the ACS while also
++  updating the stored IP address in the configuration
++}
++
++easycwmp_netlink_interface --] cwmp_add_event : 1. calls\n"event_code: EVENT_VALUE_CHANGE"
++easycwmp_netlink_interface --] cwmp_add_inform_timer : 2. calls
++
++class "easycwmp_notify()" as easycwmp_notify {
++  Initiates uloop for notification check
++}
++
++easycwmp_notify --] easycwmp_do_notify : 1. calls
++
++class "easycwmp_do_notify()" as easycwmp_do_notify {
++  Checks if there is notify value change
++  evenet and executes external shell
++  script command
++}
++
++easycwmp_do_notify --] external_init : 1. calls
++easycwmp_do_notify --] external_action_simple_execute : 2. calls\n"command: check_value_change"
++easycwmp_do_notify --] external_action_handle : 3. calls
++easycwmp_do_notify --] json_handle_check_parameter_value_change : 4. calls
++easycwmp_do_notify --] external_exit : 5. calls
++
++
++
++
++
++
++
++' ubus.c
++
++class "ubus_init()" as ubus_init {
++  Initializes "tr069" ubus object with methods:
++  + notify
++  + inform
++  + command
++}
++
++ubus_init --] easycwmpd_handle_notify : ubus method
++ubus_init --] easycwmpd_handle_inform : ubus method
++ubus_init --] easycwmpd_handle_command : ubus method
++
++class "easycwmpd_handle_notify()" as easycwmpd_handle_notify {
++  Triggers easycwmp_notify
++}
++
++easycwmpd_handle_notify --] easycwmp_notify : 1. calls
++
++class "easycwmpd_handle_inform()" as easycwmpd_handle_inform {
++  Triggers Inform message via
++  ubus with specified event code
++}
++
++easycwmpd_handle_inform --] cwmp_get_int_event_code : 1. calls
++easycwmpd_handle_inform --] cwmp_connection_request : 2. calls\n"event_code: ubus_code"
++
++class "easycwmpd_handle_command()" as easycwmpd_handle_command {
++  Accepts and executes etiher "reload" or "stop" command
++  If "reload" command is executed reloads configuration
++  and reinitializes processes without reloading the daemon
++  If "stop" command is executed stops easycwmp actions,'
++  calls uloop_end and terminates the process
++}
++
++
++
++
++
++
++' backup.c
++
++class "backup_init()" as backup_init {
++  TODO
++}
++
++class "backup_check_acs_url()" as backup_check_acs_url {
++  TODO
++}
++
++class "backup_add_event()" as backup_add_event {
++  TODO
++}
++
++class "backup_remove_event()" as backup_remove_event {
++  TODO
++}
++
++class "backup_check_transfer_complete()" as backup_check_transfer_complete {
++  searches the backup XML tree for the first
++  <transfer_complete> element and returns a
++  pointer to it, allowing the code to check
++  whether there are any pending transfer
++  completion notifications that need to
++  be sent to the ACS
++}
++
++class "backup_extract_transfer_complete()" as backup_extract_transfer_complete {
++  Prepares TransferResponse XML message
++  according to the template
++}
++
++class "backup_remove_transfer_complete()" as backup_remove_transfer_complete {
++  Removes node from
++  backup XML tree
++}
++
++
++
++
++
++
++
++' external.c
++
++class "external_read_pipe()" as external_read_pipe {
++  Reads external easycwmp
++  script's command's output
++}
++
++class "external_init()" as external_init {
++  Runs "easycwmp --json-input" and opens and maintains pipe with the external easycwmp
++  script. Communication example:
++  root@RUTX12:~# easycwmp --json-input
++  easycwmp>
++  {"command":"get","class":"value","parameter":"Device.MobileInfo.Modem.1-1.2.IMSI"} // input
++  { "parameter": "Device.MobileInfo.Modem.1-1.2.IMSI", "value": "" } // response
++}
++
++external_init --] external_read_pipe : 1. calls
++
++class "external_action_simple_execute()" as external_action_simple_execute {
++  Formats command '{"command":"x","class":"y","argument":"a"}'
++}
++
++external_action_simple_execute --] external_write_pipe : 1. calls
++
++class "external_write_pipe()" as external_write_pipe {
++  Sends command to
++  "easycwmp --json-input"
++  prompt
++}
++
++class "external_action_handle()" as external_action_handle {
++  Sends '{"command":"end"}' so
++  that current command at
++  "easycwmp --json-input"
++  prompt would end
++}
++
++class "external_exit()" as external_exit {
++  Formats command '{"command":"exit"}'
++}
++
++external_exit --] external_write_pipe : 1. calls
++external_exit --] external_read_pipe : 2. calls
++
++
++
++
++
++
++
++
++' config.c
++
++
++class "config_init_package()" as config_init_package {
++  Loads config file
++}
++
++class "config_init_local()" as config_init_local {
++  Reads config's 'local' section
++	+ interface [default val eth0] to config->local->interface
++	+ port [default val 7547] to config->local->port
++	+ username [default val easycwmp] to config->local->username
++	+ password [default val easycwmp] to config->local->password
++	+ ubus_socket to config->local->ubus_socket
++	+ logging_level [default val 3] to config->local->logging_level
++	+ authentication [default val Digest] to config->local->authentication [can be either Basic or Digest>
++}
++
++class "config_init_acs()" as config_init_acs {
++  Reads config's 'acs' section:
++  +	url [default val http://192.168.1.110...] to config->acs->url
++  +	username [default val easycwmp] to config->acs->username
++  +	password [default val easycwmp] to config->acs->password
++  +	periodic_enable [default val 1] to config->acs->periodic_enable
++  +	periodic_interval [defualt val 60] to config->acs->periodic_interval
++  +	periodic_time [default val 0001-01-01, not configured in WEBUI] to config->acs->periodic_time
++  +	http100continue_disable to config->acs->http100continue_disable
++  +	ssl_verify/ssl_key/ssl_cert/ssl_ca 	
++}
++
++class "config_load()" as config_load {
++  Loads config sections and
++  initializes periodic Inform timer
++}
++
++config_load --] config_init_package : 1. calls\n"config name: easycwmp"
++config_load --] config_init_local : 2. calls
++config_load --] config_init_acs : 3. calls
++config_load --] backup_check_acs_url : 4. calls
++config_load --] cwmp_periodic_inform_init : 5. calls
++config_load --] cwmp_update_value_change : 6. calls
++
++
++
++
++
++
++
++' cwmp.c
++
++class "cwmp_periodic_inform_init()" as cwmp_periodic_inform_init {
++  Initialize periodic Inform time
++  If periodic_time is not set Inform should be sent accodring to periodic_interval only
++  If periodic_time is set first phase is found by comparing periodic_time with real
++  time and adding periodic_interval to it until periodic_time points to a time in
++  the future compared to real time. e.g. if:
++  + current time is 10:00:00
++  + periodic_time is 10:05:00
++  + periodic_interval is 7 minutes
++  Inform message will be sent at 10:05:00, 10:12:00, 10:19:00 and so on.
++  If the next day current time will be 10:04:00, next Inform message will be sent at
++  10:05:00, not at 10:11:00
++}
++
++class "cwmp_update_value_change()" as cwmp_update_value_change {
++  Runs "easycwmp update_value_change"
++}
++
++class "cwmp_init_deviceid()" as cwmp_init_deviceid {
++  Runs "easycwmp inform device_id"
++  and saves it's result
++}
++
++cwmp_init_deviceid --] external_action_simple_execute : 1. calls\n"command: inform"\n"class: device_id"
++cwmp_init_deviceid --] external_action_handle : 2. calls
++cwmp_init_deviceid --] json_handle_deviceid : 3. calls
++
++class "cwmp_add_event()" as cwmp_add_event {
++  Creates and queues a new CWMP event,
++  unless it is a duplicate single-type event,
++  stores it, and optionally persists it
++  to backup storage
++}
++
++cwmp_add_event --] backup_add_event : 1. calls
++
++class "cwmp_add_inform_timer()" as cwmp_add_inform_timer {
++  Sets up an immediate
++  Inform message sending
++}
++
++class "cwmp_add_notification()" as cwmp_add_notification {
++  Saves notification in a list
++}
++
++cwmp_add_notification --] cwmp_add_event : 1. calls\n"event_code: EVENT_VALUE_CHANGE"
++cwmp_add_notification --] cwmp_add_inform_timer : 2. calls
++
++class "cwmp_get_int_event_code()" as cwmp_get_int_event_code {
++  Parse ubus event text
++  to event code enum
++}
++
++class "cwmp_connection_request()" as cwmp_connection_request {
++  Add Inform event code
++  and send it immediately
++}
++cwmp_connection_request --] cwmp_add_event : 1. calls
++cwmp_connection_request --] cwmp_add_inform_timer : 2. calls
++
++class "cwmp_inform()" as cwmp_inform {
++  Runs one complete CWMP session by initializing clients,
++  sending Inform (and pending follow-up RPCs like TransferComplete/GetRPCMethods),
++  handling ACS messages, then cleaning up and either finishing successfully
++  or scheduling a retry on failure.
++}
++cwmp_inform --] http_client_init : 1. calls
++cwmp_inform --] external_init : 2. calls
++cwmp_inform --] rpc_inform : 3. calls
++cwmp_inform --] cwmp_remove_event : 4. calls\n"specifier: EVENT_REMOVE_AFTER_INFORM"
++cwmp_inform --] cwmp_clear_notifications : 5. calls
++cwmp_inform --] backup_check_transfer_complete : 6. calls
++cwmp_inform --] rpc_transfer_complete : 7. calls
++cwmp_inform --] backup_remove_transfer_complete : 8. calls
++cwmp_inform --] cwmp_remove_event : 9. calls\n"specifier: EVENT_REMOVE_AFTER_TRANSFER_COMPLETE"
++cwmp_inform --] rpc_get_rpc_methods : 10. calls
++cwmp_inform --] cwmp_handle_messages : 11. calls
++
++class "rpc_inform()" as rpc_inform {
++  Prepares and sends Inform message and
++  checks it's response
++}
++rpc_inform --] xml_prepare_inform_message : 1. calls
++rpc_inform --] http_send_message : 2. calls
++rpc_inform --] xml_parse_inform_response_message : 3. calls
++
++class "cwmp_remove_event()" as cwmp_remove_event {
++  Remove events from the list
++  according to specifier
++}
++cwmp_remove_event --] backup_remove_event : 1. calls
++
++class "cwmp_clear_notifications()" as cwmp_clear_notifications {
++  Empty notifications list
++}
++
++class "rpc_transfer_complete()" as rpc_transfer_complete {
++  Formats and sends TransferComplete response.
++  If specific errors occur CPE tries to send
++  the response again
++}
++rpc_transfer_complete --] backup_extract_transfer_complete : 1. calls
++rpc_transfer_complete --] http_send_message : 2. calls
++rpc_transfer_complete --] xml_parse_transfer_complete_response_message : 3. calls
++
++class "rpc_get_rpc_methods()" as rpc_get_rpc_methods {
++  Sends GetRPCMethods request to the
++  server and parses the response
++}
++rpc_get_rpc_methods --] xml_prepare_get_rpc_methods_message : 1. calls
++rpc_get_rpc_methods --] http_send_message : 2. calls
++rpc_get_rpc_methods --] xml_parse_get_rpc_methods_response_message : 3. calls
++
++class "cwmp_handle_messages()" as cwmp_handle_messages {
++  Performs message exchange with the ACS
++  First sends an empty request
++  If server replies with empty respone exchange is finished
++  If server repiles with SOAP, RPC processes it and sends the response in next loop iteration
++  Client sends messages until empty message from the server is received
++}
++cwmp_handle_messages --] http_send_message : 1. calls
++cwmp_handle_messages --] xml_handle_message : 2. calls
++
++
++
++
++
++
++
++
++
++
++' json.c
++
++class "json_handle_deviceid()" as json_handle_deviceid {
++  Reads "easycwmp inform device_id" command's result. Result's example:
++  {"manufacturer":"Teltonika","oui":"001E42","product_class":"RUTX12","serial_number":"1107906390"}
++}
++
++class "json_handle_check_parameter_value_change()" as json_handle_check_parameter_value_change {
++  Reads "easycwmp check_value_change" command's result and stores notification's info.
++  Result's example:
++  {"parameter":"Device.WiFi.SSID.1.SSID","value":"Office-5G","notification":"2","type" "xsd:string"}
++}
++
++json_handle_check_parameter_value_change --] cwmp_add_notification : 1. calls
++
++class "json_handle_get_parameter_value()" as json_handle_get_parameter_value {
++  Reads "easycwmp inform parameter" or
++  "easycwmp get value" command result
++}
++
++
++
++
++
++
++
++
++
++' http.c
++
++class "http_server_init()" as http_server_init {
++  CPE simultaneously works as HTTP server, which accepts requests from ACS,
++  so easycwmp sets up a server by opening a socket via port, which is
++  configured in config local section, by default 7547
++}
++
++http_server_init --] http_digest_init_nonce_priv_key : 1. calls
++http_server_init --] http_new_client : 2. calls
++
++class "http_digest_init_nonce_priv_key()" as http_digest_init_nonce_priv_key {
++  Initializes NONCE_PRIV_KEY with random symbols from STRING_POSSIBLE and generates
++  nonce secret, which is necessary from Digest Auth. It might be possible
++  to change the method with RAND_bytes from openssl/rand.h or getrandom
++}
++
++class "http_new_client()" as http_new_client {
++  Handles incoming HTTP connection requests from the ACS by accepting TCP
++  client connections, validating authentication credentials,
++  Digest or Basic auth, and either responding with HTTP 200 OK and
++  triggering a CWMP connection request event on successful authentication,
++  or returning HTTP 401 Unauthorized or HTTP 409 Conflict on failure
++}
++
++http_new_client --] http_digest_auth_check : 1. calls OR
++http_new_client --] http_basic_auth_check : 1. calls OR
++http_new_client --] cwmp_connection_request : 2. calls OR\n"event_code: EVENT_CONNECTION_REQUEST"
++http_new_client --] http_basic_auth_fail_response : 2. calls OR
++http_new_client --] http_digest_auth_fail_response : 2. calls OR
++
++class "http_client_init()" as http_client_init {
++  Initiates HTTP client
++}
++
++class "http_send_message()" as http_send_message {
++  Sends response with Curl to ACS
++}
++
++
++
++
++
++
++
++
++
++
++
++
++' digestauth.c
++
++class "http_digest_auth_check()" as http_digest_auth_check {
++  Authenticates Digest authorization
++  header sent by the client
++}
++
++class "http_digest_auth_fail_response()" as http_digest_auth_fail_response {
++  Constructs Digest authorization fault message that
++  ACS should authenticate
++}
++
++' basicauth.c
++
++class "http_basic_auth_check()" as http_basic_auth_check {
++  Authenticates Basic authorization
++  header sent by the client
++}
++
++class "http_basic_auth_fail_response()" as http_basic_auth_fail_response {
++  Constructs Basic authorization fault message that
++  ACS should authenticate
++}
++
++
++
++
++
++
++
++
++
++
++
++' xml.c
++
++class "xml_prepare_inform_message()" as xml_prepare_inform_message {
++  Prepares Inform XML message
++  according to the template
++}
++
++xml_prepare_inform_message --] external_action_simple_execute : 1. calls\n"command: inform"\n"class: parameter"
++xml_prepare_inform_message --] json_handle_get_parameter_value : 2. calls
++xml_prepare_inform_message --] external_action_handle : 3. calls
++xml_prepare_inform_message --] xml_prepare_notifications_inform : 4. calls
++
++class "xml_prepare_notifications_inform()" as xml_prepare_notifications_inform {
++  Prepares Inform XML message's Notifications body
++}
++
++class "xml_parse_inform_response_message()" as xml_parse_inform_response_message {
++  Parses ACS response, received after Inform message
++}
++
++xml_parse_inform_response_message --] xml_recreate_namespace : 1. calls
++xml_parse_inform_response_message --] xml_mxml_find_node_by_env_type : 2. calls\n"bname: Fault"
++xml_parse_inform_response_message --] xml_get_hold_request : 3. calls
++
++class "xml_recreate_namespace()" as xml_recreate_namespace {
++  Reads and saves custom XML prefixes
++}
++
++class "xml_mxml_find_node_by_env_type()" as xml_mxml_find_node_by_env_type {
++  Finds node by environment type reference
++}
++
++class "xml_get_hold_request()" as xml_get_hold_request {
++  Checks and sets pauses if NoMoreRequests
++  or HoldRequests requests are received
++}
++
++class "xml_parse_transfer_complete_response_message()" as xml_parse_transfer_complete_response_message {
++  Parses ACS response, received
++  after TransferComplete message
++}
++
++class "xml_prepare_get_rpc_methods_message()" as xml_prepare_get_rpc_methods_message {
++  Prepares GetRPCMethods XML message
++  according to the template
++}
++
++class "xml_parse_get_rpc_methods_response_message()" as xml_parse_get_rpc_methods_response_message {
++  Parses ACS response, received
++  after GetRPCMethods message
++}
++
++class "xml_handle_message()" as xml_handle_message {
++  Processes XML response message
++  Reads custom XML prefixes
++  Executes RPC method's XML handler
++  if the method exists
++}
++xml_handle_message --] xml_recreate_namespace : 1. calls
++xml_handle_message --] xml_mxml_find_node_by_env_type : 2. calls\n"bname: Body"
++
++
++
++
++
++
++
++@enduml
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/build/Makefile src/ext/openwrt/build/Makefile
 --- upstream/ext/openwrt/build/Makefile	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/build/Makefile	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/build/Makefile	2026-05-14 06:11:27.000000000 +0000
 @@ -72,7 +72,6 @@
  
  define Package/easycwmp/conffiles
@@ -70,7 +1284,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  define Package/easycwmp/install
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/config/easycwmp src/ext/openwrt/config/easycwmp
 --- upstream/ext/openwrt/config/easycwmp	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/config/easycwmp	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/config/easycwmp	2026-05-14 06:11:27.000000000 +0000
 @@ -4,7 +4,6 @@
  	option enable '0'
  	option interface eth0
@@ -89,7 +1303,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	option manufacturer easycwmp
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/files/900-easycwmp.sh src/ext/openwrt/files/900-easycwmp.sh
 --- upstream/ext/openwrt/files/900-easycwmp.sh	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/files/900-easycwmp.sh	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/files/900-easycwmp.sh	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,38 @@
 +#!/bin/sh
 +
@@ -131,7 +1345,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +uci commit easycwmp
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/files/easycwmp.json src/ext/openwrt/files/easycwmp.json
 --- upstream/ext/openwrt/files/easycwmp.json	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/files/easycwmp.json	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/files/easycwmp.json	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,102 @@
 +{
 +	"user": "easycwmp",
@@ -237,17 +1451,17 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/files/easycwmp.keep src/ext/openwrt/files/easycwmp.keep
 --- upstream/ext/openwrt/files/easycwmp.keep	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/files/easycwmp.keep	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/files/easycwmp.keep	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1 @@
 +/etc/easycwmp/.backup.xml
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/files/easycwmp.permtab src/ext/openwrt/files/easycwmp.permtab
 --- upstream/ext/openwrt/files/easycwmp.permtab	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/files/easycwmp.permtab	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/files/easycwmp.permtab	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1 @@
 +/etc/config/easycwmp easycwmp:easycwmp 660
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/init.d/easycwmpd src/ext/openwrt/init.d/easycwmpd
 --- upstream/ext/openwrt/init.d/easycwmpd	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/init.d/easycwmpd	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/init.d/easycwmpd	2026-05-14 06:11:27.000000000 +0000
 @@ -2,56 +2,32 @@
  # Copyright (C) 2012-2014 OpenWrt.org
  
@@ -325,7 +1539,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  service_triggers()
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/easycwmp.sh src/ext/openwrt/scripts/easycwmp.sh
 --- upstream/ext/openwrt/scripts/easycwmp.sh	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/scripts/easycwmp.sh	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/easycwmp.sh	2026-05-14 06:11:27.000000000 +0000
 @@ -7,7 +7,7 @@
  
  . /lib/functions.sh
@@ -371,7 +1585,19 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
    factory_reset
    reboot
    inform [parameter|device_id]
-@@ -108,13 +111,6 @@
+@@ -80,6 +83,11 @@
+ EOF
+ }
+ 
++if ! echo "$*" | grep -Eq '^[a-zA-Z0-9 .:,_/\\&=?%-]*$'; then
++	echo "invalid parameters '$*'"
++	exit 1
++fi
++
+ __arg1=""; __arg2=""; __arg3=""; __arg4=""; __arg5="";
+ 
+ json_get_opt() {
+@@ -108,13 +116,6 @@
  			json_get_var __arg4 user_name
  			json_get_var __arg5 password
  			;;
@@ -385,7 +1611,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  		factory_reset|reboot)
  			action="$command"
  			;;
-@@ -171,13 +167,6 @@
+@@ -171,13 +172,6 @@
  		__arg4="$5"
  		__arg5="$6"
  		;;
@@ -399,7 +1625,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	factory_reset|reboot)
  		action="$1"
  		;;
-@@ -226,6 +215,10 @@
+@@ -226,6 +220,10 @@
  prefix_list="$DMROOT. $prefix_list"
  entry_execute_method_list="$entry_method_root $entry_execute_method_list"
  
@@ -410,7 +1636,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  handle_action() {
  	if [ "$action" = "get_value" ]; then
  		(common_entry_get_value "$__arg1")
-@@ -286,14 +279,12 @@
+@@ -286,14 +284,12 @@
  			let fault_code=9000+$E_DOWNLOAD_FAILURE
  			common_json_output_fault "" "$fault_code"
  		else 
@@ -427,7 +1653,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  				let fault_code=9000+$E_DOWNLOAD_FAILURE
  				common_json_output_fault "" "$fault_code"
  			else
-@@ -302,115 +293,43 @@
+@@ -302,115 +298,43 @@
  		fi
  		return
  	fi
@@ -562,7 +1788,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	fi
  	
  	if [ "$action" = "apply_notification" -o "$action" = "apply_value" ]; then
-@@ -473,7 +392,7 @@
+@@ -473,7 +397,7 @@
  		return
  	fi
  	if [ "$action" = "apply_service" ]; then
@@ -573,7 +1799,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  			/bin/sh "$apply_service_tmp_file"
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/common/common src/ext/openwrt/scripts/functions/common/common
 --- upstream/ext/openwrt/scripts/functions/common/common	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/common/common	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/functions/common/common	2026-05-14 06:11:27.000000000 +0000
 @@ -192,23 +192,21 @@
  	
  }
@@ -653,7 +1879,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	local n ip 
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/common/device_info src/ext/openwrt/scripts/functions/common/device_info
 --- upstream/ext/openwrt/scripts/functions/common/device_info	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/common/device_info	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/functions/common/device_info	2026-05-14 06:11:27.000000000 +0000
 @@ -14,17 +14,18 @@
  entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_DeviceInfo"
  entry_execute_method_list_forcedinform="$entry_execute_method_list_forcedinform  entry_execute_method_root_DeviceInfo"
@@ -703,7 +1929,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/common/ipping_launch src/ext/openwrt/scripts/functions/common/ipping_launch
 --- upstream/ext/openwrt/scripts/functions/common/ipping_launch	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/common/ipping_launch	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/functions/common/ipping_launch	2026-05-14 06:11:27.000000000 +0000
 @@ -1,172 +1,72 @@
  #!/bin/sh
  # Copyright (C) 2015 PIVA Software <www.pivasoftware.com>
@@ -918,7 +2144,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +[ "$1" == "stop" ] && ipping_stop
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/common/management_server src/ext/openwrt/scripts/functions/common/management_server
 --- upstream/ext/openwrt/scripts/functions/common/management_server	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/common/management_server	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/functions/common/management_server	2026-05-14 06:11:27.000000000 +0000
 @@ -2,6 +2,8 @@
  # Copyright (C) 2015 PIVA Software <www.pivasoftware.com>
  # 	Author: MOHAMED Kallel <mohamed.kallel@pivasoftware.com>
@@ -928,7 +2154,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  #############################
  #   Entry point functuons   #
  #############################
-@@ -14,14 +16,14 @@
+@@ -14,14 +16,16 @@
  	case "$1" in ""|"$DMROOT."|"$DMROOT.ManagementServer."*)
  		common_execute_method_obj "$DMROOT.ManagementServer." "0"
  		common_execute_method_param "$DMROOT.ManagementServer.URL" "1" "$UCI_GET easycwmp.@acs[0].url" "management_server_set_url"
@@ -938,9 +2164,11 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 -		common_execute_method_param "$DMROOT.ManagementServer.PeriodicInformInterval" "1" "$UCI_GET easycwmp.@acs[0].periodic_interval" "management_server_set easycwmp.@acs[0].periodic_interval" "xsd:unsignedInt"
 -		common_execute_method_param "$DMROOT.ManagementServer.PeriodicInformTime" "1" "$UCI_GET easycwmp.@acs[0].periodic_time" "management_server_set easycwmp.@acs[0].periodic_time" "xsd:dateTime" 
 +		common_execute_method_param "$DMROOT.ManagementServer.Username" "1" "$UCI_GET easycwmp.@acs[0].username" "management_server_set_string easycwmp.@acs[0].username"
-+		common_execute_method_param "$DMROOT.ManagementServer.Password" "1" "$UCI_GET easycwmp.@acs[0].password" "management_server_set_string easycwmp.@acs[0].password"
++		common_execute_method_param "$DMROOT.ManagementServer.Password" "1" \
++			"$UCI_GET easycwmp.@acs[0].password" "management_server_set_password"
 +		common_execute_method_param "$DMROOT.ManagementServer.PeriodicInformEnable" "1" "$UCI_GET easycwmp.@acs[0].periodic_enable" "management_server_set_boolean easycwmp.@acs[0].periodic_enable" "xsd:boolean"
-+		common_execute_method_param "$DMROOT.ManagementServer.PeriodicInformInterval" "1" "$UCI_GET easycwmp.@acs[0].periodic_interval" "management_server_set_number easycwmp.@acs[0].periodic_interval" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.ManagementServer.PeriodicInformInterval" "1" \
++			"$UCI_GET easycwmp.@acs[0].periodic_interval" "management_server_set_interval" "xsd:unsignedInt"
 +		common_execute_method_param "$DMROOT.ManagementServer.PeriodicInformTime" "1" "$UCI_GET easycwmp.@acs[0].periodic_time" "management_server_set_date easycwmp.@acs[0].periodic_time" "xsd:dateTime"
  		common_execute_method_param "$DMROOT.ManagementServer.ConnectionRequestURL" "0" "management_server_get_connection_request_url" "" "" "1"
 -		common_execute_method_param "$DMROOT.ManagementServer.ConnectionRequestUsername" "1" "$UCI_GET easycwmp.@local[0].username" "management_server_set easycwmp.@local[0].username"
@@ -950,7 +2178,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  		common_execute_method_param "$DMROOT.ManagementServer.ParameterKey" "0" "$UCI_GET easycwmp.@acs[0].parameter_key" "" "" "1"
  		return 0;
  		;;
-@@ -35,8 +37,15 @@
+@@ -35,8 +39,15 @@
  management_server_set_url() {
  	local val=$1
  	
@@ -968,7 +2196,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
  	$UCI_SET easycwmp.@acs[0].url=$val
  	return 0
-@@ -49,18 +58,70 @@
+@@ -49,18 +60,92 @@
  	return 0
  }
  
@@ -985,6 +2213,15 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	management_server_set "$cfg" "$val"
 +}
 +
++management_server_set_password() {
++	local val="$1"
++
++	[ "${#val}" -gt 256 ] && return $E_INVALID_PARAMETER_VALUE
++	case "$val" in ''|*[\ ]*) return $E_INVALID_PARAMETER_VALUE ;; esac
++
++	management_server_set "easycwmp.@acs[0].password" "$val"
++}
++
 +management_server_set_boolean() {
 +	local cfg=$1
 +	local val=$2
@@ -998,6 +2235,19 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	fi
 +
 +	management_server_set "$cfg" "$val"
++}
++
++management_server_set_interval() {
++	local val="$1"
++
++	case "$val" in
++		(*[^0-9]*|'') return $E_INVALID_PARAMETER_VALUE
++		;;
++	esac
++
++	[ "$val" -lt 60 ] || [ "$val" -gt 9999999 ] && return $E_INVALID_PARAMETER_VALUE
++
++	management_server_set "easycwmp.@acs[0].periodic_interval" "$val"
 +}
 +
 +management_server_set_number() {
@@ -1048,7 +2298,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  			val="http://$ip:$port/"
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/diagnostics/download_diagnostics.sh src/ext/openwrt/scripts/functions/diagnostics/download_diagnostics.sh
 --- upstream/ext/openwrt/scripts/functions/diagnostics/download_diagnostics.sh	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/diagnostics/download_diagnostics.sh	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/functions/diagnostics/download_diagnostics.sh	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,68 @@
 +#!/bin/sh
 +
@@ -1120,8 +2370,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +echo "state Completed" >>"$RESULT_FILE"
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/diagnostics/download_diagnostics_init.sh src/ext/openwrt/scripts/functions/diagnostics/download_diagnostics_init.sh
 --- upstream/ext/openwrt/scripts/functions/diagnostics/download_diagnostics_init.sh	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/diagnostics/download_diagnostics_init.sh	2026-03-25 10:23:48.000000000 +0000
-@@ -0,0 +1,197 @@
++++ src/ext/openwrt/scripts/functions/diagnostics/download_diagnostics_init.sh	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,203 @@
 +#!/bin/sh
 +
 +. /usr/share/libubox/jshn.sh
@@ -1192,7 +2442,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +# Validate URL a little bit
 +[ -z "$url" ] && {
-+	logger "[TR-069] DownloadDiagnostics: no URL provided"
++	logger -t TR-069 "DownloadDiagnostics: no URL provided"
 +	sed -i "s/^state .*/state Error_InitConnectionFailed/" "$CONFIG_FILE"
 +	return
 +}
@@ -1202,7 +2452,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +json_load "$($command get $interface.Name)"
 +json_get_var iface value
 +[ -z "$iface" ] && {
-+	logger "[TR-069] DownloadDiagnostics: No interface $interface name found"
++	logger -t TR-069 "DownloadDiagnostics: No interface $interface name found"
 +	sed -i "s/^state .*/state Error_InitConnectionFailed/" "$CONFIG_FILE"
 +	return
 +}
@@ -1220,6 +2470,12 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	json_load "$(ubus call network.interface.$iface status)" >/dev/null 2>&1
 +	json_get_var iface l3_device
 +fi
++
++[ -z "$iface" ] && {
++	logger -t TR-069 "DownloadDiagnostics: interface $interface is not up"
++	sed -i "s/^state .*/state Error_InitConnectionFailed/" "$CONFIG_FILE"
++	return
++}
 +
 +interface="$iface"
 +
@@ -1319,9 +2575,109 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +sed -i "s/^total_bytes .*/total_bytes $total_bytes_total/" "$CONFIG_FILE"
 +
 +cleanup "Completed" "$port" "$dscp_id" "$interface"
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/diagnostics/traceroute.sh src/ext/openwrt/scripts/functions/diagnostics/traceroute.sh
+--- upstream/ext/openwrt/scripts/functions/diagnostics/traceroute.sh	1970-01-01 00:00:00.000000000 +0000
++++ src/ext/openwrt/scripts/functions/diagnostics/traceroute.sh	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,96 @@
++#!/bin/sh
++
++. /usr/share/libubox/jshn.sh
++
++CONFIG_FILE="/var/run/easycwmp/tr181_traceroute"
++
++get_interface() {
++	local interface="$1"
++
++	local command="/usr/sbin/easycwmp"
++	[ ! -f "$command" ] && command="/usr/local$command"
++	json_load "$($command get $interface.Name)"
++	json_get_var iface value
++	[ -z "$iface" ] && {
++		logger -t TR-069 "TraceRoute: No interface "$interface" name found"
++		sed -i "s/^state .*/state Error_Internal/" "$CONFIG_FILE"
++		exit 1
++	}
++
++	local iface_proto="$(uci get network.$iface.proto)"
++	if [ "$iface_proto" = "wwan" ]; then # if interface is mobile interface
++		json_load "$(ubus call network.interface."$iface"_4 status)" >/dev/null 2>&1
++		json_get_var iface l3_device >/dev/null 2>&1
++		[ -z "$iface" ] && {
++			json_load "$(ubus call network.interface."$iface"_6 status)" >/dev/null 2>&1
++			json_get_var iface l3_device >/dev/null 2>&1
++		}
++	else
++		json_load "$(ubus call network.interface."$iface" status)" >/dev/null 2>&1
++		json_get_var iface l3_device
++	fi
++
++	[ -z "$iface" ] && {
++		logger -t TR-069 "TraceRoute: interface "$interface" is not up"
++		sed -i "s/^state .*/state Error_Internal/" "$CONFIG_FILE"
++		exit 1
++	}
++
++	echo "-i $iface"
++}
++
++# If test configuration is changed during testing, to keep 'Requested'
++# status delay test execution
++sleep 5
++
++interface=$(grep "^interface" "$CONFIG_FILE" | awk '{print $2}')
++proto=$(grep "^proto" "$CONFIG_FILE" | awk '{print $2}')
++host=$(grep "^host" "$CONFIG_FILE" | awk '{print $2}')
++tries=$(grep "^tries" "$CONFIG_FILE" | awk '{print $2}')
++traceroute_timeout=$(grep "^timeout" "$CONFIG_FILE" | awk '{print $2}')
++bytes=$(grep "^bytes" "$CONFIG_FILE" | awk '{print $2}')
++dscp=$(grep "^dscp" "$CONFIG_FILE" | awk '{print $2}')
++max_hops=$(grep "^max_hops" "$CONFIG_FILE" | awk '{print $2}')
++
++[ -z "$host" ] && {
++	logger -t TR-069 "TraceRoute: No host provided"
++	sed -i "s/^state .*/state Error_Internal/" "$CONFIG_FILE"
++	exit 1
++}
++
++[ -n "$interface" ] && interface="$(get_interface "$interface")"
++
++case "$proto" in
++	IPv4) proto="-4" ;;
++	IPv6) proto="-6" ;;
++	*) proto="" ;;
++esac
++
++result="$(traceroute $proto -m "$max_hops" -q "$tries" -t "$dscp" -w "$traceroute_timeout" $interface "$host" "$bytes" 2>&1)"
++res="$?"
++
++if [ "$res" = "0" ]; then
++	ip="$(echo "$result" | head -n1 | sed 's/.*(\([^)]*\)).*/\1/')"
++	resp_time="$(echo "$result" | tail -n1 |
++		     awk '{for(i=1;i<=NF;i++) if($i=="ms") last=$(i-1)} END {print int(last)}')"
++
++	sed -i "s/^ip .*/ip $ip/" "$CONFIG_FILE"
++	sed -i "s/^resp_time .*/resp_time $resp_time/" "$CONFIG_FILE"
++	sed -i "s/^state .*/state Complete/" "$CONFIG_FILE"
++else
++	logger -t TR-069 "TraceRoute: failed to execute $result"
++	sed -i "s/^resp_time .*/resp_time 0/" "$CONFIG_FILE"
++
++	if echo "$result" | grep -q "traceroute: number $bytes is not in"; then
++		sed -i "s/^state .*/state Error_Other/" "$CONFIG_FILE"
++	elif echo "$result" | grep -q "traceroute: bad address"; then
++		sed -i "s/^state .*/state Error_CannotResolveHostName/" "$CONFIG_FILE"
++	elif echo "$result" | grep -q "traceroute: can't connect to remote host"; then
++		sed -i "s/^state .*/state Error_NoRouteToHost/" "$CONFIG_FILE"
++	else
++		sed -i "s/^state .*/state Error/" "$CONFIG_FILE"
++	fi
++fi
++
++# Send '8 DIAGNOSTICS COMPLETE' message
++ubus call tr069 inform '{"event":"8 DIAGNOSTICS COMPLETE"}' >/dev/null 2>&1
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/diagnostics/upload_diagnostics.sh src/ext/openwrt/scripts/functions/diagnostics/upload_diagnostics.sh
 --- upstream/ext/openwrt/scripts/functions/diagnostics/upload_diagnostics.sh	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/diagnostics/upload_diagnostics.sh	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/functions/diagnostics/upload_diagnostics.sh	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,81 @@
 +#!/bin/sh
 +
@@ -1406,8 +2762,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +echo "state Completed" >>"$RESULT_FILE"
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/diagnostics/upload_diagnostics_init.sh src/ext/openwrt/scripts/functions/diagnostics/upload_diagnostics_init.sh
 --- upstream/ext/openwrt/scripts/functions/diagnostics/upload_diagnostics_init.sh	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/diagnostics/upload_diagnostics_init.sh	2026-03-25 10:23:48.000000000 +0000
-@@ -0,0 +1,216 @@
++++ src/ext/openwrt/scripts/functions/diagnostics/upload_diagnostics_init.sh	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,222 @@
 +#!/bin/sh
 +
 +. /usr/share/libubox/jshn.sh
@@ -1483,7 +2839,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +# Validate URL a little bit
 +[ -z "$url" ] && {
-+	logger "[TR-069] UploadDiagnostics: no URL provided"
++	logger -t TR-069 "UploadDiagnostics: no URL provided"
 +	sed -i "s/^state .*/state Error_InitConnectionFailed/" "$CONFIG_FILE"
 +	return
 +}
@@ -1493,7 +2849,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +json_load "$($command get $interface.Name)"
 +json_get_var iface value
 +[ -z "$iface" ] && {
-+	logger "[TR-069] DownloadDiagnostics: No interface $interface name found"
++	logger -t TR-069 "UploadDiagnostics: No interface $interface name found"
 +	sed -i "s/^state .*/state Error_InitConnectionFailed/" "$CONFIG_FILE"
 +	return
 +}
@@ -1511,6 +2867,12 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	json_load "$(ubus call network.interface.$iface status)" >/dev/null 2>&1
 +	json_get_var iface l3_device
 +fi
++
++[ -z "$iface" ] && {
++	logger -t TR-069 "UploadDiagnostics: interface $interface is not up"
++	sed -i "s/^state .*/state Error_InitConnectionFailed/" "$CONFIG_FILE"
++	return
++}
 +
 +interface="$iface"
 +
@@ -1530,7 +2892,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +memory=$((memory * 4 / 10 * 1024))
 +
 +[ "$file_len" -gt "$memory" ] && {
-+	logger "[TR-069] UploadDiagnostics: provided file size is too large ($input > $memory)"
++	logger -t TR-069 "UploadDiagnostics: provided file size is too large ($input > $memory)"
 +	sed -i "s/^state .*/state Error_InitConnectionFailed/" "$CONFIG_FILE"
 +	return 5
 +}
@@ -1626,7 +2988,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +cleanup "Completed" "$port" "$dscp_id" "$interface"
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/gps/gps_information src/ext/openwrt/scripts/functions/gps/gps_information
 --- upstream/ext/openwrt/scripts/functions/gps/gps_information	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/gps/gps_information	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/functions/gps/gps_information	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,46 @@
 +#!/bin/sh
 +# Copyright (C) 2015 PIVA Software <www.pivasoftware.com>
@@ -1676,8 +3038,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/hotspot/hotspot src/ext/openwrt/scripts/functions/hotspot/hotspot
 --- upstream/ext/openwrt/scripts/functions/hotspot/hotspot	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/hotspot/hotspot	2026-03-25 10:23:48.000000000 +0000
-@@ -0,0 +1,90 @@
++++ src/ext/openwrt/scripts/functions/hotspot/hotspot	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,91 @@
 +#!/bin/sh
 +# Copyright (C) 2015 PIVA Software <www.pivasoftware.com>
 +# 	Author: MOHAMED Kallel <mohamed.kallel@pivasoftware.com>
@@ -1692,8 +3054,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +. /lib/functions.sh
 +
 +prefix_list="$prefix_list $DMROOT.Hotspot."
-+entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_Hotpsot"
-+entry_execute_method_list_forcedinform="$entry_execute_method_list_forcedinform  entry_execute_method_root_Hotpsot"
++entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_Hotspot"
++entry_execute_method_list_forcedinform="$entry_execute_method_list_forcedinform  entry_execute_method_root_Hotspot"
 +OPTION_LIST="IPP;uamlisten AuthMode;_mode LogoutIP;uamlogoutip Network;network \
 +DNS1;dns1 DNS2;dns2 UAMPort;uamport LandingPage;_landingpage"
 +
@@ -1710,7 +3072,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	done
 +}
 +
-+entry_execute_method_root_Hotpsot() {
++entry_execute_method_root_Hotspot() {
 +	case "$1" in ""|"$DMROOT."|"$DMROOT.Hotspot."*)
 +		common_execute_method_obj "$DMROOT.Hotspot." "0"
 +		common_execute_method_obj "$DMROOT.Hotspot.General." "0" "" "" "hotspot_browse_instances $1"
@@ -1751,7 +3113,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 +
 +sub_entry_hotpsot_general(){
-+	case "$2" in ""|"$DMROOT."|"$DMROOT.Hotspot.General.$1"*)
++	case "$2" in ""|"$DMROOT."|"$DMROOT.Hotspot."|"$DMROOT.Hotspot.General."|\
++		"$DMROOT.Hotspot.General.$1"*)
 +		common_execute_method_obj "$DMROOT.Hotspot.General.$1" "0"
 +		common_execute_method_param "$DMROOT.Hotspot.General.$1.Enabled" "1" \
 +				"Hotspot_Get_Bool $1 enabled enabled disabled" \
@@ -1770,8 +3133,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/mobile/cellular src/ext/openwrt/scripts/functions/mobile/cellular
 --- upstream/ext/openwrt/scripts/functions/mobile/cellular	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/mobile/cellular	2026-03-25 10:23:48.000000000 +0000
-@@ -0,0 +1,1061 @@
++++ src/ext/openwrt/scripts/functions/mobile/cellular	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,1063 @@
 +#!/bin/sh
 +# Copyright (C) 2015 PIVA Software <www.pivasoftware.com>
 +# 	Author: MOHAMED Kallel <mohamed.kallel@pivasoftware.com>
@@ -1786,7 +3149,6 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +prefix_list="$prefix_list $DMROOT.Cellular."
 +entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_Cellular"
-+entry_execute_method_list_forcedinform="$entry_execute_method_list_forcedinform  entry_execute_method_root_Cellular"
 +
 +####################
 +#  Device.Cellular #
@@ -2222,9 +3584,12 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	local sim_slot=""
 +	local times=0
 +
-+	[ "${#input}" -gt 64 ] && return $E_INVALID_PARAMETER_VALUE
-+
-+	[ -z "$input" ] && operator="auto"
++	if [ -z "$input" ]; then
++		operator="auto"
++	else
++		[ "${#input}" -lt 5 ] || [ "${#input}" -gt 6 ] ||
++		[ "$input" != "${input##*[!0-9]*}" ] && return $E_INVALID_PARAMETER_VALUE
++	fi
 +
 +	while [ -z "$sim_slot" ] && [ "$times" -lt 10 ]; do
 +		json_load "$(ubus call $ubus get_sim_slot)"
@@ -2835,7 +4200,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/mobile/mobile_information src/ext/openwrt/scripts/functions/mobile/mobile_information
 --- upstream/ext/openwrt/scripts/functions/mobile/mobile_information	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/mobile/mobile_information	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/functions/mobile/mobile_information	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,245 @@
 +#!/bin/sh
 +# Copyright (C) 2015 PIVA Software <www.pivasoftware.com>
@@ -3084,7 +4449,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +#######################################
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/tr098/wan_device src/ext/openwrt/scripts/functions/tr098/wan_device
 --- upstream/ext/openwrt/scripts/functions/tr098/wan_device	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/tr098/wan_device	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/functions/tr098/wan_device	2026-05-14 06:11:27.000000000 +0000
 @@ -25,7 +25,7 @@
  sub_entry_wandevice_wanconnectiondevice() {
  	local j="$2"
@@ -3153,8 +4518,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/tr143/tr143 src/ext/openwrt/scripts/functions/tr143/tr143
 --- upstream/ext/openwrt/scripts/functions/tr143/tr143	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/tr143/tr143	2026-03-25 10:23:48.000000000 +0000
-@@ -0,0 +1,391 @@
++++ src/ext/openwrt/scripts/functions/tr143/tr143	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,372 @@
 +#!/bin/sh
 +# Copyright (C) 2015 PIVA Software <www.pivasoftware.com>
 +# 	Author: MOHAMED Kallel <mohamed.kallel@pivasoftware.com>
@@ -3169,8 +4534,6 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +prefix_list="$prefix_list $DMROOT.IP.Diagnostics.DownloadDiagnostics."
 +prefix_list="$prefix_list $DMROOT.IP.Diagnostics.UploadDiagnostics."
-+entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_IPDiagnostics"
-+entry_execute_method_list_forcedinform="$entry_execute_method_list_forcedinform  entry_execute_method_root_IPDiagnostics"
 +
 +g_download_diagnostics_file="/var/run/easycwmp/tr143_download_diagnostics"
 +g_upload_diagnostics_file="/var/run/easycwmp/tr143_upload_diagnostics"
@@ -3208,28 +4571,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +duration 0"> "$g_upload_diagnostics_file"
 +}
 +
-+entry_execute_method_root_IPDiagnostics() {
-+	[ ! -d "/tmp/tr143" ] && {
-+		mkdir /tmp/tr143
-+		chown easycwmp:easycwmp /tmp/tr143
-+	}
-+
++entry_execute_method_root_DownloadDiagnostics() {
 +	init_download_diagnostics_file
-+	init_upload_diagnostics_file
 +
-+	case "$1" in ""|"$DMROOT."|"$DMROOT.IP."|"$DMROOT.IP.Diagnostics"*)
-+		common_execute_method_obj "$DMROOT.IP.Diagnostics." "0"
-+		common_execute_method_obj "$DMROOT.IP.Diagnostics.DownloadDiagnostics." "0" "" "" \
-+			"sub_entry_DownloadDiagnostics $1"
-+		common_execute_method_obj "$DMROOT.IP.Diagnostics.UploadDiagnostics." "0" "" "" \
-+			"sub_entry_UploadDiagnostics $1"
-+		return 0;
-+		;;
-+	esac
-+	return $E_INVALID_PARAMETER_NAME;
-+}
-+
-+sub_entry_DownloadDiagnostics() {
 +	case_param "$1" belongto "$DMROOT.IP.Diagnostics.DownloadDiagnostics." && {
 +		common_execute_method_param "$DMROOT.IP.Diagnostics.DownloadDiagnostics.DiagnosticsState" "1" \
 +			"get_download_diagnostics_value state" "set_download_diagnostics_state" "xsd:string"
@@ -3260,7 +4604,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	return $E_INVALID_PARAMETER_NAME;
 +}
 +
-+sub_entry_UploadDiagnostics() {
++entry_execute_method_root_UploadDiagnostics() {
++	init_upload_diagnostics_file
++
 +	case_param "$1" belongto "$DMROOT.IP.Diagnostics.UploadDiagnostics." && {
 +		common_execute_method_param "$DMROOT.IP.Diagnostics.UploadDiagnostics.DiagnosticsState" "1" \
 +			"get_upload_diagnostics_value state" "set_upload_diagnostics_state" "xsd:string"
@@ -3318,7 +4664,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	sed -i "s|^$key .*|$key $value|" \
 +		$g_download_diagnostics_file
 +
-+	# Terminate test
++	# Terminate tests
 +	local pid_list=$(pgrep -f download_diagnostics_init.sh)
 +
 +	for pid in $pid_list; do
@@ -3434,7 +4780,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	sed -i "s|^$key .*|$key $value|" \
 +		$g_upload_diagnostics_file
 +
-+	# Terminate test
++	# Terminate tests
 +	local pid_list=$(pgrep -f upload_diagnostics_init.sh)
 +
 +	for pid in $pid_list; do
@@ -3522,7 +4868,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	memory=$((memory * 4 / 10 * 1024))
 +
 +	[ "$input" -gt "$memory" ] && {
-+		logger "[TR-069] UploadDiagnostics: provided file size is too large ($input > $memory)"
++		logger -t TR-069 "UploadDiagnostics: provided file size is too large ($input > $memory)"
 +		return $E_INVALID_PARAMETER_VALUE
 +	}
 +
@@ -3548,8 +4894,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/tr181/dhcpv4 src/ext/openwrt/scripts/functions/tr181/dhcpv4
 --- upstream/ext/openwrt/scripts/functions/tr181/dhcpv4	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/tr181/dhcpv4	2026-03-25 10:23:48.000000000 +0000
-@@ -1,388 +1,723 @@
++++ src/ext/openwrt/scripts/functions/tr181/dhcpv4	2026-05-14 06:11:27.000000000 +0000
+@@ -1,388 +1,722 @@
  #!/bin/sh
 -# Copyright (C) 2016 MOHAMED Kallel <mohamed.kallel@yahoo.fr>
 +# Copyright (C) 2015 PIVA Software <www.pivasoftware.com>
@@ -3566,12 +4912,11 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
  prefix_list="$prefix_list $DMROOT.DHCPv4."
  entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_DHCPv4"
-+entry_execute_method_list_forcedinform="$entry_execute_method_list_forcedinform  entry_execute_method_root_DHCPv4"
-+
+ 
 +##################
 +#  Device.DHCPv4 #
 +##################
- 
++
  entry_execute_method_root_DHCPv4() {
  	case "$1" in ""|"$DMROOT."|"$DMROOT.DHCPv4."*)
  		common_execute_method_obj "$DMROOT.DHCPv4." "0"
@@ -4612,8 +5957,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/tr181/ethernet src/ext/openwrt/scripts/functions/tr181/ethernet
 --- upstream/ext/openwrt/scripts/functions/tr181/ethernet	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/tr181/ethernet	2026-03-25 10:23:48.000000000 +0000
-@@ -0,0 +1,305 @@
++++ src/ext/openwrt/scripts/functions/tr181/ethernet	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,304 @@
 +#!/bin/sh
 +
 +#common_execute_method_param "$parameter" "$permission" "$get_cmd" "$set_cmd" "xsd:$type" "$forcedinform"
@@ -4626,7 +5971,6 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +prefix_list="$prefix_list $DMROOT.Ethernet."
 +entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_Ethernet"
-+entry_execute_method_list_forcedinform="$entry_execute_method_list_forcedinform  entry_execute_method_root_Ethernet"
 +
 +####################
 +#  Device.Ethernet #
@@ -4921,8 +6265,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/tr181/hosts src/ext/openwrt/scripts/functions/tr181/hosts
 --- upstream/ext/openwrt/scripts/functions/tr181/hosts	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/tr181/hosts	2026-03-25 10:23:48.000000000 +0000
-@@ -0,0 +1,232 @@
++++ src/ext/openwrt/scripts/functions/tr181/hosts	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,231 @@
 +#!/bin/sh
 +
 +#common_execute_method_param "$parameter" "$permission" "$get_cmd" "$set_cmd" "xsd:$type" "$forcedinform"
@@ -4935,7 +6279,6 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +prefix_list="$prefix_list $DMROOT.Hosts."
 +entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_Hosts"
-+entry_execute_method_list_forcedinform="$entry_execute_method_list_forcedinform  entry_execute_method_root_Hosts"
 +
 +#################
 +#  Device.Hosts #
@@ -5157,8 +6500,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/tr181/ip src/ext/openwrt/scripts/functions/tr181/ip
 --- upstream/ext/openwrt/scripts/functions/tr181/ip	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/tr181/ip	2026-03-25 10:23:48.000000000 +0000
-@@ -12,13 +12,14 @@
++++ src/ext/openwrt/scripts/functions/tr181/ip	2026-05-14 06:11:27.000000000 +0000
+@@ -12,13 +12,20 @@
  
  prefix_list="$prefix_list $DMROOT.IP."
  entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_IP"
@@ -5171,10 +6514,16 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  		common_execute_method_obj "$DMROOT.IP.Diagnostics." "0"
 -		common_execute_method_obj "$DMROOT.IP.Diagnostics.IPPing." "0" "" "" "entry_execute_method_root_IPPingDiagnostics"
 +		common_execute_method_obj "$DMROOT.IP.Diagnostics.IPPing." "0" "" "" "entry_execute_method_root_IPPingDiagnostics $1"
++		common_execute_method_obj "$DMROOT.IP.Diagnostics.DownloadDiagnostics." "0" "" "" \
++			"entry_execute_method_root_DownloadDiagnostics $1"
++		common_execute_method_obj "$DMROOT.IP.Diagnostics.UploadDiagnostics." "0" "" "" \
++			"entry_execute_method_root_UploadDiagnostics $1"
++		common_execute_method_obj "$DMROOT.IP.Diagnostics.TraceRoute." "0" "" "" \
++			"entry_execute_method_root_TraceRoute $1"
  		return 0
  		;;
  	esac
-@@ -30,8 +31,8 @@
+@@ -30,8 +37,8 @@
  	local ip_int="$3"
  	case_param "$1" belongto "$DMROOT.IP.Interface.$j." && {
  		common_execute_method_obj "$DMROOT.IP.Interface.$j." "1" "" "del_ip_iface $ip_int"
@@ -5185,7 +6534,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  		common_execute_method_param  "$DMROOT.IP.Interface.$j.Type" "0" "ip_iface_get_ip_type $ip_int"
  		common_execute_method_param  "$DMROOT.IP.Interface.$j.IPv4AddressNumberOfEntries" "0" "echo 1" "" "xsd:unsignedInt"
  		common_execute_method_obj "$DMROOT.IP.Interface.$j.IPv4Address." "1" "" "" "ipv4_browse_instances $j $ip_int"
-@@ -45,9 +46,9 @@
+@@ -45,9 +52,9 @@
  	local j="$1"
  	local ip_int="$2"
  	case_param "$1" belongto "$DMROOT.IP.Interface.$j.IPv4Address.1." && {
@@ -5197,7 +6546,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  		common_execute_method_param "$DMROOT.IP.Interface.$j.IPv4Address.1.SubnetMask" "0" "get_net_mask $ip_int"
  		return 0
  	}
-@@ -94,8 +95,8 @@
+@@ -94,8 +101,8 @@
  ip_device_browse_instances() {
  	local ip_int ip_ints=`$UCI_SHOW network |grep interface | cut -d "=" -f 1`
  	for ip_int in $ip_ints; do
@@ -5208,7 +6557,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  			local j=`ip_device_update_instance $ip_int`
  			sub_entry_ip_interface  "$1" "$j" "$ip_int"
  		fi
-@@ -110,30 +111,23 @@
+@@ -110,30 +117,23 @@
  	get_stat $2
  	sub_entry_ip_stat $1 $2
  }
@@ -5247,7 +6596,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
  ip_get_iface_name() {
  	local interface=`echo $1 |cut -d "." -f 2`
-@@ -154,40 +148,42 @@
+@@ -154,40 +154,42 @@
  }
  
  ipv4address_iface_get_ip_adress() {
@@ -5315,7 +6664,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  }
  
  get_net_mask() {
-@@ -195,19 +191,21 @@
+@@ -195,19 +197,21 @@
  	local mask=""
  	local res
  	res=`ubus call network.interface.$name status`
@@ -5349,7 +6698,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  }
  
  #######################################
-@@ -267,3 +265,22 @@
+@@ -267,3 +271,22 @@
  get_tx_discard_stats() {
  	echo ${tx_dropped:-0}
  }
@@ -5374,7 +6723,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/tr181/ipping_diagnostic src/ext/openwrt/scripts/functions/tr181/ipping_diagnostic
 --- upstream/ext/openwrt/scripts/functions/tr181/ipping_diagnostic	2019-09-26 13:02:11.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/tr181/ipping_diagnostic	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/functions/tr181/ipping_diagnostic	2026-05-14 06:11:27.000000000 +0000
 @@ -11,8 +11,9 @@
  
  entry_execute_method_root_IPPingDiagnostics() {
@@ -5415,10 +6764,20 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	return 0
  }
  
+@@ -53,7 +68,8 @@
+ 	if [ "`$UCI_GET_VARSTATE easycwmp.@local[0].DiagnosticsState`" != "Requested" ]; then
+ 		$UCI_SET_VARSTATE easycwmp.@local[0].DiagnosticsState=None
+ 	fi
+-	$UCI_SET_VARSTATE $1=$2
++	uci -q set "$1"="$2"
++	uci commit
+ 	return 0
+ }
+ 
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/tr181/nat src/ext/openwrt/scripts/functions/tr181/nat
 --- upstream/ext/openwrt/scripts/functions/tr181/nat	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/tr181/nat	2026-03-25 10:23:48.000000000 +0000
-@@ -0,0 +1,479 @@
++++ src/ext/openwrt/scripts/functions/tr181/nat	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,478 @@
 +#!/bin/sh
 +
 +#common_execute_method_param "$parameter" "$permission" "$get_cmd" "$set_cmd" "xsd:$type" "$forcedinform"
@@ -5431,7 +6790,6 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +prefix_list="$prefix_list $DMROOT.NAT."
 +entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_NAT"
-+entry_execute_method_list_forcedinform="$entry_execute_method_list_forcedinform  entry_execute_method_root_NAT"
 +
 +###############
 +#  Device.NAT #
@@ -5898,6 +7256,215 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	}
 +	return $E_INVALID_PARAMETER_NAME;
 +}
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/tr181/traceroute_diagnostics src/ext/openwrt/scripts/functions/tr181/traceroute_diagnostics
+--- upstream/ext/openwrt/scripts/functions/tr181/traceroute_diagnostics	1970-01-01 00:00:00.000000000 +0000
++++ src/ext/openwrt/scripts/functions/tr181/traceroute_diagnostics	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,205 @@
++#!/bin/sh
++
++#############################
++#   Entry point functuons   #
++#############################
++
++prefix_list="$prefix_list $DMROOT.IP.Diagnostics.TraceRoute."
++
++g_traceroute_file="/var/run/easycwmp/tr181_traceroute"
++
++init_traceroute_file() {
++	[ -e "$g_traceroute_file" ] && return
++
++	echo -e "state None\n\
++interface Device.IP.Interface.2\n\
++proto Any\n\
++host \n\
++tries 3\n\
++timeout 5\n\
++bytes 38\n\
++dscp 0\n\
++max_hops 30\n\
++ip \n\
++resp_time 0" > "$g_traceroute_file"
++}
++
++entry_execute_method_root_TraceRoute() {
++	init_traceroute_file
++
++	case_param "$1" belongto "$DMROOT.IP.Diagnostics.TraceRoute." && {
++		common_execute_method_obj "$DMROOT.IP.Diagnostics.TraceRoute." "0"
++		common_execute_method_param "$DMROOT.IP.Diagnostics.TraceRoute.DiagnosticsState" "1" \
++			"get_traceroute_value state" "set_traceroute_state" "xsd:string"
++		common_execute_method_param "$DMROOT.IP.Diagnostics.TraceRoute.Interface" "1" \
++			"get_traceroute_value interface" "set_traceroute_iface" "xsd:string"
++		common_execute_method_param "$DMROOT.IP.Diagnostics.TraceRoute.ProtocolVersion" "1" \
++			"get_traceroute_value proto" "set_traceroute_proto" "xsd:string"
++		common_execute_method_param "$DMROOT.IP.Diagnostics.TraceRoute.Host" "1" \
++			"get_traceroute_value host" "set_traceroute_host" "xsd:string"
++		common_execute_method_param "$DMROOT.IP.Diagnostics.TraceRoute.NumberOfTries" "1" \
++			"get_traceroute_value tries" "set_traceroute_numberoftries" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.IP.Diagnostics.TraceRoute.Timeout" "1" \
++			"get_traceroute_value timeout" "set_traceroute_timeout" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.IP.Diagnostics.TraceRoute.DataBlockSize" "1" \
++			"get_traceroute_value bytes" "set_traceroute_datablocksize" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.IP.Diagnostics.TraceRoute.DSCP" "1" \
++			"get_traceroute_value dscp" "set_traceroute_dscp" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.IP.Diagnostics.TraceRoute.MaxHopCount" "1" \
++			"get_traceroute_value max_hops" "set_traceroute_maxhopcount" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.IP.Diagnostics.TraceRoute.IPAddressUsed" "0" \
++			"get_traceroute_value ip" "" "xsd:string"
++		common_execute_method_param "$DMROOT.IP.Diagnostics.TraceRoute.ResponseTime" "0" \
++			"get_traceroute_value resp_time" "" "xsd:unsignedInt"
++	}
++	return $E_INVALID_PARAMETER_NAME;
++}
++
++get_traceroute_value() {
++	local key="$1"
++	local value=""
++
++	value=$(grep "$key" "$g_traceroute_file" | awk '{print $2}')
++
++	echo "$value"
++}
++
++set_traceroute_value() {
++	local key="$1"
++	local value="$2"
++	local script="/usr/libexec/traceroute.sh"
++
++	sed -i "s|^$key .*|$key $value|" \
++		$g_traceroute_file
++
++	# Terminate test
++	local pid_list=$(pgrep -f traceroute.sh)
++	for pid in $pid_list; do
++		kill "$pid" 2>/dev/null
++	done
++
++	# Terminate traceroute command
++	pid_list=$(pgrep -f traceroute)
++	for pid in $pid_list; do
++		kill "$pid" 2>/dev/null
++	done
++
++	[ ! -f "$script" ] && script="/usr/local$script"
++	local state=$(get_traceroute_value state)
++
++	if [ "$state" == "Requested" ]; then
++		# Run Traceroute test
++		"$script" &
++	else
++		[ "$key" != "state" -o "$value" != "Requested" ] &&
++			sed -i "s/^state .*/state None/" $g_traceroute_file
++	fi
++
++	return 0
++}
++
++set_traceroute_state() {
++	local input="$1"
++
++	[ "$input" != "Requested" ] && [ "$input" != "Canceled" ] &&
++	return $E_INVALID_PARAMETER_VALUE
++
++	set_traceroute_value "state" "$input"
++}
++
++set_traceroute_iface() {
++	local input="$1"
++	local command="/usr/sbin/easycwmp"
++
++	[ -z "$input" ] && {
++		set_traceroute_value "interface" "$input"
++		return 0
++	}
++
++	[ "${#input}" -gt 256 ] && return $E_INVALID_PARAMETER_VALUE
++
++	[ ! -f "$command" ] && command="/usr/local$command"
++
++	json_load "$($command get $input.Name)"
++	json_get_var res fault_code
++
++	[ "$res" -gt 9000 ] && return $E_INVALID_PARAMETER_VALUE
++
++	set_traceroute_value "interface" "$input"
++}
++
++set_traceroute_proto() {
++	local input="$1"
++
++	[ "$input" != "Any" ] && [ "$input" != "IPv4" ] && [ "$input" != "IPv6" ] &&
++	return $E_INVALID_PARAMETER_VALUE
++
++	set_traceroute_value "proto" "$input"
++}
++
++set_traceroute_host() {
++	local input="$1"
++
++	[ "${#input}" -gt 256 ] && return $E_INVALID_PARAMETER_VALUE
++
++	set_traceroute_value "host" "$input"
++}
++
++set_traceroute_numberoftries() {
++	local input="$1"
++
++	case "$input" in
++		1|2|3) ;;
++		*) return $E_INVALID_PARAMETER_VALUE ;;
++	esac
++
++	set_traceroute_value "tries" "$input"
++}
++
++set_traceroute_timeout() {
++	local input="$1"
++
++	case "$input" in
++		''|*[!0-9]*) return $E_INVALID_PARAMETER_VALUE ;;
++	esac
++
++	[ "$input" -lt 1 ] && return $E_INVALID_PARAMETER_VALUE
++
++	set_traceroute_value "timeout" "$input"
++}
++
++set_traceroute_datablocksize() {
++	local input="$1"
++
++	case "$input" in
++		''|*[!0-9]*) return $E_INVALID_PARAMETER_VALUE ;;
++	esac
++
++	[ "$input" -lt 1 ] || [ "$input" -gt 65535 ] && return $E_INVALID_PARAMETER_VALUE
++
++	set_traceroute_value "bytes" "$input"
++}
++
++set_traceroute_dscp() {
++	local input="$1"
++
++	case "$input" in
++		''|*[!0-9]*) return $E_INVALID_PARAMETER_VALUE ;;
++	esac
++
++	[ "$input" -lt 0 ] || [ "$input" -gt 63 ] && return $E_INVALID_PARAMETER_VALUE
++
++	set_traceroute_value "dscp" "$input"
++}
++
++set_traceroute_maxhopcount() {
++	local input="$1"
++
++	case "$input" in
++		''|*[!0-9]*) return $E_INVALID_PARAMETER_VALUE ;;
++	esac
++
++	[ "$input" -lt 1 ] || [ "$input" -gt 64 ] && return $E_INVALID_PARAMETER_VALUE
++
++	set_traceroute_value "max_hops" "$input"
++}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/tr181/wifi src/ext/openwrt/scripts/functions/tr181/wifi
 --- upstream/ext/openwrt/scripts/functions/tr181/wifi	2019-09-26 13:02:11.000000000 +0000
 +++ src/ext/openwrt/scripts/functions/tr181/wifi	1970-01-01 00:00:00.000000000 +0000
@@ -6340,8 +7907,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 -
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/functions/wireless/wifi src/ext/openwrt/scripts/functions/wireless/wifi
 --- upstream/ext/openwrt/scripts/functions/wireless/wifi	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/functions/wireless/wifi	2026-03-25 10:23:48.000000000 +0000
-@@ -0,0 +1,1336 @@
++++ src/ext/openwrt/scripts/functions/wireless/wifi	2026-05-14 06:11:27.000000000 +0000
+@@ -0,0 +1,1590 @@
 +#!/bin/sh
 +# Copyright (C) 2016 MOHAMED Kallel <mohamed.kallel@yahoo.fr>
 +
@@ -6356,25 +7923,43 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +prefix_list="$prefix_list $DMROOT.WiFi."
 +entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_WiFi"
 +
-+UCI_SHOW_X="/sbin/uci -qX ${UCI_CONFIG_DIR:+-c $UCI_CONFIG_DIR} show"
-+
-+################
-+#  Device.WiFi #
-+################
++#################
++#  Device.WiFi  #
++#################
 +
 +entry_execute_method_root_WiFi() {
 +	case "$1" in ""|"$DMROOT."|"$DMROOT.WiFi."*)
 +		common_execute_method_obj "$DMROOT.WiFi." "0"
-+		common_execute_method_obj "$DMROOT.WiFi.Radio." "0" "" "" "wifi_radio_browse_instances $1"
-+		common_execute_method_obj "$DMROOT.WiFi.SSID." "1" "add_wifi_iface" "" "wifi_ssid_browse_instances $1"
++		common_execute_method_param "$DMROOT.WiFi.RadioNumberOfEntries" "0" \
++			"get_wifi_radio_noe" "" "xsd:unsignedInt"
++		common_execute_method_obj "$DMROOT.WiFi.Radio." "0" \
++			"" "" "count_wifi_radio_obj $1"
++		common_execute_method_param "$DMROOT.WiFi.SSIDNumberOfEntries" "0" \
++			"get_wifi_ap_noe" "" "xsd:unsignedInt"
++		common_execute_method_obj "$DMROOT.WiFi.SSID." "1" \
++			"add_wifi_iface" "" "count_wifi_ssid_obj $1"
 +		common_execute_method_param "$DMROOT.WiFi.AccessPointNumberOfEntries" "0" \
 +			"get_wifi_ap_noe" "" "xsd:unsignedInt"
 +		common_execute_method_obj "$DMROOT.WiFi.AccessPoint." "1" \
-+			"add_wifi_ap" "" "count_wifi_ap_obj $1"
++			"add_wifi_iface" "" "count_wifi_ap_obj $1"
 +		return 0
 +		;;
 +	esac
 +	return $E_INVALID_PARAMETER_NAME;
++}
++
++get_wifi_radio_noe() {
++	json_load "$(ubus call api get '{"path":"/wireless/devices/config"}')"
++	json_select http_body
++	json_select data
++	json_get_keys keys
++
++	keys="${keys##* }"
++	if [ -n "$keys" ]; then
++		echo "$keys"
++	else
++		echo "0"
++	fi
 +}
 +
 +get_wifi_ap_noe() {
@@ -6391,304 +7976,380 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	fi
 +}
 +
-+sub_entry_WiFi_Radio() {
-+	local j="$2"
-+	local radio="$3"
-+	case_param "$1" belongto "$DMROOT.WiFi.Radio.$j." && {
-+		common_execute_method_obj "$DMROOT.WiFi.Radio.$j." "0"
-+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.Enable" "1" "wifi_radio_get_Enable $radio" "wifi_radio_set_Enable $radio" "xsd:boolean"
-+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.Status" "0" "wifi_radio_get_Status $radio"
-+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.Name" "0" "wifi_radio_get_Name $radio"
-+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.SupportedFrequencyBands" "0" "wifi_radio_get_FrequencyBands $radio"
-+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.OperatingFrequencyBand" "0" "wifi_radio_get_FrequencyBands $radio"
-+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.ChannelsInUse" "0" "wifi_radio_get_ChannelsInUse $radio"
-+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.Channel" "1" "wifi_radio_get_Channel $radio" "wifi_radio_set_Channel $radio" "xsd:unsignedInt"
-+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.AutoChannelSupported" "0" "echo 1" "" "xsd:boolean"
-+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.AutoChannelEnable" "1" "wifi_radio_get_AutoChannelEnable $radio" "wifi_radio_set_AutoChannelEnable $radio" "xsd:boolean"
-+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.OperatingStandards" "1" "wifi_radio_get_OperatingStandards $radio" "wifi_radio_set_OperatingStandards $radio"
-+		return 0
++#######################
++#  Device.WiFi.Radio  #
++#######################
++
++count_wifi_radio_obj() {
++	local i=1
++	local ifaces="$(ubus call api get '{"path":"/wireless/devices/config"}' | \
++			jsonfilter -e '@.http_body.data[*]')"
++
++	OLD_IFS="$IFS"
++	IFS=$'\n'
++	for table in $ifaces; do
++		IFS="$OLD_IFS"
++		sub_entry_wifi_radio "$1" "$i" "$table"
++		i=$((i + 1))
++		IFS=$'\n'
++	done
++	IFS="$OLD_IFS"
++}
++
++sub_entry_wifi_radio() {
++	local i="$2"
++	local table="$3"
++
++	case_param "$1" belongto "$DMROOT.WiFi.Radio.$i." && {
++		local id="$(echo "$table" | jsonfilter -e '@.id')"
++		local status="$(ubus call api get '{"path":"/wireless/devices/basic/status/'$id'"}' | \
++				jsonfilter -e '@.http_body.data')"
++
++		local enabled="$(echo "$table" | jsonfilter -e '@.enabled')"
++		local up="$(echo "$status" | jsonfilter -e '@.up')"
++		local pending="$(echo "$status" | jsonfilter -e '@.pending')"
++		local band="$(echo "$status" | jsonfilter -e '@.band')"
++		local hwmode="$(echo "$table" | jsonfilter -e '@.hwmode')"
++		local legacy_rates="$(echo "$table" | jsonfilter -e '@.legacy_rates')"
++		local channel="$(echo "$status" | jsonfilter -e '@.channel')"
++		local auto_channel="$(echo "$table" | jsonfilter -e '@.channel')"
++		local htmode="$(echo "$table" | jsonfilter -e '@.htmode')"
++		local curr_htmode="$(ubus call iwinfo info '{"device":"'$id'"}' | jsonfilter -e '@.htmode')"
++		local txpower="$(echo "$table" | jsonfilter -e '@.txpower')"
++		local ieee80211h="0"
++		local frag="$(echo "$table" | jsonfilter -e '@.frag')"
++		local rts="$(echo "$table" | jsonfilter -e '@.rts')"
++		local beacon_int="$(echo "$table" | jsonfilter -e '@.beacon_int')"
++
++		local standards=""
++		local channels=""
++		local bands=""
++		get_wifi_radio_options "$id" standards channels bands hwmode
++
++		hwmode=${hwmode%,}
++		[ "$legacy_rates" = "1" ] && {
++			if [ -z "$hwmode" ]; then
++				hwmode="b"
++			else
++				hwmode="${hwmode},b"
++			fi
++		}
++
++		local tx_bytes=0
++		local rx_bytes=0
++		local tx_packets=0
++		local rx_packets=0
++		local tx_errors=0
++		local rx_errors=0
++		local tx_dropped=0
++		local rx_dropped=0
++
++		local stats_ifaces="$(ubus call network.wireless status | \
++				      jsonfilter -e '@.'$id'.interfaces[*].ifname')"
++		for stats_iface in $stats_ifaces; do
++			get_wifi_radio_stats "$stats_iface" tx_bytes
++			get_wifi_radio_stats "$stats_iface" rx_bytes
++			get_wifi_radio_stats "$stats_iface" tx_packets
++			get_wifi_radio_stats "$stats_iface" rx_packets
++			get_wifi_radio_stats "$stats_iface" tx_errors
++			get_wifi_radio_stats "$stats_iface" rx_errors
++			get_wifi_radio_stats "$stats_iface" tx_dropped
++			get_wifi_radio_stats "$stats_iface" rx_dropped
++		done
++
++		if [ "$up" = "true" ]; then
++			up="Up"
++		elif [ "$pending" = "true" ]; then
++			up="Dormant"
++		else
++			up="Down"
++		fi
++
++		if [ "$auto_channel" = "auto" ]; then
++			auto_channel="1"
++		else
++			auto_channel="0"
++		fi
++
++		[ "$band" = "5GHz" ] && ieee80211h="1"
++
++		common_execute_method_obj "$DMROOT.WiFi.Radio.$i." "0"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Enable" "1" \
++			"echo $enabled" "set_wifi_radio_enable $id" "xsd:boolean"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Status" "0" \
++			"echo $up" "" "xsd:string"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Name" "0" \
++			"echo $band" "" "xsd:string"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.SupportedFrequencyBands" "0" \
++			"echo $band" "" "xsd:string[]"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.SupportedStandards" "0" \
++			"echo $standards" "" "xsd:string[]"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.OperatingStandards" "1" \
++			"echo $hwmode" "set_wifi_radio_operatingstandards $id '$htmode' '$legacy_rates'" \
++			"xsd:string[]"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.PossibleChannels" "0" \
++			"echo $channels" "" "xsd:string[]"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Channel" "1" \
++			"echo $channel" "set_wifi_radio_channel $id" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.AutoChannelSupported" "0" \
++			"echo 1" "" "xsd:boolean"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.AutoChannelEnable" "1" \
++			"echo $auto_channel" "set_wifi_radio_autochannelenable $id '$channel'" "xsd:boolean"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.MaxSupportedSSIDs" "0" \
++			"get_wifi_radio_maxssids $id" "" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.SupportedOperatingChannelBandwidths" "0" \
++			"echo $bands" "" "xsd:string[]"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.OperatingChannelBandwidth" "1" \
++			"echo $htmode" "set_wifi_radio_value $id htmode" "xsd:string"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.CurrentOperatingChannelBandwidth" "0" \
++			"echo $curr_htmode" "" "xsd:string"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.TransmitPowerSupported" "0" \
++			"echo -1,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100" "" "xsd:int[]"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.TransmitPower" "1" \
++			"echo $txpower" "set_wifi_radio_transmitpower $id" "xsd:int"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.IEEE80211hSupported" "0" \
++			"echo $ieee80211h" "" "xsd:boolean"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.FragmentationThreshold" "1" \
++			"echo $frag" "set_wifi_radio_value $id frag" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.RTSThreshold" "1" \
++			"echo $rts" "set_wifi_radio_value $id rts" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.BeaconPeriod" "1" \
++			"echo $beacon_int" "set_wifi_radio_value $id beacon_int" "xsd:unsignedInt"
++		common_execute_method_obj "$DMROOT.WiFi.Radio.$i.Stats." "0"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Stats.BytesSent" "0" \
++			"echo $tx_bytes" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Stats.BytesReceived" "0" \
++			"echo $rx_bytes" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Stats.PacketsSent" "0" \
++			"echo $tx_packets" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Stats.PacketsReceived" "0" \
++			"echo $rx_packets" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Stats.ErrorsSent" "0" \
++			"echo $tx_errors" "" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Stats.ErrorsReceived" "0" \
++			"echo $rx_errors" "" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Stats.DiscardPacketsSent" "0" \
++			"echo $tx_dropped" "" "xsd:unsignedInt"
++		common_execute_method_param "$DMROOT.WiFi.Radio.$i.Stats.DiscardPacketsReceived" "0" \
++			"echo $rx_dropped" "" "xsd:unsignedInt"
++		return 0;
 +	}
 +	return $E_INVALID_PARAMETER_NAME;
 +}
 +
-+sub_entry_WiFi_SSID() {
-+	local j="$2"
-+	local iface="$3"
-+	case_param "$1" belongto "$DMROOT.WiFi.SSID.$j." && {
-+		common_execute_method_obj "$DMROOT.WiFi.SSID.$j." "1" "" "del_wifi_iface $iface"
-+		common_execute_method_param  "$DMROOT.WiFi.SSID.$j.Enable" "1" "wifi_ssid_get_Enable $iface" "wifi_ssid_set_Enable $iface" "xsd:boolean"
-+		common_execute_method_param  "$DMROOT.WiFi.SSID.$j.Status" "0" "wifi_ssid_get_Status $iface"
-+		common_execute_method_param  "$DMROOT.WiFi.SSID.$j.Name" "0" "wifi_ssid_get_Name $iface"
-+		common_execute_method_param  "$DMROOT.WiFi.SSID.$j.LowerLayers" "0" "wifi_ssid_get_LowerLayers $iface" ""
-+		common_execute_method_param  "$DMROOT.WiFi.SSID.$j.SSID" "1" "wifi_ssid_get_SSID $iface" "wifi_ssid_set_SSID $iface"
-+		common_execute_method_param  "$DMROOT.WiFi.SSID.$j.X_IPInterface" "0" "wifi_ssid_get_X_IPInterface $iface" ""
++get_wifi_radio_options() {
++	local id="$1"
++	local ret1="$2"
++	local ret2="$3"
++	local ret3="$4"
++	local ret4="$5"
++
++	# .SupportedStandards
++	json_load "$(ubus call api get '{"path":"/wireless/devices/options/'$id'"}')"
++
++	json_select http_body
++	json_select data
++	json_select options
++	json_select hwmodelist
++	json_get_keys keys
++	for var in $keys; do
++		json_get_var value "$var"
++		[ "$value" = "1" ] && {
++			eval "$ret1=\"\${$ret1}${var},\""
++			[ "$var" = "g" ] && eval "$ret4=\"g,\${$ret4}\""
++		}
++	done
++
++	eval "$ret1=\"\${$ret1%,}\""
++
++	# .PossibleChannels
++	json_select ..
++	json_select freqlist
++	json_get_keys keys
++	keys="${keys# }"
++
++	local n="${keys%% *}"
++	local m="${keys##* }"
++
++	if [ -n "$n" ]; then
++		if [ "$n" != "$m" ]; then
++			eval "$ret2=${n}-${m}"
++		else
++			eval "$ret2=$n"
++		fi
++	else
++		eval "$ret2=N/A"
++	fi
++
++	# .SupportedOperatingChannelBandwidths
++	json_select ..
++	json_select htmodelist
++	json_get_keys keys
++	for var in $keys; do
++		json_get_var value "$var"
++		[ "$value" = "1" ] && eval "$ret3=\"\${$ret3}${var},\""
++	done
++
++	eval "$ret3=\"\${$ret3%,}\""
++}
++
++get_wifi_radio_stats() {
++	local iface="$1"
++	local ret="$2"
++
++	local value="$(cat /sys/class/net/$iface/statistics/$ret)"
++	[ -n "$value" ] && eval "$ret=\$((\${$ret:-0} + value))"
++}
++
++set_wifi_radio_value() {
++	local id="$1"
++	local key="$2"
++	local value="$3"
++
++	json_load "$(ubus call api put '{
++			"path":"/wireless/devices/config/'$id'",
++			"body":{"data":{"'$key'":"'$value'"}}
++		     }')"
++	json_select http_body
++	json_get_var success success
++	if [ "$success" = "1" ]; then
 +		return 0
-+	}
-+	return $E_INVALID_PARAMETER_NAME;
-+}
-+
-+wifi_radio_get_max_instance() {
-+	local max=`$UCI_SHOW_X wireless | grep "wifi_radio_instance" | cut -d'=' -f2 | sed 's/[^0-9]*//g' | sort -nru | head -1`
-+	echo ${max:-0}
-+}
-+
-+wifi_iface_get_max_instance() {
-+	local max=`$UCI_SHOW_X wireless | grep "wifi_iface_instance" | cut -d'=' -f2 | sed 's/[^0-9]*//g' | sort -nru | head -1`
-+	echo ${max:-0}
-+}
-+
-+wifi_radio_update_instance() {
-+	local radio="$1"
-+	local instance=`$UCI_GET $radio.wifi_radio_instance`
-+	if [ -z "$instance" ]; then
-+		instance=`wifi_radio_get_max_instance`
-+		$UCI_SET $radio.wifi_radio_instance=$((++instance))
-+		$UCI_COMMIT
-+	fi
-+	echo $instance
-+}
-+
-+wifi_iface_update_instance() {
-+	local iface="$1"
-+	local instance=`$UCI_GET $iface.wifi_iface_instance`
-+	if [ -z "$instance" ]; then
-+		instance=`wifi_iface_get_max_instance`
-+		$UCI_SET $iface.wifi_iface_instance=$((++instance))
-+		$UCI_COMMIT
-+	fi
-+	echo $instance
-+}
-+
-+wifi_radio_browse_instances() {
-+	local radio radios=`$UCI_SHOW_X wireless | grep "wireless\..*=wifi-device" | cut -d "=" -f 1`
-+	for radio in $radios; do
-+		local j=`wifi_radio_update_instance $radio`
-+		sub_entry_WiFi_Radio  "$1" "$j" "$radio"
-+	done
-+}
-+
-+wifi_ssid_browse_instances() {
-+	local iface ifaces=`$UCI_SHOW_X wireless | grep "wireless\..*=wifi-iface" | cut -d "=" -f 1`
-+	for iface in $ifaces; do
-+		local j=`wifi_iface_update_instance $iface`
-+		sub_entry_WiFi_SSID  "$1" "$j" "$iface"
-+	done
-+}
-+
-+add_wifi_iface() {
-+	local instance=`wifi_iface_get_max_instance`
-+	local section=`$UCI_ADD  wireless wifi-iface`
-+	$UCI_SET wireless.$section.wifi_iface_instance=$((++instance))
-+	$UCI_COMMIT
-+	echo $instance
-+}
-+
-+del_wifi_iface() {
-+	local iface="$1"
-+	$UCI_DELETE $iface
-+	$UCI_COMMIT
-+	return 0
-+}
-+
-+wifi_radio_get_Enable() {
-+	local val=`$UCI_GET $1.disabled`
-+	[ "$val" = "1" ] && echo "0" || echo "1"
-+}
-+
-+wifi_radio_set_Enable() {
-+	local ret
-+	common_set_bool "$1.disabled" "$2" "" "1"
-+	ret=$?
-+	return $ret
-+}
-+
-+wifi_radio_get_Status() {
-+	local device=${1#*.}
-+	local res up
-+
-+	res=`ubus call network.wireless status`
-+	if [ "$res" != "" ]; then
-+		json_init
-+		json_load "$res" >&2
-+		json_select "$device" >&2
-+		json_get_var up up >&2
-+	fi
-+	[ "$up" = "1" ] && echo Up || echo Down
-+}
-+
-+wifi_radio_get_Name() {
-+	echo ${1#*.}
-+}
-+
-+wifi_radio_get_FrequencyBands() {
-+	local phy="phy${1#*radio}"
-+	local freq=`iw phy $phy info | grep  "MHz.*dBm" | head -1 | awk '{print $2}'`
-+	[ "${freq#24}" = "$freq" ] && echo "5GHz" || echo "2.4GHz"
-+}
-+
-+wifi_radio_get_ChannelsInUse() {
-+	local freq="`iw phy phy0 info | grep  MHz.*dBm | awk -F'[][]' '{print $2}' |  tr '\n' ','`"
-+	echo ${freq%,}
-+}
-+
-+wifi_radio_get_Channel() {
-+	local channel phy freq
-+
-+	channel=`$UCI_GET $1.channel`
-+	[ "$channel" != "" -a "$channel" != "auto" ] && { echo $channel; return; }
-+
-+	phy="phy${1#*radio}"
-+	freq=`iw phy $phy info | grep  "MHz.*dBm" | head -1 | awk '{print $2}'`
-+	if [ "${freq#24}" != "$freq" ]; then
-+		channel=`iw dev | grep "channel.*(24.*MHz)" | head -1 | awk '{print $2}'`
-+	else
-+		channel=`iw dev | grep "channel" | grep -v "channel.*(24.*MHz)" | head -1 | awk '{print $2}'`
-+	fi
-+	echo $channel
-+}
-+
-+wifi_radio_set_Channel() {
-+	case $2 in
-+		(*[^0-9]*|'') return $E_INVALID_PARAMETER_VALUE;;
-+	esac
-+
-+	[ "$2" -lt 1 -o "$2" -gt 255 ] && return $E_INVALID_PARAMETER_VALUE
-+
-+	$UCI_SET $1.channel=$2
-+}
-+
-+wifi_radio_get_AutoChannelEnable() {
-+	local en=`$UCI_GET $1.channel`
-+	[ "$en" = "" -o "$en" = "auto" ] && echo 1 || echo 0
-+}
-+
-+wifi_radio_set_AutoChannelEnable() {
-+	local val=`echo "$2" | tr '[A-Z]' '[a-z]'`
-+	if [ "$val" = "1" -o "$val" = "true" ]; then
-+		$UCI_SET $1.channel=auto
-+	else
-+		local channel=`wifi_radio_get_Channel $1`
-+		$UCI_SET $1.channel=$channel
-+	fi
-+}
-+
-+wifi_radio_get_OperatingStandards() {
-+	local val=`$UCI_GET $1.hwmode`
-+	echo ${val#11}
-+}
-+
-+wifi_radio_set_OperatingStandards() {
-+	local band="$(wifi_radio_get_FrequencyBands $1)"
-+
-+	if [ "$band" = "2.4GHz" ]; then
-+		case "$2" in
-+			b|g|n|ax|be) ;;
-+			*) return $E_INVALID_PARAMETER_VALUE ;;
-+		esac
-+	elif [ "$band" = "5GHz" ]; then
-+		case "$2" in
-+			a|n|ac|ax|be) ;;
-+			*) return $E_INVALID_PARAMETER_VALUE ;;
-+		esac
-+	elif [ "$band" = "6GHz" ]; then
-+		case "$2" in
-+			ax|be) ;;
-+			*) return $E_INVALID_PARAMETER_VALUE ;;
-+		esac
 +	else
 +		return $E_INVALID_PARAMETER_VALUE
 +	fi
-+
-+	$UCI_SET $1.hwmode=11$2
 +}
 +
-+wifi_ssid_get_Enable() {
-+	local val=`$UCI_GET $1.disabled`
-+	[ "$val" = "1" ] && echo "0" || echo "1"
++set_wifi_radio_enable() {
++	local id="$1"
++	local input="$2"
++
++	if [ "$input" = "true" ]; then
++		input="1"
++	elif [ "$input" = "false" ]; then
++		input="0"
++	elif [ "$input" != "0" -a "$input" != "1" ]; then
++		return $E_INVALID_PARAMETER_VALUE
++	fi
++
++	set_wifi_radio_value "$id" "enabled" "$input"
 +}
 +
-+wifi_ssid_set_Enable() {
-+	local ret
-+	common_set_bool "$1.disabled" "$2" "" "1"
-+	ret=$?
-+	return $ret
++set_wifi_radio_operatingstandards() {
++	local id="$1"
++	local htmode="$2"
++	local legacy_rates="$3"
++	local input="$4"
++
++	# If "b" should be set, legacy mode should be enabled through "legacy_rates"
++	[ "$input" = "b" ] && {
++		set_wifi_radio_value "$id" "legacy_rates" "1"
++		return $?
++	}
++
++	# "g" is always enabled, so disable all the other "hwmodes" and "b" mode
++	[ "$input" = "g" ] && {
++		json_load "$(ubus call api put '{
++				"path":"/wireless/devices/config/'$id'",
++				"body":{
++				   "data":{
++				      "hwmode":"",
++				      "legacy_rates":"0"
++				   }
++				}
++			     }')"
++		json_select http_body
++		json_get_var success success
++		if [ "$success" = "1" ]; then
++			return 0
++		else
++			return $E_INVALID_PARAMETER_VALUE
++		fi
++	}
++
++	# "htmode" has to be set before setting "hwmode"
++	[ -z "$htmode" ] && $E_REQUEST_DENIED
++
++	json_load "$(ubus call api put '{
++			"path":"/wireless/devices/config/'$id'",
++			"body":{
++			   "data":{
++			      "htmode":"'$htmode'",
++			      "hwmode":"'$input'"
++			   }
++			}
++		     }')"
++	json_select http_body
++	json_get_var success success
++	if [ "$success" = "1" ]; then
++		[ "$legacy_rates" = "1" ] && set_wifi_radio_value "$id" "legacy_rates" "0"
++		return 0
++	else
++		return $E_INVALID_PARAMETER_VALUE
++	fi
 +}
 +
-+wifi_ssid_get_Status() {
-+	local name=`wifi_ssid_get_Name $1`
-+	[ "$name" != "" ] && echo Up || echo Down
++set_wifi_radio_channel() {
++	local id="$1"
++	local input="$2"
++
++	case "$input" in
++		''|*[!0-9]*) return $E_INVALID_PARAMETER_VALUE ;;
++	esac
++
++	[ "$input" -lt 1 ] || [ "$input" -gt 255 ] && return $E_INVALID_PARAMETER_VALUE
++
++	set_wifi_radio_value "$id" "channel" "$input"
 +}
 +
-+wifi_ssid_get_Name() {
-+	local iface=$1
-+	local res ifname section device e i=0
++set_wifi_radio_autochannelenable() {
++	local id="$1"
++	local curr_channel="$2"
++	local input="$3"
 +
-+	device=`$UCI_GET $1.device`
-+	[ "$device" = "" ] && return 0
-+	res=`ubus call network.wireless status`
-+	[ "$res" = "" ] && return 0
-+	json_init
-+	json_load "$res"
-+	json_select "$device"
-+	json_select "interfaces"
-+	while [ 1 ]; do
-+		let i++
-+		json_select "$i"  >&2
-+		e=$?
-+		[ "$e" != 0 ] && break
-+		json_get_var section section >&2
-+		[ "$section" != "${iface#*.}" ] && { json_select ".." >&2; continue; }
-+		json_get_var ifname ifname >&2
-+		echo $ifname
-+		break;
-+	done
++	case "$input" in
++		1|true)
++			input="auto"
++			;;
++		0|false)
++			if [ -n "$curr_channel" ]; then
++				input="$curr_channel"
++			else
++				return $E_INVALID_PARAMETER_VALUE
++			fi
++			;;
++		*)
++			return $E_INVALID_PARAMETER_VALUE
++			;;
++	esac
++
++	set_wifi_radio_value "$id" "channel" "$input"
 +}
 +
-+wifi_ssid_get_LowerLayers() {
-+	local device=`$UCI_GET $1.device`
-+	local instance=`$UCI_GET wireless.$device.wifi_radio_instance`
-+	[ "$instance" != "" ] && echo "$DMROOT.WiFi.Radio.$instance."
++get_wifi_radio_maxssids() {
++	local id="${1#radio}"
++
++	json_load_file "/etc/board.json"
++	json_select wlan
++	json_select "wlan$id"
++	json_get_var value bssid_limit
++
++	echo "$value"
 +}
 +
-+# wifi_ssid_set_LowerLayers() {
-+# 	local tmp=${2#$DMROOT.WiFi.Radio.}
-+# 	[ "$tmp" = "$2" ] && return
-+# 	local instance=${tmp%.}
-+# 	[ "$tmp" = "$instance" ] && return
-+# 	local device=`$UCI_SHOW_X wireless | grep "wifi_radio_instance=$instance" | cut -d'.' -f2`
-+# 	$UCI_SET $1.device=$device
-+# }
++set_wifi_radio_transmitpower() {
++	local id="$1"
++	local input="$2"
 +
-+wifi_ssid_get_SSID() {
-+	local ssid=`$UCI_GET $1.ssid`
-+	echo $ssid
++	[ "$input" = "-1" ] && input=""
++
++	set_wifi_radio_value "$id" "txpower" "$input"
 +}
 +
-+wifi_ssid_set_SSID() {
-+	[ -z "$2" ] || [ "${#2}" -gt 64 ] && return $E_INVALID_PARAMETER_VALUE
-+	$UCI_SET $1.ssid=$2
-+}
++######################
++#  Device.WiFi.SSID  #
++######################
 +
-+wifi_ssid_get_X_IPInterface() {
-+	local network=`$UCI_GET $1.network`
-+	local instance=`$UCI_GET network.$network.ip_int_instance`
-+	[ "$instance" != "" ] && echo "$DMROOT.IP.Interface.$instance."
-+}
-+
-+# wifi_ssid_set_X_IPInterface() {
-+# 	local tmp=${2#$DMROOT.IP.Interface.}
-+# 	[ "$tmp" = "$2" ] && return
-+# 	local instance=${tmp%.}
-+# 	[ "$tmp" = "$instance" ] && return
-+# 	local network=`$UCI_SHOW_X network | grep "ip_int_instance=$instance" | cut -d'.' -f2`
-+# 	$UCI_SET $1.network=$network
-+# }
-+
-+############################
-+#  Device.WiFi.AccessPoint #
-+############################
-+
-+add_wifi_ap() {
++add_wifi_iface() {
 +	json_load "$(ubus call api post '{
 +		     "path":"/wireless/interfaces/config",
 +		     "body":{
@@ -6714,7 +8375,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	fi
 +}
 +
-+delete_wifi_ap() {
++delete_wifi_iface() {
 +	local id="$1"
 +
 +	json_load "$(ubus call api delete '{"path":"/wireless/interfaces/config/'$id'"}')"
@@ -6727,10 +8388,168 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	fi
 +}
 +
++count_wifi_ssid_obj() {
++	local i=1
++	local ifaces="$(ubus call api get '{"path":"/wireless/interfaces/config"}' | \
++			jsonfilter -e '@.http_body.data[*]')"
++
++	OLD_IFS="$IFS"
++	IFS=$'\n'
++	for table in $ifaces; do
++		IFS="$OLD_IFS"
++		sub_entry_wifi_ssid "$1" "$i" "$table"
++		i=$((i + 1))
++		IFS=$'\n'
++	done
++	IFS="$OLD_IFS"
++}
++
++sub_entry_wifi_ssid() {
++	local i="$2"
++	local table="$3"
++
++	case_param "$1" belongto "$DMROOT.WiFi.SSID.$i." && {
++		local id="$(echo "$table" | jsonfilter -e '@.id')"
++		local status="$(ubus call api get '{"path":"/wireless/interfaces/status/'$id'"}' | \
++				jsonfilter -e '@.http_body.data')"
++		local enabled="$(echo "$table" | jsonfilter -e '@.enabled')"
++		local up="$(echo "$status" | jsonfilter -e '@.up')"
++		local network="$(echo "$table" | jsonfilter -e '@.network')"
++		local bssid="$(echo "$status" | jsonfilter -e '@.bssid')"
++		local ifname="$(echo "$status" | jsonfilter -e '@.devices[0].ifname')"
++		local ssid="$(echo "$table" | jsonfilter -e '@.ssid')"
++
++		case "$up" in
++			true) up="Up" ;;
++			*) up="Down" ;;
++		esac
++
++		common_execute_method_obj "$DMROOT.WiFi.SSID.$i." "1" "" "delete_wifi_iface $id"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Enable" "1" \
++			"echo $enabled" "set_wifi_iface_boolean $id enabled" "xsd:boolean"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Status" "0" \
++			"echo $up" "" "xsd:string"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Name" "0" \
++			"echo $id" "" "xsd:string"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.LowerLayers" "1" \
++			"get_wifi_ssid_lowerlayers $id $network" "set_wifi_ssid_lowerlayers $id" "xsd:string"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.BSSID" "0" \
++			"echo $bssid" "" "xsd:string"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.MACAddress" "0" \
++			"get_wifi_ssid_macaddress $ifname" "" "xsd:string"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.SSID" "1" \
++			"echo $ssid" "set_wifi_ssid_ssid $id" "xsd:string"
++		common_execute_method_obj "$DMROOT.WiFi.SSID.$i.Stats." "0"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Stats.BytesSent" "0" \
++			"get_wifi_ssid_stats $ifname tx_bytes" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Stats.BytesReceived" "0" \
++			"get_wifi_ssid_stats $ifname rx_bytes" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Stats.PacketsSent" "0" \
++			"get_wifi_ssid_stats $ifname tx_packets" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Stats.PacketsReceived" "0" \
++			"get_wifi_ssid_stats $ifname rx_packets" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Stats.ErrorsSent" "0" \
++			"get_wifi_ssid_stats $ifname tx_errors" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Stats.ErrorsReceived" "0" \
++			"get_wifi_ssid_stats $ifname rx_errors" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Stats.DiscardPacketsSent" "0" \
++			"get_wifi_ssid_stats $ifname tx_dropped" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Stats.DiscardPacketsReceived" "0" \
++			"get_wifi_ssid_stats $ifname rx_dropped" "" "xsd:unsignedLong"
++		common_execute_method_param "$DMROOT.WiFi.SSID.$i.Stats.MulticastPacketsReceived" "0" \
++			"get_wifi_ssid_stats $ifname multicast" "" "xsd:unsignedLong"
++		return 0;
++	}
++	return $E_INVALID_PARAMETER_NAME;
++}
++
++get_network_id() {
++	local sec="$1"
++	local network="$2"
++	local ret="$3"
++
++	config_get name "$sec" name
++	[ "$name" = "$network" ] && eval "$ret=$sec"
++}
++
++get_wifi_ssid_lowerlayers() {
++	local id="$1"
++	local network="$2"
++	local network_id=""
++	local command="/usr/sbin/easycwmp"
++	local i=1
++
++	config_load network
++	config_foreach get_network_id interface "$network" network_id
++
++	[ ! -f "$command" ] && command="/usr/local$command"
++
++	while res="$($command get Device.IP.Interface.$i.Name)" &&
++	      ! echo "$res" | grep -q 'fault_code'; do
++		json_load "$res"
++		json_get_var value value
++		[ "$value" = "$network" ] || [ "$value" = "$network_id" ] && {
++			json_get_var parameter parameter
++			echo "${parameter%.Name}"
++			return 0
++		}
++		i=$((i + 1))
++	done
++}
++
++set_wifi_ssid_lowerlayers() {
++	local id="$1"
++	local input="$2"
++	local command="/usr/sbin/easycwmp"
++
++	[ ! -f "$command" ] && command="/usr/local$command"
++
++	json_load "$($command get $input.Name)"
++	json_get_var iface value
++	if [ -z "$iface" ]; then
++		return $E_INVALID_PARAMETER_VALUE
++	else
++		set_wifi_ap_value "$id" "network" "$iface"
++	fi
++}
++
++get_wifi_ssid_macaddress() {
++	local ifname="$1"
++
++	echo "$(ubus call api get '{"path":"/network/devices/status/'$ifname'"}' | \
++		jsonfilter -e '@.http_body.data.macaddr')"
++}
++
++set_wifi_ssid_ssid() {
++	local id="$1"
++	local input="$2"
++
++	[ "${#input}" -gt 32 ] && return $E_INVALID_PARAMETER_VALUE
++
++	set_wifi_ap_value "$id" "ssid" "$input"
++}
++
++get_wifi_ssid_stats() {
++	local ifname="$1"
++	local file="$2"
++	local res=""
++
++	res="$(cat /sys/class/net/$ifname/statistics/$file)"
++	if [ -z "$res" ]; then
++		echo "0"
++	else
++		echo "$res"
++	fi
++}
++
++#############################
++#  Device.WiFi.AccessPoint  #
++#############################
++
 +count_wifi_ap_obj() {
 +	local i=1
 +	local ifaces="$(ubus call api get '{"path":"/wireless/interfaces/config"}' | \
-+			  jsonfilter -e '@.http_body.data[*]')"
++			jsonfilter -e '@.http_body.data[*]')"
 +
 +	OLD_IFS="$IFS"
 +	IFS=$'\n'
@@ -6744,7 +8563,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 +
 +sub_entry_wifi_ap() {
-+	local i="$2" 
++	local i="$2"
 +	local table="$3"
 +
 +	case_param "$1" belongto "$DMROOT.WiFi.AccessPoint.$i." && {
@@ -6776,9 +8595,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +		maclist="$(echo "$maclist" | tr '\n' ',' | sed 's/,$//')"
 +
-+		common_execute_method_obj "$DMROOT.WiFi.AccessPoint.$i." "1" "" "delete_wifi_ap $id"
++		common_execute_method_obj "$DMROOT.WiFi.AccessPoint.$i." "1" "" "delete_wifi_iface $id"
 +		common_execute_method_param "$DMROOT.WiFi.AccessPoint.$i.Enable" "1" \
-+			"echo $enabled" "set_wifi_ap_boolean $id enabled" "xsd:boolean"
++			"echo $enabled" "set_wifi_iface_boolean $id enabled" "xsd:boolean"
 +		common_execute_method_param "$DMROOT.WiFi.AccessPoint.$i.Status" "0" \
 +			"echo $status" "" "xsd:string"
 +		common_execute_method_param "$DMROOT.WiFi.AccessPoint.$i.SSIDReference" "0" \
@@ -6790,9 +8609,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		common_execute_method_param "$DMROOT.WiFi.AccessPoint.$i.UAPSDCapability" "0" \
 +			"echo 1" "" "xsd:boolean"
 +		common_execute_method_param "$DMROOT.WiFi.AccessPoint.$i.WMMEnable" "1" \
-+			"echo $wmm" "set_wifi_ap_boolean $id wmm" "xsd:boolean"
++			"echo $wmm" "set_wifi_iface_boolean $id wmm" "xsd:boolean"
 +		common_execute_method_param "$DMROOT.WiFi.AccessPoint.$i.IsolationEnable" "1" \
-+			"echo $isolate" "set_wifi_ap_boolean $id isolate" "xsd:boolean"
++			"echo $isolate" "set_wifi_iface_boolean $id isolate" "xsd:boolean"
 +		common_execute_method_param "$DMROOT.WiFi.AccessPoint.$i.MACAddressControlEnabled" "1" \
 +			"echo $macfilter" "set_wifi_ap_macaddrcontrol $id" "xsd:string"
 +		common_execute_method_param "$DMROOT.WiFi.AccessPoint.$i.AllowedMACAddress" "1" \
@@ -7007,7 +8826,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	fi
 +}
 +
-+set_wifi_ap_boolean() {
++set_wifi_iface_boolean() {
 +	local id="$1"
 +	local key="$2"
 +	local input="$3"
@@ -7070,9 +8889,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	fi
 +}
 +
-+#####################################
-+#  Device.WiFi.AccessPoint.Security #
-+#####################################
++######################################
++#  Device.WiFi.AccessPoint.Security  #
++######################################
 +
 +get_wifi_ap_security_modes() {
 +	local modes="$1"
@@ -7169,9 +8988,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	set_wifi_ap_value "$id" "ieee80211w" "$input"
 +}
 +
-+#########################################
-+#  Device.WiFi.AccessPoint.Interworking #
-+#########################################
++##########################################
++#  Device.WiFi.AccessPoint.Interworking  #
++##########################################
 +
 +set_wifi_ap_hotspot2_value() {
 +	local id="$1"
@@ -7262,7 +9081,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		Storage) input="8" ;;
 +		Utility-Miscellaneous) input="9" ;;
 +		Vehicular) input="10" ;;
-+		Outdoor) input="11" ;; 
++		Outdoor) input="11" ;;
 +		*) return $E_INVALID_PARAMETER_VALUE ;;
 +	esac
 +
@@ -7502,9 +9321,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	set_wifi_ap_hotspot2_value "$id" "venue_type" "$input"
 +}
 +
-+#################################
-+#  Device.WiFi.AccessPoint.ANQP #
-+#################################
++##################################
++#  Device.WiFi.AccessPoint.ANQP  #
++##################################
 +
 +set_wifi_ap_anqp_ipv4addravailability() {
 +	local id="$1"
@@ -7532,9 +9351,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	set_wifi_ap_hotspot2_value "$id" "network_auth_type" "$input"
 +}
 +
-+#############################################
-+#  Device.WiFi.AccessPoint.AssociatedDevice #
-+#############################################
++##############################################
++#  Device.WiFi.AccessPoint.AssociatedDevice  #
++##############################################
 +
 +get_wifi_ap_assocdevice_noe() {
 +	local id="$1"
@@ -7563,10 +9382,12 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	local id="$3"
 +	local j=1
 +
++	# First check if interfaces are defined as 'ifname' array
 +	local ifnames="$(ubus call api get '{"path":"/wireless/interfaces/status/'$id'"}' | \
 +			 jsonfilter -e '@.http_body.data.ifname[*]')"
 +
 +	if [ -z "$ifnames" ]; then
++		# If not defined as an array, 'ifname' is defined as a single string
 +		ifnames="$(ubus call api get '{"path":"/wireless/interfaces/status/'$id'"}' | \
 +			   jsonfilter -e '@.http_body.data.ifname')"
 +		sub_entry_wifi_ap_assocdevice "$1" "$i" "$j" "$ifnames"
@@ -7680,7 +9501,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/unused/device_hosts src/ext/openwrt/scripts/unused/device_hosts
 --- upstream/ext/openwrt/scripts/unused/device_hosts	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/unused/device_hosts	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/unused/device_hosts	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,205 @@
 +#!/bin/sh
 +# Copyright (C) 2012 Luka Perkov <freecwmp@lukaperkov.net>
@@ -7889,7 +9710,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +delete_object_device_hosts() { return $E_INVALID_PARAMETER_NAME; }
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/unused/device_ip src/ext/openwrt/scripts/unused/device_ip
 --- upstream/ext/openwrt/scripts/unused/device_ip	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/unused/device_ip	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/unused/device_ip	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,139 @@
 +#!/bin/sh
 +# Copyright (C) 2012 Luka Perkov <freecwmp@lukaperkov.net>
@@ -8032,7 +9853,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/unused/device_routing src/ext/openwrt/scripts/unused/device_routing
 --- upstream/ext/openwrt/scripts/unused/device_routing	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/unused/device_routing	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/unused/device_routing	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,368 @@
 +#!/bin/sh
 +# Copyright (C) 2012 Luka Perkov <freecwmp@lukaperkov.net>
@@ -8404,7 +10225,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +delete_object_device_routing() { return $E_INVALID_PARAMETER_NAME; }
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/unused/device_users src/ext/openwrt/scripts/unused/device_users
 --- upstream/ext/openwrt/scripts/unused/device_users	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/unused/device_users	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/unused/device_users	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,142 @@
 +#!/bin/sh
 +# Copyright (C) 2012 Luka Perkov <freecwmp@lukaperkov.net>
@@ -8550,7 +10371,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +delete_object_device_users() { return $E_INVALID_PARAMETER_NAME; }
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/unused/misc src/ext/openwrt/scripts/unused/misc
 --- upstream/ext/openwrt/scripts/unused/misc	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/unused/misc	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/unused/misc	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,42 @@
 +#!/bin/sh
 +# Copyright (C) 2012 Luka Perkov <freecwmp@lukaperkov.net>
@@ -8596,7 +10417,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +delete_object_misc() { return $E_INVALID_PARAMETER_NAME; }
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/unused/owsip_voice_service src/ext/openwrt/scripts/unused/owsip_voice_service
 --- upstream/ext/openwrt/scripts/unused/owsip_voice_service	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/unused/owsip_voice_service	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/unused/owsip_voice_service	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,262 @@
 +#!/bin/sh
 +# Copyright (C) 2012 Luka Perkov <freecwmp@lukaperkov.net>
@@ -8862,14 +10683,14 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/ext/openwrt/scripts/unused/x_easycwmp_org src/ext/openwrt/scripts/unused/x_easycwmp_org
 --- upstream/ext/openwrt/scripts/unused/x_easycwmp_org	1970-01-01 00:00:00.000000000 +0000
-+++ src/ext/openwrt/scripts/unused/x_easycwmp_org	2026-03-25 10:23:48.000000000 +0000
++++ src/ext/openwrt/scripts/unused/x_easycwmp_org	2026-05-14 06:11:27.000000000 +0000
 @@ -0,0 +1,3 @@
 +#!/bin/sh
 +# Copyright (C) 2011 Luka Perkov <freecwmp@lukaperkov.net>
 +
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/config.c src/src/config.c
 --- upstream/src/config.c	2019-09-26 13:02:11.000000000 +0000
-+++ src/src/config.c	2026-03-25 10:23:48.000000000 +0000
++++ src/src/config.c	2026-05-14 06:11:27.000000000 +0000
 @@ -15,6 +15,9 @@
  #include <unistd.h>
  #include <microxml.h> 
@@ -8951,7 +10772,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  						config->acs->ssl_verify = false;
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/config.h src/src/config.h
 --- upstream/src/config.h	2019-09-26 13:02:11.000000000 +0000
-+++ src/src/config.h	2026-03-25 10:23:48.000000000 +0000
++++ src/src/config.h	2026-05-14 06:11:27.000000000 +0000
 @@ -40,8 +40,12 @@
  	int  periodic_interval;
  	time_t periodic_time;
@@ -8967,7 +10788,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  struct local {
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/cwmp.c src/src/cwmp.c
 --- upstream/src/cwmp.c	2019-09-26 13:02:11.000000000 +0000
-+++ src/src/cwmp.c	2026-03-25 10:23:48.000000000 +0000
++++ src/src/cwmp.c	2026-05-14 06:11:27.000000000 +0000
 @@ -70,7 +70,7 @@
  	uloop_timeout_cancel(&periodic_inform_timer);
  	if (config->acs->periodic_enable && config->acs->periodic_interval) {
@@ -8977,9 +10798,21 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  			uloop_timeout_set(&periodic_inform_timer, cwmp_periodic_inform_time() * SECDTOMSEC);
  		}
  		else {
+@@ -756,8 +756,9 @@
+ }
+ 
+ void cwmp_update_value_change(void) {
+-	external_action_simple_execute("update_value_change", NULL, NULL);
+-	external_action_handle(NULL);
++	// TODO: fix notifications and then optimize this function
++	// external_action_simple_execute("update_value_change", NULL, NULL);
++	// external_action_handle(NULL);
+ }
+ 
+ void cwmp_clean(void)
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/cwmp.h src/src/cwmp.h
 --- upstream/src/cwmp.h	2019-09-26 13:02:11.000000000 +0000
-+++ src/src/cwmp.h	2026-03-25 10:23:48.000000000 +0000
++++ src/src/cwmp.h	2026-05-14 06:11:27.000000000 +0000
 @@ -142,7 +142,7 @@
  };
  
@@ -8991,7 +10824,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  static void cwmp_do_inform(struct uloop_timeout *timeout);
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/easycwmp.c src/src/easycwmp.c
 --- upstream/src/easycwmp.c	2019-09-26 13:02:11.000000000 +0000
-+++ src/src/easycwmp.c	2026-03-25 10:23:48.000000000 +0000
++++ src/src/easycwmp.c	2026-05-14 06:11:27.000000000 +0000
 @@ -271,21 +271,10 @@
  				exit(EXIT_FAILURE);
  		}
@@ -9040,8 +10873,109 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	free(cwmp);
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/external.c src/src/external.c
 --- upstream/src/external.c	2019-09-26 13:02:11.000000000 +0000
-+++ src/src/external.c	2026-03-25 10:23:48.000000000 +0000
-@@ -185,6 +185,8 @@
++++ src/src/external.c	2026-05-14 06:11:27.000000000 +0000
+@@ -28,14 +28,16 @@
+ #endif
+ 
+ 
++#include "json.h"
+ #include "external.h"
+ #include "easycwmp.h"
+ #include "log.h"
+ 
+ LIST_HEAD(external_list_parameter);
+-char *external_method_status = NULL;
+-char *external_method_instance = NULL;
+-char *external_method_fault = NULL;
++char *external_method_status		    = NULL;
++char *external_method_instance		    = NULL;
++char *external_method_fault		    = NULL;
++static json_object **external_method_buffer = NULL;
+ static int pfds_in[2], pfds_out[2], pid;
+ 
+ void external_add_list_paramameter(char *param_name, char *param_data, char *param_type, char *fault_code)
+@@ -83,6 +85,19 @@
+ 	}
+ }
+ 
++void external_free_method_buffer()
++{
++	if (!external_method_buffer) {
++		return;
++	}
++
++	for (int i = 0; external_method_buffer[i]; i++) {
++		json_object_put(external_method_buffer[i]);
++	}
++
++	FREE(external_method_buffer);
++}
++
+ void external_set_param_resp_status(char *status)
+ {
+ 	free(external_method_status);
+@@ -131,16 +146,59 @@
+ 	external_method_fault = NULL;
+ }
+ 
++void external_read_value_from_buffer(char *param_name)
++{
++	json_object **buff = external_method_buffer;
++
++	if (!buff) {
++		log_message(NAME, L_CRIT, "parameters' buffer is empty\n");
++	}
++
++	for (int i = 0; buff[i]; i++) {
++		if (!buff[i] || json_object_get_type(buff[i]) != json_type_object ||
++		    strcmp(param_name, json_common_get_string(buff[i], "parameter"))) {
++			continue;
++		}
++
++		char *param_type = json_common_get_string(buff[i], "type");
++		if (!param_type || param_type[0] == '\0') {
++			param_type = "xsd:string";
++		}
++
++		external_add_list_paramameter(param_name, json_common_get_string(buff[i], "value"),
++					      param_type, json_common_get_string(buff[i], "fault_code"));
++		return;
++	}
++}
++
+ static int external_read_pipe(int (*json_handle)(char *))
+ {
+ 	char buffer[1];
+ 	ssize_t rxed;
+ 	char *c = NULL, *line = NULL;
+-	int t;
++	int t, i = 0;
+ 	while ((rxed = read(pfds_out[0], buffer, sizeof(buffer))) > 0) {
+ 		if (buffer[0] == '\n') {
+ 			if (line == NULL) continue;
+ 			if (strcmp(line, EXTERNAL_PROMPT) == 0) goto done;
++			if (json_handle == json_handle_get_parameter_value) {
++				external_method_buffer = realloc(
++					external_method_buffer,
++					(i + 2) * sizeof(json_object *)
++				);
++
++				if (!external_method_buffer) {
++					log_message(NAME, L_WARNING, "external: not enough memory\n");
++					goto skip;
++				}
++
++				if (!(external_method_buffer[i++] = json_tokener_parse(line))) {
++					log_message(NAME, L_WARNING, "external: failed to convert "
++								     "string to json object\n");
++				}
++				external_method_buffer[i] = NULL;
++			}
++skip:
+ 			if (json_handle) json_handle(line);
+ 			FREE(line);
+ 		}
+@@ -185,6 +243,8 @@
  
  int external_init()
  {
@@ -9050,7 +10984,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	log_message(NAME, L_NOTICE, "external script init\n");
  	if (pipe(pfds_out) < 0)
  			return -1;
-@@ -207,6 +209,11 @@
+@@ -207,6 +267,11 @@
  
  		int i=0;
  		const char *argv[4];
@@ -9064,7 +10998,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  		argv[i++] = NULL;
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/external.h src/src/external.h
 --- upstream/src/external.h	2019-09-26 13:02:11.000000000 +0000
-+++ src/src/external.h	2026-03-25 10:23:48.000000000 +0000
++++ src/src/external.h	2026-05-14 06:11:27.000000000 +0000
 @@ -14,7 +14,6 @@
  #define _EASYCWMP_EXTERNAL_H__
  #include <libubox/list.h>
@@ -9073,9 +11007,25 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  extern struct list_head external_list_parameter;
  
  #define EXTERNAL_PROMPT "easycwmp>"
+@@ -37,6 +36,7 @@
+ void external_fetch_method_resp_status (char **status, char **fault);
+ void external_add_obj_resp (char *status, char *instance, char *fault);
+ void external_fetch_add_obj_resp (char **status, char **instance, char **fault);
++void external_read_value_from_buffer(char *param_name);
+ int external_action_parameter_execute(char *command, char *class, char *name, char *arg);
+ int external_action_simple_execute(char *command, char *class, char *arg);
+ int external_action_download_execute(char *url, char *file_type, char *file_size, char *user_name, char *password);
+@@ -47,6 +47,7 @@
+ 
+ void external_add_list_paramameter(char *param_name, char *param_data, char *param_type, char *fault_code);
+ void external_free_list_parameter();
++void external_free_method_buffer();
+ void external_parameter_delete(struct external_parameter *external_parameter);
+ #endif
+ 
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/http.c src/src/http.c
 --- upstream/src/http.c	2019-09-26 13:02:11.000000000 +0000
-+++ src/src/http.c	2026-03-25 10:23:48.000000000 +0000
++++ src/src/http.c	2026-05-14 06:11:27.000000000 +0000
 @@ -51,6 +51,8 @@
  	DD("url: %s\n", http_c.url);
  	if (config->acs->ssl_cert)
@@ -9105,7 +11055,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	if (!config->acs->ssl_verify)
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/http.h src/src/http.h
 --- upstream/src/http.h	2019-09-26 13:02:11.000000000 +0000
-+++ src/src/http.h	2026-03-25 10:23:48.000000000 +0000
++++ src/src/http.h	2026-05-14 06:11:27.000000000 +0000
 @@ -18,7 +18,7 @@
  #include <libubox/uloop.h>
  #include <curl/curl.h>
@@ -9115,3 +11065,261 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  struct http_client
  {
  	struct curl_slist *header_list;
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/json.c src/src/json.c
+--- upstream/src/json.c	2019-09-26 13:02:11.000000000 +0000
++++ src/src/json.c	2026-05-14 06:11:27.000000000 +0000
+@@ -95,7 +95,7 @@
+ 	return 0;
+ }
+ 
+-int json_handle_get_parameter_value(char *line)
++int json_handle_get_parameter_value_inform(char *line)
+ {
+ 	json_object *js_obj;
+ 	char *param_name, *param_value, *param_type, *fault_code;
+@@ -117,6 +117,11 @@
+ 	return 0;
+ }
+ 
++int json_handle_get_parameter_value(char *line)
++{
++	return 0;
++}
++
+ int json_handle_get_parameter_name(char *line)
+ {
+ 	json_object *js_obj;
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/json.h src/src/json.h
+--- upstream/src/json.h	2019-09-26 13:02:11.000000000 +0000
++++ src/src/json.h	2026-05-14 06:11:27.000000000 +0000
+@@ -18,6 +18,8 @@
+  #include <json/json.h>
+ #endif
+ 
++char *json_common_get_string(json_object *js_obj, char *key);
++int json_handle_get_parameter_value_inform(char *line);
+ int json_handle_get_parameter_value(char *line);
+ int json_handle_get_parameter_name(char *line);
+ int json_handle_get_parameter_attribute(char *line);
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/src/xml.c src/src/xml.c
+--- upstream/src/xml.c	2019-09-26 13:02:11.000000000 +0000
++++ src/src/xml.c	2026-05-14 06:11:27.000000000 +0000
+@@ -14,6 +14,7 @@
+ #include <stdbool.h>
+ #include <libubox/uloop.h>
+ #include <microxml.h>
++#include <regex.h>
+ 
+ #include "xml.h"
+ #include "backup.h"
+@@ -26,6 +27,10 @@
+ #include "json.h"
+ #include "log.h"
+ 
++#define PARAMETER_NAME_REGEX  "^[a-zA-Z0-9.\\-_]+$"
++#define PARAMETER_VALUE_REGEX "^[a-zA-Z0-9 .:,_/\\\\&=?%-]*$"
++#define PARAMETER_NAME_ROOT   "Device."
++
+ struct fault_code fault_array[]=
+ {
+ 	[FAULT_0]	 = {"0", "", ""},
+@@ -62,6 +67,7 @@
+ 		NULL };
+ 
+ static struct cwmp_namespaces ns;
++static char *previuos_param_prefix = NULL;
+ 
+ const struct rpc_method rpc_methods[] = {
+ 	{ "GetRPCMethods", xml_handle_get_rpc_methods },
+@@ -79,6 +85,9 @@
+ 	{ "ScheduleInform", xml_handle_schedule_inform },
+ };
+ 
++static int xml_create_set_parameter_value_single_fault_message(mxml_node_t *body, int fault_code, int code,
++							       char *parameter_name);
++
+ mxml_node_t *				/* O - Element node or NULL */
+ mxmlFindElementOpaque(mxml_node_t *node,	/* I - Current node */
+ 						mxml_node_t *top,	/* I - Top node */
+@@ -157,6 +166,11 @@
+ 
+ void xml_exit(void)
+ {
++	// Renew parameter prefix and buffer for GetParameterValues
++	// during each new session to updated parameter values
++	FREE(previuos_param_prefix);
++	external_free_method_buffer();
++
+ 	xml_free_ns();
+ }
+ 
+@@ -608,7 +622,7 @@
+ 	if (!b) goto error;
+ 
+ 	external_action_simple_execute("inform", "parameter", NULL);
+-	if (external_action_handle(json_handle_get_parameter_value))
++	if (external_action_handle(json_handle_get_parameter_value_inform))
+ 		goto error;
+ 
+ 	parameter_list = mxmlFindElement(tree, tree, "ParameterList", NULL, NULL, MXML_DESCEND);
+@@ -813,6 +827,28 @@
+ 		return 0;
+ }
+ 
++static int validate_set_parameter(char *value, const char *regex)
++{
++	regex_t rx = { 0 };
++	int ret	   = 0;
++
++	if (regcomp(&rx, regex, REG_EXTENDED)) {
++		log_message(NAME, L_WARNING, "Input validation regex compilation has failed\n");
++		return -1;
++	}
++
++	ret = regexec(&rx, value, 0, NULL, 0);
++
++	regfree(&rx);
++
++	if (ret) {
++		log_message(NAME, L_WARNING, "Parameter %s '%s' contains prohibited characters\n",
++		regex == PARAMETER_NAME_REGEX ? "name" : "value", value);
++	}
++
++	return ret;
++}
++
+ /* SetParameterValues */
+ 
+ int xml_handle_set_parameter_values(mxml_node_t *body_in,
+@@ -874,7 +910,17 @@
+ 		}
+ 
+ 		if (parameter_name && parameter_value) {
+-			external_action_parameter_execute("set", "value", parameter_name, parameter_value);
++			if (!validate_set_parameter(parameter_name, PARAMETER_NAME_REGEX) &&
++			    !validate_set_parameter(parameter_value, PARAMETER_VALUE_REGEX)) {
++				external_action_parameter_execute("set", "value", parameter_name,
++								  parameter_value);
++			} else {
++				xml_create_set_parameter_value_single_fault_message(body_out, FAULT_9003,
++									      FAULT_9007, parameter_name);
++				free(parameter_value);
++				external_free_list_parameter();
++				return 0;
++			}
+ 			parameter_name = NULL;
+ 			FREE(parameter_value);
+ 		}
+@@ -955,17 +1001,65 @@
+ 			parameter_name = "";
+ 		}
+ 
+-		if (parameter_name) {
+-			external_action_parameter_execute("get", "value", parameter_name, NULL);
+-			if (external_action_handle(json_handle_get_parameter_value))
+-				goto fault_out;
+-			fc = xml_check_fault_in_list_parameter();
+-			if (fc) {
+-				code = fc;
+-				goto fault_out;
++		if (!parameter_name) {
++			goto failed;
++		}
++
++		log_message(NAME, L_DEBUG, "getting parameter %s\n", parameter_name);
++
++		// If required parameter's prefix Device.X. matches previously loaded
++		// parameter's prefix, read data from loaded buffer
++		if (previuos_param_prefix &&
++		    !strncmp(parameter_name, previuos_param_prefix, strlen(previuos_param_prefix))) {
++			log_message(NAME, L_DEBUG, "prefix %s already loaded\n", previuos_param_prefix);
++			goto search;
++		}
++
++		const char *next_dot = strchr(parameter_name + strlen(PARAMETER_NAME_ROOT), '.');
++		if (next_dot) {
++			// Extracting Device.X. prefix from the parameter
++			int prefix_len		    = next_dot - parameter_name + 1;
++			char *parameter_name_prefix = calloc(prefix_len + 1, sizeof(char));
++			if (!parameter_name_prefix) {
++				log_message(NAME, L_CRIT, "not enough memory\n");
++				goto fallback;
++			}
++
++			if (snprintf(parameter_name_prefix, prefix_len + 1, "%.*s",
++				     prefix_len, parameter_name) != prefix_len) {
++				log_message(NAME, L_WARNING, "failed to format parameter name's prefix\n");
++				free(parameter_name_prefix);
++				goto fallback;
++			}
++
++			external_free_method_buffer();
++			external_action_parameter_execute("get", "value", parameter_name_prefix, NULL);
++
++			free(previuos_param_prefix);
++			if (!(previuos_param_prefix = strdup(parameter_name_prefix))) {
++				log_message(NAME, L_WARNING, "failed to save parameter name's prefix\n");
+ 			}
++
++			free(parameter_name_prefix);
++		} else {
++fallback:
++			// Reading parameter's value the old fashioned way where a single
++			// parameter's line is extracted
++			external_free_method_buffer();
++			external_action_parameter_execute("get", "value", parameter_name, NULL);
+ 		}
+ 
++		if (external_action_handle(json_handle_get_parameter_value))
++			goto fault_out;
++search:
++		external_read_value_from_buffer(parameter_name);
++
++		fc = xml_check_fault_in_list_parameter();
++		if (fc) {
++			code = fc;
++			goto fault_out;
++		}
++failed:
+ 		b = mxmlWalkNext(b, body_in, MXML_DESCEND);
+ 		parameter_name = NULL;
+ 	}
+@@ -1983,6 +2077,38 @@
+ 	return b;
+ }
+ 
++static int xml_create_set_parameter_value_single_fault_message(mxml_node_t *body, int fault_code, int code,
++							       char *parameter_name)
++{
++	mxml_node_t *b, *n, *t;
++	int index;
++
++	n = xml_create_generic_fault_message(body, fault_code);
++	if (!n) {
++		return -1;
++	}
++
++	b = mxmlNewElement(n, "SetParameterValuesFault");
++	if (!b) return -1;
++
++	t = mxmlNewElement(b, "ParameterName");
++	if (!t) return -1;
++	t = mxmlNewOpaque(t, parameter_name);
++	if (!t) return -1;
++
++	t = mxmlNewElement(b, "FaultCode");
++	if (!t) return -1;
++	t = mxmlNewOpaque(t, fault_array[code].code);
++	if (!t) return -1;
++
++	t = mxmlNewElement(b, "FaultString");
++	if (!t) return -1;
++	t = mxmlNewOpaque(t, fault_array[code].string);
++	if (!t) return -1;
++
++	return 0;
++}
++
+ int xml_create_set_parameter_value_fault_message(mxml_node_t *body, int code)
+ {
+ 	struct external_parameter *external_parameter;

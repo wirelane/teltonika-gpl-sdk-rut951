@@ -1,0 +1,1 @@
+[{"endpoint":"/rms/proxy/{service_group}/{?sid}","lua_service":"services/rms_proxy","backup_order":55},{"endpoint":"/rms/internal/{service_group}/{?sid}","lua_service":"services/rms_internal","exclude_from_backup":true},{"endpoint":"/rms/{service_group}/{?sid}","lua_service":"services/rms","backup_order":56}]

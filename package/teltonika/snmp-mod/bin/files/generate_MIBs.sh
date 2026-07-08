@@ -96,8 +96,7 @@ device=1
 is_installed mdcollectd && mdcollect=1
 is_true "gps" && gps=1
 traps=1
-# Hotspot is available on all devices except TSW switches
-( ! is_switch ) && hotspot=1
+( ! is_switch ) && ( ( is_true "ethernet" ) || ( is_true "wifi" ) ) && hotspot=1
 is_true "ios" && ios=1
 is_true "wifi" && wireless=1
 ! is_switch && if_vlan=1

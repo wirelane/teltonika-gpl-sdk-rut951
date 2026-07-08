@@ -267,6 +267,10 @@ append_interface_name() {
 	xappend "--interface-name=$1,$2"
 }
 
+append_dhcp_ignore_device() {
+	xappend_no_dhcp "--no-dhcp-interface=" "$1"
+}
+
 filter_dnsmasq() {
 	local cfg="$1" func="$2" match_cfg="$3" found_cfg
 
@@ -942,6 +946,7 @@ dnsmasq_start()
 	append_bool "$cfg" noresolv "--no-resolv"
 	append_bool "$cfg" localise_queries "--localise-queries"
 	append_bool "$cfg" readethers "--read-ethers"
+	config_list_foreach "$cfg" "ignore_dhcp_device" append_dhcp_ignore_device
 
 	local instance_name="dnsmasq.$cfg"
 	if [ "$cfg" = "$DEFAULT_INSTANCE" ]; then

@@ -47,6 +47,9 @@ define Package/netifd/install
 	$(INSTALL_DIR) $(1)/sbin $(1)/lib/config.d $(1)/usr/libexec/rpcd
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/netifd $(1)/sbin/
 	$(CP) ./files/* $(1)/
+	$(if $(CONFIG_PACKAGE_kmod-mt_wifi),\
+		printf '\nservice_running() {\n\tubus -t 120 wait_for network.interface\n\t/sbin/wifi up\n}\n' \
+		>> $(1)/etc/init.d/network)
 	$(LN) /usr/local/lib/netifd/proto $(1)/lib/netifd/
 	$(INSTALL_DIR) $(1)/etc/udhcpc.user.d/
 	$(CP) $(PKG_BUILD_DIR)/scripts/* $(1)/lib/netifd/

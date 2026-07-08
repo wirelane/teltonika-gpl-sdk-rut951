@@ -1,0 +1,42 @@
+#!/bin/sh
+
+print_help() {
+	printf "Usage: %s [options]\n
+
+DEPRECATED!
+	Instead use: ubus send vuci.notify '{\"event\":\"reload_routes\"}'
+
+Options:
+	-d | --delay SEC \t Wait (in foreground) for SEC seconds before triggering routes reload.
+	-h | --help \t\t Print this help and exit
+" "$0"
+}
+
+while [ -n "$1" ]; do
+	arg=$1
+	value=$2
+
+	case "$arg" in
+	-h | --help)
+		print_help
+		exit
+		;;
+	-d | --delay)
+		delay=$value
+		;;
+	*)
+		printf "Unknown option '%s'\n" "$arg"
+		print_help
+		exit 1
+		;;
+	esac
+	shift 2
+done
+
+[ -n "$delay" ] && [ "$delay" -gt 0 ] && sleep "$delay"
+
+ubus send vuci.notify '{"event":"reload_routes"}'
+[ $? -eq 0 ] || {
+	logger -t "$0" "Failed to trigger vuci routes reload"
+	exit 1
+}

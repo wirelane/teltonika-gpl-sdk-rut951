@@ -50,25 +50,6 @@ ifeq ($(CONFIG_GPL_INCLUDE_WEB_SOURCES), y)
 endif
 endif
 
-define Package/$(PKG_NAME)/post/Default
-#!/bin/sh
-[ -z "$${IPKG_INSTROOT}" ] || exit 0
-ubus send vuci.notify '{"event": "reload_routes"}'
-exit 0
-endef
-
-ifndef Package/$(PKG_NAME)/postinst
-define Package/$(PKG_NAME)/postinst
-$(call Package/$(PKG_NAME)/post/Default,$(1))
-endef
-endif
-
-ifndef Package/$(PKG_NAME)/postrm
-define Package/$(PKG_NAME)/postrm
-$(call Package/$(PKG_NAME)/post/Default,$(1))
-endef
-endif
-
 ifndef CLOSED_GPL_INSTALL
 define Build/Compile
 	if [[ -d ./files ]]; then $(CP) ./files/ $(PKG_BUILD_DIR)/ ; fi

@@ -24,9 +24,13 @@ define Package/$(PKG_NAME)/install
 	files_dir="./files"; if [[ -d "$(PKG_BUILD_DIR)/files" ]]; then files_dir="$(PKG_BUILD_DIR)/files"; fi; \
 	$(INSTALL_DIR) $(1)/usr/lib/lua/api/services; \
 	$(INSTALL_DIR) $(1)/usr/share/rpcd/acl.d; \
+	$(INSTALL_DIR) $(1)/usr/share/vuci/path.d; \
+	$(INSTALL_DIR) $(1)/usr/share/acl.d; \
 	$(INSTALL_DIR) $(1)/usr/lib/lua/vuci; \
 	$(INSTALL_BIN) $$$$files_dir/usr/lib/lua/vuci/ds_update_list.lua $(1)/usr/lib/lua/vuci/ds_update_list.lua; \
+	$(INSTALL_DATA) $$$$files_dir/usr/share/vuci/path.d/data-sender.json $(1)/usr/share/vuci/path.d/data-sender.json; \
 	$(CP) $$$$files_dir/usr/share/rpcd/acl.d/datasender.json $(1)/usr/share/rpcd/acl.d/datasender.json; \
+	$(CP) $$$$files_dir/usr/share/acl.d/api_ds.json $(1)/usr/share/acl.d/api_ds.json; \
 	$(foreach file,data_sender_collections data_sender_inputs data_sender_outputs data_sender_format data_sender_encoder data_sender_utils data_sender_compression, \
 	  $(call ModuleInstallLuaFile,$(file),,$(1),$$$$files_dir) \
 	)
@@ -76,6 +80,7 @@ DATA_TO_SERVER_MODULES := \
 	Modbus_Alarm:modbus-alarm:ds_inputs:ds_input_modbus_alarm \
 	Modbus:modbus:ds_inputs:ds_input_modbus \
 	IEC_60870_5:iec60870:ds_inputs:ds_input_iec60870 \
+	CANopen:canopen:ds_inputs:ds_input_canopen \
 	DNP3:dnp3:ds_inputs:ds_input_dnp3 \
 	OPCUA:opcua:ds_inputs:ds_input_opcua \
 	Impulse_Counter:impulse_counter:ds_inputs:ds_input_impulse_counter \

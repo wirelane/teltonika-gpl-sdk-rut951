@@ -25,6 +25,33 @@ define remove_ipkg_files
 endef
 
 # 1: package name
+define BuildIPKGPostRM
+  $(1)_COMMANDS += ([ -d ../usr/libexec/rpcd ] || [ -d ../usr/lib/rpcd ]) && \
+                   echo "[ -x /etc/init.d/rpcd ] && /etc/init.d/rpcd reload" >> postrm;
+
+  $(1)_COMMANDS += [ -d ../usr/share/rpcd/acl.d ] && \
+                   echo "[ -x /etc/init.d/rpcd ] && ubus call session reload_acls" >> postrm;
+
+  $(1)_COMMANDS += [ -d ../usr/share/vuci/path.d ] && \
+                   echo "[ -x /etc/init.d/uhttpd ] && killall -q -1 uhttpd || true" >> postrm;
+
+  $(1)_COMMANDS += [ -d ../usr/share/vuci/menu.d ] && \
+                   echo "[ -x /etc/init.d/uhttpd ] && ubus send vuci.notify '{\"event\": \"reload_routes\"}'" >> postrm;
+
+  # If any of the above commands suceeded in append something to postrm, then this will add a shebang
+  # If nothing was appened, a sheband won't be added
+  $(1)_COMMANDS += [ -f postrm ] && \
+                   sed -i "1i \#!/bin/sh" postrm;
+
+  $(call BuildIPKGVariable,$(1),postrm,,1)
+endef
+
+# 1: package name
+define ipk_third_party_value
+$(strip $(shell [ -f "$(TOPDIR)/ipk_packages.json" ] && command -v jq >/dev/null 2>&1 && jq -er '."$(1)".third_party == true' "$(TOPDIR)/ipk_packages.json" >/dev/null 2>&1 && echo True))
+endef
+
+# 1: package name
 # 2: variable name
 # 3: variable suffix
 # 4: file is a script
@@ -32,8 +59,9 @@ define BuildIPKGVariable
 ifdef Package/$(1)/$(2)
   $$(IPKG_$(1)) : VAR_$(2)$(3)=$$(Package/$(1)/$(2))
   $(call shexport,Package/$(1)/$(2))
-  $(1)_COMMANDS += echo "$$$$$$$$$(call shvar,Package/$(1)/$(2))" > $(2)$(3); $(if $(4),chmod 0755 $(2)$(3);)
+  $(1)_COMMANDS += echo "$$$$$$$$$(call shvar,Package/$(1)/$(2))" >> $(2)$(3);
 endif
+  $(if $(4),$(1)_COMMANDS += [ -f $(2)$(3) ] && chmod 0755 $(2)$(3) || true;)
 endef
 
 PARENL :=(
@@ -146,7 +174,7 @@ ifeq ($(DUMP),)
     $(eval $(call BuildIPKGVariable,$(1),preinst,,1))
     $(eval $(call BuildIPKGVariable,$(1),postinst,-pkg,1))
     $(eval $(call BuildIPKGVariable,$(1),prerm,-pkg,1))
-    $(eval $(call BuildIPKGVariable,$(1),postrm,,1))
+    $(eval $(call BuildIPKGPostRM,$(1)))
 
     $(PKG_BUILD_DIR)/.pkgdir/$(1).installed : export PATH=$$(TARGET_PATH_PKG)
     $(PKG_BUILD_DIR)/.pkgdir/$(1).installed: $(STAMP_BUILT)
@@ -200,6 +228,7 @@ $$(call addfield,Depends,$$(Package/$(1)/DEPENDS)
 )$(if $(PKG_TLT_NAME),tlt_name: $(PKG_TLT_NAME)
 )$(if $(PKG_APP_NAME),AppName: $(PKG_APP_NAME)
 )$(if $(PKG_HW_INFO),HWInfo: $(PKG_HW_INFO)
+)$(if $(call ipk_third_party_value,$(1)),Third-Party: $(call ipk_third_party_value,$(1))
 )$(if $(FATTRS),FileAttributes: $(FATTRS)
 )Architecture: $(PKGARCH)
 Installed-Size: 0

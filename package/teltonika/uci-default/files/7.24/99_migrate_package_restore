@@ -1,0 +1,16 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+[ ! -f /etc/config/package_restore ] && exit 0
+
+if [ -f /etc/package_restore.txt ]; then
+	sed -i 's/^bondix-client - Bondix by SIMA GmbH$/vuci-app-bondix-ui - Bondix by SIMA GmbH - 3rd_party_packages/' /etc/package_restore.txt
+	sed -i '/ - tlt_packages$/!{/ - 3rd_party_packages$/!{/ - /s/$/ - tlt_packages/}}' /etc/package_restore.txt
+fi
+
+[ -z "$(uci_get "package_restore" "package_restore" "3rd_party_packages_enabled")" ] && \
+	uci_set "package_restore" "package_restore" "3rd_party_packages_enabled" "1"
+uci_commit "package_restore"
+
+exit 0

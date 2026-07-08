@@ -1,0 +1,1 @@
+[{"endpoint":"/aws/provisioning/{service_group}/{?sid}","lua_service":"services/aws_provisioning","backup_order":59},{"endpoint":"/aws/jobs/{service_group}/{?sid}","lua_service":"services/aws_jobs","backup_order":60}]

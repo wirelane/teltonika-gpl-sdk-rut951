@@ -21,7 +21,7 @@ define Device/TEMPLATE_teltonika_atrm50
 	DEVICE_FEATURES := usb usb-port ethernet power_ios gps mobile wifi dual_band_ssid \
 		dual_sim at_sim dsa hw_nat nat_offloading multi_tag power-control\
 		port_link soft_port_mirror gigabit_port sd_card xfrm-offload tpm reset_button itxpt modbus \
-		dot1x-server port-mirror
+		dot1x-server port-mirror esim-p
 
 	DEVICE_WAN_OPTION := wan
 

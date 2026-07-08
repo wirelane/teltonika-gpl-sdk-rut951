@@ -1,0 +1,1 @@
+[{"endpoint":"/upnp/redirects/{service_group}/{?sid}","lua_service":"services/upnp_redirects","backup_order":172},{"endpoint":"/upnp/global","lua_service":"services/upnp_settings","backup_order":173},{"endpoint":"/upnp/acls/{service_group}/{?sid}","lua_service":"services/upnp_acls","backup_order":174}]

@@ -153,6 +153,7 @@ menu "Global build settings"
 		bool
 		prompt "Collect kernel debug information"
 		select KERNEL_DEBUG_INFO
+		default n if SMALL_FLASH
 		default y
 		help
 		  This collects debugging symbols from the kernel and all compiled modules.

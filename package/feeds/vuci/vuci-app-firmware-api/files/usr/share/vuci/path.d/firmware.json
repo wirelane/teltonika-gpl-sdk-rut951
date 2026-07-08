@@ -1,0 +1,1 @@
+[{"endpoint":"/firmware/{service_group}/{sid}/{?type}","lua_service":"system/firmware","exclude_from_backup":true},{"endpoint":"/fota/{service_group}/{?sid}","lua_service":"system/fota","backup_order":252}]

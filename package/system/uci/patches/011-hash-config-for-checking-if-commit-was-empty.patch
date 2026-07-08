@@ -1,0 +1,181 @@
+diff --git a/file.c b/file.c
+index f79540d..2bcc0f8 100644
+--- a/file.c
++++ b/file.c
+@@ -805,6 +805,63 @@ error:
+ 	return UCI_FILE_LOCK_INVALID;
+ }
+ 
++static unsigned int uci_hash_option(unsigned int hash, struct uci_option *option)
++{
++	hash = djbhash_str(hash, option->e.name);
++
++	switch(option->type) {
++	case UCI_TYPE_STRING:
++		hash = djbhash_str(hash, option->v.string);
++		break;
++	case UCI_TYPE_LIST: {
++		uint32_t value_count = 0;
++		struct uci_element *e = NULL;
++		uci_foreach_element(&option->v.list, e) {
++			hash = djbhash_str(hash, e->name);
++		}
++		hash = djbhash(hash, (uint8_t*)&value_count, sizeof(value_count));
++		break;
++	} default:
++		break;
++	}
++
++	return hash;
++}
++
++static unsigned int uci_hash_section(unsigned int hash, struct uci_section *section)
++{
++	uint32_t option_count = 0;
++
++	struct uci_element *e = NULL;
++	uci_foreach_element(&section->options, e) {
++		hash = uci_hash_option(hash, uci_to_option(e));
++		option_count += 1;
++	}
++
++	hash = djbhash(hash, (uint8_t*)&option_count, sizeof(option_count));
++	hash = djbhash(hash, (uint8_t*)&section->anonymous, sizeof(section->anonymous));
++	hash = djbhash_str(hash, section->e.name);
++	hash = djbhash_str(hash, section->type);
++
++	return hash;
++}
++
++static unsigned int uci_hash_package(unsigned int hash, struct uci_package *package)
++{
++	uint32_t section_count = 0;
++
++	struct uci_element *e = NULL;
++	uci_foreach_element(&package->sections, e) {
++		hash = uci_hash_section(hash, uci_to_section(e));
++		section_count += 1; 
++	}
++
++	hash = djbhash(hash, (uint8_t*)&section_count, sizeof(section_count));
++	hash = djbhash_str(hash, package->e.name);
++
++	return hash;
++}
++
+ static void uci_file_commit(struct uci_context *ctx, struct uci_package **package, bool overwrite)
+ {
+ 	struct uci_package *p = *package;
+@@ -861,15 +918,16 @@ static void uci_file_commit(struct uci_context *ctx, struct uci_package **packag
+ 			/* freed together with the uci_package */
+ 			path = NULL;
+ 		}
+-		bool deltas = !uci_list_empty(&p->delta);
++
++		unsigned int package_hash_before_load = uci_hash_package(DBJHASH_INITIAL, p);
+ 
+ 		/* flush delta */
+ 		if (!uci_load_delta(ctx, p, true))
+ 			goto done;
+ 
+-		ctx->was_empty_commit = deltas;
+-	} else {
+-		ctx->was_empty_commit = false;
++		unsigned int package_hash_after_load = uci_hash_package(DBJHASH_INITIAL, p);
++
++		ctx->was_empty_commit = package_hash_before_load == package_hash_after_load;
+ 	}
+ 
+ 	fd = mkstemp(filename);
+diff --git a/list.c b/list.c
+index dfc0e23..bbbc311 100644
+--- a/list.c
++++ b/list.c
+@@ -130,26 +130,10 @@ uci_alloc_list(struct uci_section *s, const char *name)
+ 	return o;
+ }
+ 
+-/* Based on an efficient hash function published by D. J. Bernstein */
+-static unsigned int djbhash(unsigned int hash, char *str)
+-{
+-	int len = strlen(str);
+-	int i;
+-
+-	/* initial value */
+-	if (hash == ~0U)
+-		hash = 5381;
+-
+-	for(i = 0; i < len; i++) {
+-		hash = ((hash << 5) + hash) + str[i];
+-	}
+-	return (hash & 0x7FFFFFFF);
+-}
+-
+ /* fix up an unnamed section, e.g. after adding options to it */
+ static void uci_fixup_section(struct uci_context *ctx, struct uci_section *s)
+ {
+-	unsigned int hash = ~0U;
++	unsigned int hash = DBJHASH_INITIAL;
+ 	struct uci_element *e;
+ 	char buf[16];
+ 
+@@ -165,14 +149,14 @@ static void uci_fixup_section(struct uci_context *ctx, struct uci_section *s)
+ 	 * If the order of the unnamed sections changes for some reason,
+ 	 * updates to them will be rejected.
+ 	 */
+-	hash = djbhash(hash, s->type);
++	hash = djbhash_str(hash, s->type);
+ 	uci_foreach_element(&s->options, e) {
+ 		struct uci_option *o;
+-		hash = djbhash(hash, e->name);
++		hash = djbhash_str(hash, e->name);
+ 		o = uci_to_option(e);
+ 		switch(o->type) {
+ 		case UCI_TYPE_STRING:
+-			hash = djbhash(hash, o->v.string);
++			hash = djbhash_str(hash, o->v.string);
+ 			break;
+ 		default:
+ 			break;
+diff --git a/uci_internal.h b/uci_internal.h
+index d73c8fe..2c74567 100644
+--- a/uci_internal.h
++++ b/uci_internal.h
+@@ -79,6 +79,10 @@ __private struct uci_element *uci_expand_ptr(struct uci_context *ctx, struct uci
+ 
+ __private int uci_load_delta(struct uci_context *ctx, struct uci_package *p, bool flush);
+ 
++#define DBJHASH_INITIAL (~0U)
++__private unsigned int djbhash(unsigned int hash, uint8_t *buff, size_t buff_len);
++__private unsigned int djbhash_str(unsigned int hash, char *str);
++
+ static inline bool uci_validate_package(const char *str)
+ {
+ 	return uci_validate_str(str, UCI_STR_NAME);
+diff --git a/util.c b/util.c
+index a0d5d35..f26f71b 100644
+--- a/util.c
++++ b/util.c
+@@ -298,3 +298,22 @@ __private void uci_close_stream(FILE *stream)
+ }
+ 
+ 
++/* Based on an efficient hash function published by D. J. Bernstein */
++__private unsigned int djbhash(unsigned int hash, uint8_t *buff, size_t buff_len)
++{
++	if (hash == DBJHASH_INITIAL)
++		hash = 5381;
++
++	for(size_t i = 0; i < buff_len; i++) {
++		hash = ((hash << 5) + hash) + buff[i];
++	}
++	return (hash & 0x7FFFFFFF);
++}
++
++__private unsigned int djbhash_str(unsigned int hash, char *str)
++{
++	if (str != NULL) {
++		hash = djbhash(hash, (uint8_t*)str, strlen(str));
++	}
++	return hash;
++}

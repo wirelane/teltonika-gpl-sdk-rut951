@@ -1,0 +1,1 @@
+[{"endpoint":"/dnp3/serial/{service_group}/{?sid}","lua_service":"services/dnp3_serial","backup_order":138},{"endpoint":"/dnp3/serial/{binding}/requests/{service_group}/{?sid}","lua_service":"services/dnp3_serial_request","backup_order":139}]

@@ -1,0 +1,1 @@
+[{"endpoint":"/sim_idle_protection/{service_group}/{?sid}","lua_service":"network/sim_idle_protection","backup_order":287}]

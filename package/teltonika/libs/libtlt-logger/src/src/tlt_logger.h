@@ -8,14 +8,6 @@ extern "C" {
 #include <stdarg.h>
 #include <syslog.h>
 
-// Configuration constants
-#define MAX_LOG_MSG 5
-#define SPAM_WARNING                                                                                         \
-	"(Will stop printing error messages due to log spam. "                                               \
-	"That does not mean that the problem is no longer present!)"
-#define SOCKET_PATH "/var/logd.sock"
-#define BUF_SIZE    256
-
 // Bitmask definitions for enabled log levels
 #define B_EMERG	  (1u << 0)
 #define B_ALERT	  (1u << 1)

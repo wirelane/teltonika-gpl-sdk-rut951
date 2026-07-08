@@ -61,7 +61,7 @@ define Package/sim_idle_protection/postinst
 	config_load simcard
 	config_foreach add_sim_idle_protection_config sim
 
-	[[ -x "/bin/trigger_vuci_routes_reload" ]] && /bin/trigger_vuci_routes_reload
+	ubus send vuci.notify '{"event":"reload_routes"}'
 endef
 
 define Package/$(PKG_NAME)/prerm
@@ -69,7 +69,7 @@ define Package/$(PKG_NAME)/prerm
 	[[ -s "/etc/config/sim_idle_protection" ]] && rm -f /etc/config/sim_idle_protection
 	[[ -s "/etc/crontabs/sim_idle_protection" ]] && rm -f /etc/crontabs/sim_idle_protection
 	[[ -s "/etc/permtab.d/sim_idle_protection" ]] && rm -f /etc/permtab.d/sim_idle_protection
-	[[ -x "/bin/trigger_vuci_routes_reload" ]] && /bin/trigger_vuci_routes_reload
+	ubus send vuci.notify '{"event":"reload_routes"}'
 endef
 
 

@@ -17,7 +17,7 @@ old_library=''
 inherited_linker_flags=''
 
 # Libraries that this one depends upon.
-dependency_libs=' -lcurl -L/toolchain/target/usr/lib -L/toolchain/target/lib'
+dependency_libs=' -lcurl -lssh2 -L/toolchain/target/usr/lib -L/toolchain/target/lib'
 
 # Names of additional weak libraries provided by this library
 weak_library_names=''

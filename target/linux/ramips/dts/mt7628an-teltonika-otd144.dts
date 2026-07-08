@@ -54,6 +54,14 @@
 			gpios = <&gpio 38 GPIO_ACTIVE_LOW>;
 			tlt-mnf,hwver = <500 9999>;
 		};
+
+		gpio_tpm_reset {
+			gpio-export,name = "tpm_reset";
+			gpios = <&gpio 44 GPIO_ACTIVE_LOW>;
+			gpio-export,output = <1>;
+			tlt-mnf,hwver = <500 9999>;
+		};
+
 	};
 
 	keys {

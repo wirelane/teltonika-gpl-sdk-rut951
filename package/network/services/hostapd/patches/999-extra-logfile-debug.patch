@@ -1,6 +1,22 @@
 --- a/src/ap/ieee802_11.c
 +++ b/src/ap/ieee802_11.c
-@@ -6118,9 +6118,12 @@
+@@ -3450,6 +3450,7 @@
+ 
+ 	sta->last_seq_ctrl = seq_ctrl;
+ 	sta->last_subtype = WLAN_FC_STYPE_AUTH;
++	sta->last_rssi = rssi;
+ #ifdef CONFIG_MBO
+ 	sta->auth_rssi = rssi;
+ #endif /* CONFIG_MBO */
+@@ -5842,6 +5843,7 @@
+ 	sta->last_seq_ctrl = seq_ctrl;
+ 	sta->last_subtype = reassoc ? WLAN_FC_STYPE_REASSOC_REQ :
+ 		WLAN_FC_STYPE_ASSOC_REQ;
++	sta->last_rssi = rssi;
+ 
+ 	if (hapd->tkip_countermeasures) {
+ 		resp = WLAN_STATUS_UNSPECIFIED_FAILURE;
+@@ -6118,9 +6120,12 @@
  			       struct sta_info *sta,
  			       const struct ieee80211_mgmt *mgmt)
  {
@@ -11,11 +27,256 @@
 +	const char *reason_str = reason2str(reason_code);
 +
 +	wpa_msg(hapd->msg_ctx, MSG_DEBUG | MSG_LOGFILE,
-+		"deauthentication: STA=" MACSTR " reason=%hu:%s",
-+		MAC2STR(mgmt->sa), reason_code, reason_str);
++		"deauthentication: STA=" MACSTR " reason=%hu:%s rssi=%d",
++		MAC2STR(mgmt->sa), reason_code, reason_str, sta->last_rssi);
  
  	ap_sta_set_authorized(hapd, sta, 0);
  	sta->last_seq_ctrl = WLAN_INVALID_MGMT_SEQ;
+@@ -6142,9 +6147,12 @@
+ 				 struct sta_info *sta,
+ 				 const struct ieee80211_mgmt *mgmt)
+ {
+-	wpa_msg(hapd->msg_ctx, MSG_DEBUG,
+-		"disassocation: STA=" MACSTR " reason_code=%d",
+-		MAC2STR(mgmt->sa), le_to_host16(mgmt->u.disassoc.reason_code));
++	u16 reason_code = le_to_host16(mgmt->u.disassoc.reason_code);
++	const char *reason_str = reason2str(reason_code);
++
++	wpa_msg(hapd->msg_ctx, MSG_DEBUG | MSG_LOGFILE,
++		"disassocation: STA=" MACSTR " reason=%hu:%s rssi=%d",
++		MAC2STR(mgmt->sa), reason_code, reason_str, sta->last_rssi);
+ 
+ 	ap_sta_set_authorized(hapd, sta, 0);
+ 	sta->last_seq_ctrl = WLAN_INVALID_MGMT_SEQ;
+@@ -6246,7 +6254,7 @@
+ 
+ 
+ static void handle_disassoc(struct hostapd_data *hapd,
+-			    const struct ieee80211_mgmt *mgmt, size_t len)
++			    const struct ieee80211_mgmt *mgmt, size_t len, int rssi)
+ {
+ 	struct sta_info *sta;
+ 
+@@ -6265,6 +6273,7 @@
+ 			MAC2STR(mgmt->sa));
+ 		return;
+ 	}
++	sta->last_rssi = rssi;
+ 
+ 	if (hostapd_ml_handle_disconnect(hapd, sta, mgmt, true))
+ 		return;
+@@ -6274,7 +6283,7 @@
+ 
+ 
+ static void handle_deauth(struct hostapd_data *hapd,
+-			  const struct ieee80211_mgmt *mgmt, size_t len)
++			  const struct ieee80211_mgmt *mgmt, size_t len, int rssi)
+ {
+ 	struct sta_info *sta;
+ 
+@@ -6297,6 +6306,7 @@
+ 			MAC2STR(mgmt->sa));
+ 		return;
+ 	}
++	sta->last_rssi = rssi;
+ 
+ 	if (hostapd_ml_handle_disconnect(hapd, sta, mgmt, false))
+ 		return;
+@@ -6381,7 +6391,7 @@
+ 
+ static int handle_action(struct hostapd_data *hapd,
+ 			 const struct ieee80211_mgmt *mgmt, size_t len,
+-			 unsigned int freq)
++			 unsigned int freq, int rssi)
+ {
+ 	struct sta_info *sta;
+ 	u8 *action __maybe_unused;
+@@ -6438,6 +6448,7 @@
+ 
+ 		sta->last_seq_ctrl = seq_ctrl;
+ 		sta->last_subtype = WLAN_FC_STYPE_ACTION;
++		sta->last_rssi = rssi;
+ 	}
+ 
+ 	switch (mgmt->u.action.category) {
+@@ -6728,17 +6739,17 @@
+ 		break;
+ 	case WLAN_FC_STYPE_DISASSOC:
+ 		wpa_printf(MSG_DEBUG, "mgmt::disassoc");
+-		handle_disassoc(hapd, mgmt, len);
++		handle_disassoc(hapd, mgmt, len, ssi_signal);
+ 		ret = 1;
+ 		break;
+ 	case WLAN_FC_STYPE_DEAUTH:
+ 		wpa_msg(hapd->msg_ctx, MSG_DEBUG, "mgmt::deauth");
+-		handle_deauth(hapd, mgmt, len);
++		handle_deauth(hapd, mgmt, len, ssi_signal);
+ 		ret = 1;
+ 		break;
+ 	case WLAN_FC_STYPE_ACTION:
+ 		wpa_printf(MSG_DEBUG, "mgmt::action");
+-		ret = handle_action(hapd, mgmt, len, freq);
++		ret = handle_action(hapd, mgmt, len, freq, ssi_signal);
+ 		break;
+ 	default:
+ 		hostapd_logger(hapd, mgmt->sa, HOSTAPD_MODULE_IEEE80211,
+--- a/src/ap/sta_info.c
++++ b/src/ap/sta_info.c
+@@ -560,15 +560,27 @@
+ 	if ((sta->flags & WLAN_STA_ASSOC) &&
+ 	    (sta->timeout_next == STA_NULLFUNC ||
+ 	     sta->timeout_next == STA_DISASSOC)) {
+-		int inactive_sec;
++		struct hostap_sta_driver_data data;
+ 		/*
+ 		 * Add random value to timeout so that we don't end up bouncing
+ 		 * all stations at the same time if we have lots of associated
+ 		 * stations that are idle (but keep re-associating).
+ 		 */
+ 		int fuzz = os_random() % 20;
+-		inactive_sec = hostapd_drv_get_inact_sec(hapd, sta->addr);
+-		if (inactive_sec == -1) {
++		int ret;
++		os_memset(&data, 0, sizeof(data));
++		data.inactive_msec = (unsigned long) -1;
++		data.signal = -WPA_INVALID_NOISE;
++		ret = hostapd_drv_read_sta_data(hapd, &data, sta->addr);
++		if (ret == -ENOENT) {
++			wpa_msg(hapd->msg_ctx, MSG_DEBUG,
++				"Station " MACSTR " has lost its driver entry",
++				MAC2STR(sta->addr));
++
++			/* Avoid sending client probe on removed client */
++			sta->timeout_next = STA_DISASSOC;
++			goto skip_poll;
++		} else if (ret != 0 || data.inactive_msec == (unsigned long) -1) {
+ 			wpa_msg(hapd->msg_ctx, MSG_DEBUG,
+ 				"Check inactivity: Could not "
+ 				"get station info from kernel driver for "
+@@ -579,30 +591,26 @@
+ 			 * but do not disconnect the station now.
+ 			 */
+ 			next_time = max_inactivity + fuzz;
+-		} else if (inactive_sec == -ENOENT) {
+-			wpa_msg(hapd->msg_ctx, MSG_DEBUG,
+-				"Station " MACSTR " has lost its driver entry",
+-				MAC2STR(sta->addr));
+-
+-			/* Avoid sending client probe on removed client */
+-			sta->timeout_next = STA_DISASSOC;
+-			goto skip_poll;
+-		} else if (inactive_sec < max_inactivity) {
+-			/* station activity detected; reset timeout state */
+-			wpa_msg(hapd->msg_ctx, MSG_DEBUG,
+-				"Station " MACSTR " has been active %is ago",
+-				MAC2STR(sta->addr), inactive_sec);
+-			sta->timeout_next = STA_NULLFUNC;
+-			next_time = max_inactivity + fuzz - inactive_sec;
+ 		} else {
+-			wpa_msg(hapd->msg_ctx, MSG_DEBUG,
+-				"Station " MACSTR " has been "
+-				"inactive too long: %d sec, max allowed: %d",
+-				MAC2STR(sta->addr), inactive_sec,
+-				max_inactivity);
+-
+-			if (hapd->conf->skip_inactivity_poll)
+-				sta->timeout_next = STA_DISASSOC;
++			int inactive_sec = data.inactive_msec / 1000;
++			sta->last_rssi = data.signal;
++			if (inactive_sec < max_inactivity) {
++				/* station activity detected; reset timeout state */
++				wpa_msg(hapd->msg_ctx, MSG_DEBUG,
++					"Station " MACSTR " has been active %is ago",
++					MAC2STR(sta->addr), inactive_sec);
++				sta->timeout_next = STA_NULLFUNC;
++				next_time = max_inactivity + fuzz - inactive_sec;
++			} else {
++				wpa_msg(hapd->msg_ctx, MSG_DEBUG,
++					"Station " MACSTR " has been "
++					"inactive too long: %d sec, max allowed: %d",
++					MAC2STR(sta->addr), inactive_sec,
++					max_inactivity);
++	
++				if (hapd->conf->skip_inactivity_poll)
++					sta->timeout_next = STA_DISASSOC;
++			}
+ 		}
+ 	}
+ 
+@@ -1001,8 +1009,10 @@
+ static void ap_sta_handle_disassociate(struct hostapd_data *hapd,
+ 				       struct sta_info *sta, u16 reason)
+ {
+-	wpa_printf(MSG_DEBUG, "%s: disassociate STA " MACSTR,
+-		   hapd->conf->iface, MAC2STR(sta->addr));
++	const char *reason_str = reason2str(reason);
++
++	wpa_printf(MSG_DEBUG | MSG_LOGFILE, "%s: disassociate STA " MACSTR " reason=%hu:%s rssi=%d",
++		   hapd->conf->iface, MAC2STR(sta->addr), reason, reason_str, sta->last_rssi);
+ 
+ 	if (hapd->iface->current_mode &&
+ 	    hapd->iface->current_mode->mode == HOSTAPD_MODE_IEEE80211AD) {
+@@ -1048,8 +1058,10 @@
+ static void ap_sta_handle_deauthenticate(struct hostapd_data *hapd,
+ 					 struct sta_info *sta, u16 reason)
+ {
+-	wpa_printf(MSG_DEBUG, "%s: deauthenticate STA " MACSTR,
+-		   hapd->conf->iface, MAC2STR(sta->addr));
++	const char *reason_str = reason2str(reason);
++
++	wpa_printf(MSG_DEBUG | MSG_LOGFILE, "%s: deauthenticate STA " MACSTR " reason=%hu:%s rssi=%d",
++		   hapd->conf->iface, MAC2STR(sta->addr), reason, reason_str, sta->last_rssi);
+ 
+ 	sta->flags &= ~(WLAN_STA_AUTH | WLAN_STA_ASSOC | WLAN_STA_ASSOC_REQ_OK);
+ 
+@@ -1063,8 +1075,10 @@
+ static void ap_sta_handle_disconnect(struct hostapd_data *hapd,
+ 				     struct sta_info *sta, u16 reason)
+ {
+-	wpa_printf(MSG_DEBUG, "%s: disconnect STA " MACSTR,
+-		   hapd->conf->iface, MAC2STR(sta->addr));
++	const char *reason_str = reason2str(reason);
++
++	wpa_printf(MSG_DEBUG | MSG_LOGFILE, "%s: disconnect STA " MACSTR " reason=%hu:%s rssi=%d",
++		   hapd->conf->iface, MAC2STR(sta->addr), reason, reason_str, sta->last_rssi);
+ 
+ 	sta->flags &= ~(WLAN_STA_AUTH | WLAN_STA_ASSOC);
+ 	wpa_auth_sm_event(sta->wpa_sm, WPA_DEAUTH);
+@@ -1662,8 +1676,13 @@
+ 		}
+ 
+ 		hostapd_ubus_notify_authorized(hapd, sta, auth_alg);
+-		wpa_msg(hapd->msg_ctx, MSG_INFO, AP_STA_CONNECTED "%s%s%s%s%s",
+-			buf, ip_addr, keyid_buf, dpp_pkhash_buf, alg_buf);
++#ifdef CONFIG_MBO
++		wpa_msg(hapd->msg_ctx, MSG_INFO, AP_STA_CONNECTED "%s%s%s%s%s rssi=%d",
++			buf, ip_addr, keyid_buf, dpp_pkhash_buf, alg_buf, sta->auth_rssi);
++#else /* CONFIG_MBO */
++		wpa_msg(hapd->msg_ctx, MSG_INFO, AP_STA_CONNECTED "%s%s%s%s%s rssi=%d",
++			buf, ip_addr, keyid_buf, dpp_pkhash_buf, alg_buf, sta->last_rssi);
++#endif /* CONFIG_MBO */
+ 
+ 		if (hapd->msg_ctx_parent &&
+ 		    hapd->msg_ctx_parent != hapd->msg_ctx)
+@@ -1674,7 +1693,7 @@
+ 
+ 		hostapd_ubus_insert_wifi_log(ssid, mac, 1);
+ 	} else {
+-		wpa_msg(hapd->msg_ctx, MSG_INFO, AP_STA_DISCONNECTED "%s", buf);
++		wpa_msg(hapd->msg_ctx, MSG_INFO, AP_STA_DISCONNECTED "%s rssi=%d", buf, sta->last_rssi);
+ 		hostapd_ubus_notify(hapd, "disassoc", sta->addr);
+ 
+ 		if (hapd->msg_ctx_parent &&
+--- a/src/ap/sta_info.h
++++ b/src/ap/sta_info.h
+@@ -247,6 +247,7 @@
+ 	struct mbo_non_pref_chan_info *non_pref_chan;
+ 	int auth_rssi; /* Last Authentication frame RSSI */
+ #endif /* CONFIG_MBO */
++	int last_rssi; /* Last RSSI */
+ 
+ 	u8 *supp_op_classes; /* Supported Operating Classes element, if
+ 			      * received, starting from the Length field */
 --- a/wpa_supplicant/wpa_supplicant.c
 +++ b/wpa_supplicant/wpa_supplicant.c
 @@ -1147,7 +1147,7 @@ void wpa_supplicant_set_state(struct wpa

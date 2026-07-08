@@ -1,0 +1,1 @@
+[{"endpoint":"/wireguard/{binding}/peers/{service_group}/{?sid}","lua_service":"services/wireguard_peer","backup_order":38},{"endpoint":"/wireguard/{service_group}/{?sid}","lua_service":"services/wireguard","backup_order":37}]

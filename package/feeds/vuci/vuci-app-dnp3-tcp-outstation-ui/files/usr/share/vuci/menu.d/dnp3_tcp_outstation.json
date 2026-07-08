@@ -1,0 +1,22 @@
+{
+	"services/dnp3": {
+		"title": "DNP3",
+		"index": 130
+	},
+		"services/dnp3/dnp_outstation": {
+			"title": "DNP3 Outstation",
+			"index": 30
+		},
+		"services/dnp3/dnp_outstation/general": {
+			"title": "General",
+			"index": 1,
+			"view": "services/DNP3Outstation",
+			"acls": [ "services/dnp3/dnp_outstation/general" ]
+		},
+		"services/dnp3/dnp_outstation/data_source": {
+			"title": "Data Sources",
+			"index": 2,
+			"view": "services/DNP3OutstationDataSource",
+			"acls": [ "services/dnp3/dnp_outstation/data_source" ]
+		}
+}

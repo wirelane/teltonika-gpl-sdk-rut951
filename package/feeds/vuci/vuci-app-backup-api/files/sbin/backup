@@ -10,7 +10,7 @@ local board = require("vuci.board")
 local pac = require("vuci.package_checker")
 local uci = require("vuci.uci")
 local profiles_lib = require("vuci.profiles")
-local disp_lib = require("api.dispatcher_lib")
+local dispatcher = require("api.dispatcher")
 
 -- preload some modules to save time on requests
 require("api/ConfigService")
@@ -134,19 +134,8 @@ if ACTION == "generate" then
 		}
 	}
 
-	local ignore_paths = {
-		"/data_to_server/data/{service_group}/{sid}",
-		"/data_to_server/servers/{service_group}/{sid}",
-		"/event_juggler/operations/{service_group}/{sid}",
-		"/event_juggler/conditions/{service_group}/{sid}",
-		"/azure/iot_hub/{service_group}/{sid}/{binding}",
-		"/azure_iot_hub/{service_group}/{sid}",
-		"/certificates/{type}/{service_group}/{sid}",
-		"/modems/{modem_id}/sim_cards/{service_group}/{sid}",
-	}
-
 	local packages = backup:get_api_package_files()
-	local paths, order = backup:parse_endpoints(ignore_paths)
+	local paths, order = backup:parse_endpoints()
 
 	profiles_lib.update()
 	profiles_lib.uci_defaults()
@@ -255,7 +244,7 @@ elseif ACTION == "apply" or ACTION == "verify" then
 		local added_to_next_step = false
 		if DEBUG_ENDPOINTS.count == 0 or DEBUG_ENDPOINTS[backup_endpoint.endpoint] then
 			backup:add_execute_time(backup_endpoint.endpoint, "start_delete")
-			local endpoint_exists = disp_lib.does_endpoint_exist(backup_endpoint.endpoint)
+			local endpoint_exists = dispatcher.does_endpoint_exist(backup_endpoint.endpoint)
 			local pkg_exists, pkg_available, pkg_name = backup:check_packages(backup_endpoint.packages, packages_needed)
 			if not pkg_exists then
 				if pkg_available then
@@ -397,18 +386,44 @@ elseif ACTION == "pkg_install" then
 	local global_revert = false
 	local new_data = {}
 	for _, backup_endpoint in ipairs(backup.endpoints.data or {}) do
-		local endpoint_exists = disp_lib.does_endpoint_exist(backup_endpoint.endpoint)
-		local has_pkg = true
+		local endpoint_exists = dispatcher.does_endpoint_exist(backup_endpoint.endpoint)
+		local has_pkg_string = false
+		local has_pkg_table = true
 		for _, pkg in ipairs(backup_endpoint.packages) do
-			if not backup_util:package_installed(pkg) then
-				has_pkg = false
-				break
+			if type(pkg) == "string" then
+				if backup_util:package_installed(pkg) then
+					has_pkg_string = true
+					break
+				end
 			end
 		end
+		for _, pkg in ipairs(backup_endpoint.packages) do
+			if type(pkg) == "table" then
+				local group_has_pkg = false
+				for _, sub_pkg in ipairs(pkg) do
+					if backup_util:package_installed(sub_pkg) then
+						group_has_pkg = true
+						break
+					end
+				end
+				if not group_has_pkg then
+					has_pkg_table = false
+					break
+				end
+			end
+		end
+		local has_pkg = has_pkg_string and has_pkg_table
 		if endpoint_exists and backup_endpoint.packages and has_pkg then
-			if not backup:apply_run_endpoint(backup_endpoint, errors) then
+			local success, packages_data = backup:apply_run_endpoint(backup_endpoint, errors)
+			if not success then
 				global_revert = true
 				break
+			end
+			if #packages_data > 0 then
+				for _, pkg_data in ipairs(packages_data) do
+					pkg_data.append_only = true
+					table.insert(new_data, pkg_data)
+				end
 			end
 		else
 			table.insert(new_data, backup_endpoint)
@@ -441,17 +456,38 @@ elseif ACTION == "validate" then
 	end
 	for _, backup_endpoint in ipairs(backup.endpoints.data or {}) do
 		if backup_endpoint.endpoint == "/interfaces/config" and backup_endpoint.data then
+			-- This is very silly,
+			-- access points have a different `/interfaces/config` backend
+			-- which doesn't return the 'enabled' option. On access points we need to assume
+			-- that there will only be one interface and it's enabled. :)
+			local needs_to_be_enabled = not board:is_ap()
+
 			local section
-			backup_util:foreach_config(backup_endpoint.data, function(data)
-				if data.id == "lan" and data.enabled == "1" then
-					section = data
+			backup_util:foreach_config(backup_endpoint.data, function(iface)
+				local is_enabled = true
+				if needs_to_be_enabled then
+					is_enabled = iface.enabled == "1"
+				end
+
+				if iface.id == "lan" and is_enabled then
+					section = iface
 					return false
 				end
 			end)
 			if not section then
-				backup_util:foreach_config(backup_endpoint.data, function(data)
-					if (data.area_type == "lan" or not data.area_type) and data.enabled == "1" and ((data.ipaddr and data.ipaddr ~= "") or (data.ip6addr and data.ip6addr ~= "")) then
-						section = data
+				backup_util:foreach_config(backup_endpoint.data, function(iface)
+					local has_ipv4_addr = iface.ipaddr and iface.ipaddr ~= ""
+					local has_ipv6_addr = iface.ip6addr and iface.ip6addr ~= ""
+					local is_enabled = true
+					if needs_to_be_enabled then
+						is_enabled = iface.enabled == "1"
+					end
+
+					if (iface.area_type == "lan" or not iface.area_type) and
+						is_enabled and
+						(has_ipv4_addr or has_ipv6_addr)
+					then
+						section = iface
 						return false
 					end
 				end)

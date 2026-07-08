@@ -19,9 +19,9 @@ unpack=false
 IGNORE_NOT_FOUND=false
 declare -A dirs
 
-usage="Usage: $0 [-u SIGN_FILE_LIST | -p] [-i] [-h] PACKAGES TOPDIR ARCH KMOD_IPK_PATH\n\nActions:\n\t-u\tUnpack and prepare\n\t-p\tPack\n\nOptions:\n\t-i\tIgnore packages that were not found\n"
+usage="Usage: $0 [-u SIGN_FILE_LIST | -p] [-i] [-h] [-t SIGN_THIRD_PARTY_LIST] PACKAGES TOPDIR ARCH KMOD_IPK_PATH\n\nActions:\n\t-u\tUnpack and prepare\n\t-p\tPack\n\nOptions:\n\t-i\tIgnore packages that were not found\n"
 #shellcheck disable=2059
-while getopts "u:pih" opt; do
+while getopts "u:piht:" opt; do
 	case $opt in
 	u)
 		SIGN_FILE_LIST=$OPTARG
@@ -34,6 +34,7 @@ while getopts "u:pih" opt; do
 		trap 'rm -fr "${dirs[tmp_pm]}"' EXIT
 		;;
 	i) IGNORE_NOT_FOUND=true ;;
+	t) SIGN_THIRD_PARTY_LIST=$OPTARG ;;
 	h | \?) printf "$usage" >&2 && exit ;;
 	esac
 done
@@ -77,10 +78,19 @@ $unpack && {
 	[[ "$SIGN_FILE_LIST" = /* ]] || SIGN_FILE_LIST=$top_dir/$SIGN_FILE_LIST
 	mkdir -p "$(dirname "$SIGN_FILE_LIST")"
 	echo -n '' >"$SIGN_FILE_LIST"
+	[[ -z $SIGN_THIRD_PARTY_LIST ]] || {
+		[[ "$SIGN_THIRD_PARTY_LIST" = /* ]] || SIGN_THIRD_PARTY_LIST=$top_dir/$SIGN_THIRD_PARTY_LIST
+		mkdir -p "$(dirname "$SIGN_THIRD_PARTY_LIST")"
+		echo -n '' >"$SIGN_THIRD_PARTY_LIST"
+	}
 }
 
 # Kill child processes and cleanup on interrupts
 trap 'kill -TERM "${pids[@]}"; rm -fr "${dirs[tmp_pm]}"; exit 1' HUP INT TERM
+
+is_third_party_pkg() {
+	jq -e --arg pkg "$1" '.[$pkg].third_party == true' "$json_file" >/dev/null 2>&1
+}
 
 prepare_info_f() {
 	local control_tar=$1
@@ -90,7 +100,7 @@ prepare_info_f() {
 	local sign_file_list=$5
 
 	tar -xzf "$control_tar" "./control" --to-stdout |
-		grep -E 'Firmware|tlt_name|Router|Package|Version|AppName|HWInfo|pkg_network_restart' >"$info_f"
+		grep -E 'Firmware|tlt_name|Router|Package|Version|AppName|HWInfo|pkg_network_restart|Third-Party' >"$info_f"
 	printf 'ipk_file: %s\nipk_deps:%s\n' "$ipk_name" "$dep_list" >>"$info_f"
 
 	[[ $CI ]] && $CI && info_f=${info_f#"$TOPDIR/"}
@@ -323,7 +333,11 @@ process_package() {
 	rm "$dep_list_f"
 
 	$unpack && {
-		prepare_info_f "${dirs[tmp_pm]}/$p/control.tar.gz" "${dirs[tmp_pm]}/$p/main" "$p_fullpath:$(calc_shasum "${dirs[pm_packages]}/$p")" "$dep_list" "$SIGN_FILE_LIST"
+		local sign_file_list="$SIGN_FILE_LIST"
+		local is_third_party=false
+		is_third_party_pkg "$p" && is_third_party=true
+		$is_third_party && [[ -n $SIGN_THIRD_PARTY_LIST ]] && sign_file_list="$SIGN_THIRD_PARTY_LIST"
+		prepare_info_f "${dirs[tmp_pm]}/$p/control.tar.gz" "${dirs[tmp_pm]}/$p/main" "$p_fullpath:$(calc_shasum "${dirs[pm_packages]}/$p")" "$dep_list" "$sign_file_list"
 		return $ret
 	}
 

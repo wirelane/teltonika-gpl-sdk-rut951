@@ -68,6 +68,10 @@
     "devices": ["RUT361"]
   },
   {
+    "name": "HR1X",
+    "devices": ["HR1000"]
+  },
+  {
     "name": "RUTP",
     "devices": ["RUTP50", "RUTP52", "RUTP54"]
   },

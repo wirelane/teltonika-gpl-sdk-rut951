@@ -1,0 +1,1 @@
+[{"endpoint":"/dnp3/outstation/{service_group}/{?sid}","lua_service":"services/dnp3_outstation","backup_order":134},{"endpoint":"/dnp3/outstation/objects/{service_group}/{?sid}","lua_service":"services/dnp3_outstation_tag","backup_order":135}]

@@ -189,6 +189,7 @@ define Package/base-files/install
 	chmod 0664 $(1)/etc/config/system
 	chmod 0660 $(1)/etc/config/buttons
 	chmod 0760 $(1)/etc/rc.local
+	chmod 0644 $(1)/usr/share/acl.d/admin.json
 	find $(1)/etc/init.d/ -type f -exec chmod 0750 {} +
 
 	$(call Package/base-files/install-target,$(1))
@@ -246,7 +247,7 @@ define Package/base-files/install
 		$(RM) $(1)/etc/rc.button/reset $(1)/etc/config/buttons \
 	)
 
-	$(if $(CONFIG_BASEBAND_SUPPORT),,$(RM) $(1)/etc/init.d/adbd)
+	$(if $(CONFIG_BASEBAND_SUPPORT)$(CONFIG_USB_GADGET_SUPPORT),,$(RM) $(1)/etc/init.d/adbd)
 
 	for svc in $(1)/etc/init.d/*.openrc; do \
 		$(if $(CONFIG_USE_OPENRC), \

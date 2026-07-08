@@ -1,0 +1,1 @@
+{"services/dnp3/global":{"description":"dnp3 serial client","read":{"api":{"/dnp3/global/*":["*"],"/dnp3/database/*":["*"]}},"write":{"api":["/dnp3/global/*"]}}}

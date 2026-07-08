@@ -21,7 +21,6 @@ define Device/teltonika_trb2m_common
 	TECHNICAL/Input_Output/Output := 3 $(HW_OUTPUT_DO_30V)
 	HARDWARE/Serial/RS232 := Terminal block connector:TX, RX, RTS, CTS
 	HARDWARE/Serial/RS485 := Terminal block connector:D+, D-, R+, R- (2 or 4 wire interface)
-	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
 	TECHNICAL/Physical_Specification/Casing_Material := $(HW_PHYSICAL_HOUSING_AL)
 	TECHNICAL/Physical_Specification/Dimensions := 83 x 25 x 74.2 mm
 	TECHNICAL/Physical_Specification/Weight := 165 g
@@ -55,11 +54,12 @@ define Device/TEMPLATE_teltonika_trb236
 
 	DEVICE_FEATURES := gateway dual_sim mobile ethernet ios rs232 rs485 \
 		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button \
-		128mb_ram port_link
+		128mb_ram port_link modbus
 
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.21.1
-	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps;
-	HARDWARE/Mobile/Modem := Quectel EG912NENAA, Quectel EG950AENLAA
+	HARDWARE/Mobile/3GPP_Release := Release 9
+	HARDWARE/Mobile/Module := 4G LTE Cat 1 up to 10 DL/5 UL Mbps; EDGE up to 236.8 DL & UL kbps || 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps
+	HARDWARE/Mobile/Modem := Quectel EG912NENAA || Quectel EG950AENLAA
 	TECHNICAL/Physical_Interfaces/Status_Leds := 2 x connection status LEDs, 3 x connection strength LEDs, 1 x power LED, 1 x Eth port status LED
 	TECHNICAL/Physical_Interfaces/Antennas := 1 x SMA connector for LTE
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, CB, WEEE
@@ -69,7 +69,7 @@ define Device/TEMPLATE_teltonika_trb246
 	$(Device/teltonika_trb2m_common)
 	$(Device/template_trb2m)
 	DEVICE_MODEL := TRB246
-
+	DEVICE_FEATURES += esim-p
 	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 42 DL/5.76 UL Mbps; 2G up to 296 DL/236.8 UL Kbps
 	HARDWARE/Mobile/Modem := Quectel EC25-EUX, Quectel EC25-AUX, Quectel EC25-AF
 	TECHNICAL/Power/Power_Consumption := Idle:< 1.5 W, Max:< 3.5 W
@@ -134,7 +134,6 @@ define Device/TEMPLATE_teltonika_ntp001
 	TECHNICAL/Input_Output/Output := 3 $(HW_OUTPUT_DO_30V)
 	HARDWARE/Serial/RS232 := Terminal block connector:TX, RX, RTS, CTS
 	HARDWARE/Serial/RS485 := Terminal block connector:D+, D-, R+, R- (2 or 4 wire interface)
-	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, MODBUS gateway, NTRIP Client
 	TECHNICAL/Physical_Specification/Casing_Material := $(HW_PHYSICAL_HOUSING_AND_PANELS_AL)
 	TECHNICAL/Physical_Specification/Dimensions := 82.6 x 25 x 83 mm
 	TECHNICAL/Physical_Specification/Weight := 180 g
@@ -142,7 +141,7 @@ define Device/TEMPLATE_teltonika_ntp001
 	TECHNICAL/Power/Power_Consumption := Idle:< 2 W, Max:< 3.5 W
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, CB, UCRF, EAC, WEEE
 	DEVICE_MODEL := NTP001
-	DEVICE_FEATURES := gateway dual_sim mobile gps ethernet ios modbus rs232 rs485 \
+	DEVICE_FEATURES := gateway mobile gps ethernet ios modbus rs232 rs485 \
 		sw_rst_on_init xfrm-offload nat_offloading small_flash reset_button 128mb_ram \
 		dot1x-client dot1x-server single_port
 endef

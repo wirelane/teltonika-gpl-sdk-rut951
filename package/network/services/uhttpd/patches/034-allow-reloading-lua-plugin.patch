@@ -1,0 +1,152 @@
+diff --git a/lua.c b/lua.c
+index 0a9bc5a..ef75545 100644
+--- a/lua.c
++++ b/lua.c
+@@ -310,11 +310,7 @@ static bool check_lua_url(const char *url)
+ 	return false;
+ }
+ 
+-static struct dispatch_handler lua_dispatch = {
+-	.script = true,
+-	.check_url = check_lua_url,
+-	.handle_request = lua_handle_request,
+-};
++static struct dispatch_handler lua_dispatch = { 0 };
+ 
+ static int lua_plugin_init(const struct uhttpd_ops *o, struct config *c)
+ {
+@@ -323,13 +319,33 @@ static int lua_plugin_init(const struct uhttpd_ops *o, struct config *c)
+ 	ops = o;
+ 	_conf = c;
+ 
+-	list_for_each_entry(p, &conf.lua_prefix, list)
++	list_for_each_entry(p, &conf.lua_prefix, list) {
+ 		uh_lua_state_init(p);
++	}
+ 
++	lua_dispatch = (struct dispatch_handler){
++		.script = true,
++		.check_url = check_lua_url,
++		.handle_request = lua_handle_request,
++	};
+ 	ops->dispatch_add(&lua_dispatch);
++
+ 	return 0;
+ }
+ 
++static void lua_plugin_free(void)
++{
++	ops->dispatch_remove(&lua_dispatch);
++
++	struct lua_prefix *p = NULL;
++	list_for_each_entry(p, &conf.lua_prefix, list) {
++		lua_State *L = (lua_State*)p->ctx;
++		lua_close(L);
++		p->ctx = NULL;
++	}
++}
++
+ struct uhttpd_plugin uhttpd_plugin = {
+ 	.init = lua_plugin_init,
++	.free = lua_plugin_free
+ };
+diff --git a/main.c b/main.c
+index 487ded1..d9c804b 100644
+--- a/main.c
++++ b/main.c
+@@ -42,9 +42,22 @@
+ 
+ char uh_buf[4096];
+ 
++static void uloop_reload_handler(struct uloop_signal *s)
++{
++	(void)s;
++	uh_plugin_reload();
++}
++
+ static int run_server(void)
+ {
+ 	uloop_init();
++
++	struct uloop_signal sighup_signal = {
++		.cb = uloop_reload_handler,
++		.signo = SIGHUP
++	};
++	uloop_signal_add(&sighup_signal);
++
+ 	if (conf.ubus_object) {
+ 		init_uhttpd_ubus();
+ 	}
+@@ -270,7 +283,6 @@ int main(int argc, char **argv)
+ 	uh_dispatch_add(&cgi_dispatch);
+ 	init_defaults_pre();
+ 	signal(SIGPIPE, SIG_IGN);
+-	uh_plugin_setup_sighup();
+ 
+ 	logger_init(L_SYSTEM, L_TYPE_SYSLOG, "uhttpd");
+ 	while ((ch = getopt(argc, argv, "A:abC:c:Dd:E:e:fh:H:I:i:K:k:L:l:m:N:n:P:p:qRFr:Ss:T:t:U:u:Xx:y:w:")) != -1) {
+diff --git a/plugin.c b/plugin.c
+index 3f2ee14..0ad5339 100644
+--- a/plugin.c
++++ b/plugin.c
+@@ -122,7 +122,7 @@ void uh_plugin_post_init(void)
+ 			info->plugin->post_init();
+ }
+ 
+-static void reload_plugins(int signum)
++void uh_plugin_reload(void)
+ {
+ 	struct plugin_info *info;
+ 	char *filenames[32];
+@@ -136,13 +136,13 @@ static void reload_plugins(int signum)
+ 			list_del(&info->list);
+ 			free(info);
+ 		} else if (info->plugin->free) {
++			h_log(L_INFO, "Plugin unloaded: %s\n", info->filename);
+ 			filenames[count++] = strdup(info->filename);
+ 			info->plugin->free();
+ 			dlclose(info->dlh);
+ 			free(info->filename);
+ 			list_del(&info->list);
+ 			free(info);
+-			h_log(L_INFO, "Plugin unloaded: %s\n", info->filename);
+ 		}
+ 	}
+ 
+@@ -159,11 +159,3 @@ static void reload_plugins(int signum)
+ 		free(filenames[i]);
+ 	}
+ }
+-
+-void uh_plugin_setup_sighup(void)
+-{
+-	struct sigaction sa;
+-	memset(&sa, 0, sizeof(sa));
+-	sa.sa_handler = reload_plugins;
+-	sigaction(SIGHUP, &sa, NULL);
+-}
+diff --git a/proc.c b/proc.c
+index b0d83cd..bd81cd1 100644
+--- a/proc.c
++++ b/proc.c
+@@ -18,6 +18,7 @@
+  */
+ 
+ #include <arpa/inet.h>
++#include <signal.h>
+ #include <libubox/blobmsg.h>
+ #include "uhttpd.h"
+ 
+diff --git a/uhttpd.h b/uhttpd.h
+index 46e0fba..32eefc3 100644
+--- a/uhttpd.h
++++ b/uhttpd.h
+@@ -345,7 +345,7 @@ bool uh_create_process(struct client *cl, struct path_info *pi, char *url,
+ 
+ int uh_plugin_init(const char *name);
+ void uh_plugin_post_init(void);
+-void uh_plugin_setup_sighup(void);
++void uh_plugin_reload(void);
+ 
+ int uh_handler_add(const char *file);
+ int uh_handler_run(struct client *cl, char **url, bool fallback);

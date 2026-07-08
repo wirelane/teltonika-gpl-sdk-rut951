@@ -1,0 +1,1 @@
+[{"endpoint":"/sso_login","lua_service":"core/sso_login","allow_unauthenticated":true,"allow_expired_token":true},{"endpoint":"/sso/{service_group}/{?sid}","lua_service":"system/sso","backup_order":4}]

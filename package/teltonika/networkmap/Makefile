@@ -6,8 +6,8 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=networkmap
-PKG_VERSION:=2026-04-07
-PKG_RELEASE:=1
+PKG_VERSION:=2026-05-12
+PKG_RELEASE:=2
 
 PKG_SOURCE_VERSION:=2.4
 PKG_LICENSE:=Teltonika-closed
@@ -25,22 +25,6 @@ endef
 
 define Package/networkmap/description
 	Devices scanner.
-endef
-
-define Package/networkmap/postinst
-#!/bin/sh
-if [ -z "$${IPKG_INSTROOT}" ] && [ -x /etc/init.d/rpcd ]; then
-	/etc/init.d/rpcd reload
-fi
-exit 0
-endef
-
-define Package/networkmap/postrm
-#!/bin/sh
-if [ -z "$${IPKG_INSTROOT}" ] && [ -x /etc/init.d/rpcd ]; then
-	/etc/init.d/rpcd reload
-fi
-exit 0
 endef
 
 

@@ -83,6 +83,7 @@ struct lbjson_modem {
 	int simcount;
 
 	int gps;
+	int wwan_gnss_conflict:1;
 	int stop_bits;
 	int baudrate;
 	int control;

@@ -214,6 +214,7 @@ do_save_conffiles() {
 		[ -e /usr/share/mobifd/apn_backup.json ] && echo "/usr/share/mobifd/apn_backup.json" # APN db user backuped values
 		[ -d /etc/profiles ] && echo "/etc/profiles"
 		[ -d /etc/certificates ] && echo "/etc/certificates"
+		[ -d /usr/local/home/root/.ssh ] && echo "/usr/local/home/root/.ssh"
 
 		cmp -s /etc/ssl/certs/ca-certificates.crt /rom/etc/ssl/certs/ca-certificates.crt ||
 				echo "/etc/ssl/certs/ca-certificates.crt"
@@ -236,8 +237,17 @@ do_save_conffiles() {
 	for i in $opkg_packets; do
 		tlt_name=$(grep "tlt_name:" "$i" | awk -F ": " '{print $2}')
 		pkg_name=$(grep "AppName:" "$i" | awk -F ": " '{print $2}')
+		third_party=$(grep "Third-Party:" "$i" | awk -F ": " '{print $2}')
 		[ -z "$pkg_name" ] && pkg_name=$(grep "Package:" "$i" | awk -F ": " '{print $2}')
-		echo "$pkg_name - $tlt_name" >> /etc/package_restore.txt
+		if [ -n "$pkg_name" ] && [ -n "$tlt_name" ]; then
+			if [ "$third_party" = "True" ]; then
+				echo "$pkg_name - $tlt_name - 3rd_party_packages" >> /etc/package_restore.txt
+			else
+				echo "$pkg_name - $tlt_name - tlt_packages" >> /etc/package_restore.txt
+			fi
+		else
+			echo "$pkg_name - $tlt_name" >> /etc/package_restore.txt
+		fi
 	done
 
 	[ -f /etc/package_restore.txt ] && {
@@ -395,31 +405,23 @@ missing_lines() {
 
 restore_sme_fstab() {
 	local dir="$1"
-	local rwm_device
-	local rwm_target
 	local overlay_uuid
 	local overlay_target
 	local overlay_sme
 	local log_enabled
 	local log_device
 
-	local rwm=$(uci -q get fstab.rwm)
 	local overlay=$(uci -q get fstab.overlay)
 	local log=$(uci -q get fstab.log)
 
-	if [ -n "$rwm" ] && [ -n "$overlay" ] && [ -n "$log" ]; then
+	if [ -n "$overlay" ] && [ -n "$log" ]; then
 		config_load fstab
-		config_get rwm_device rwm device
-		config_get rwm_target rwm target
 		config_get overlay_uuid overlay uuid
 		config_get overlay_target overlay target
 		config_get overlay_sme overlay sme
 		config_get log_enabled log enabled
 		config_get log_device log device
 		uci -c "$dir/etc/config" batch <<-EOF
-			set fstab.rwm=$rwm
-			set fstab.rwm.device=$rwm_device
-			set fstab.rwm.target=$rwm_target
 			set fstab.overlay=$overlay
 			set fstab.overlay.uuid=$overlay_uuid
 			set fstab.overlay.target=$overlay_target
@@ -668,7 +670,13 @@ if [ -n "$CONF_RESTORE" ]; then
 		exit $?
 	}
 
-	mkdir -p /tmp/new_config_dir
+	rm -rf /ext/new_config_dir /tmp/new_config_dir
+	if [ -x /bin/sme.sh ] && /bin/sme.sh --status | grep -q "^expanded"; then
+		mkdir -p /ext/new_config_dir
+		ln -s /ext/new_config_dir /tmp/new_config_dir
+	else
+		mkdir -p /tmp/new_config_dir
+	fi
 	if [ -z "$CONF_PASSWORD" ]; then
 		echo 'etc/rc.d/*' > /tmp/exclusions
 		echo 'etc/profile' >> /tmp/exclusions
@@ -697,7 +705,7 @@ if [ -n "$CONF_RESTORE" ]; then
 	backup_valid=$?
 	#Just validate and exit
 	[ "$CONF_BACKUP_VALIDATE" -eq 1 ] && {
-		rm -rf /tmp/new_config_dir
+		rm -rf /ext/new_config_dir /tmp/new_config_dir
 		echo "$backup_valid"
 		exit $backup_valid
 	}
@@ -705,16 +713,16 @@ if [ -n "$CONF_RESTORE" ]; then
 		if [ $FORCE -eq 1 ]; then
 			v "Backup check failed but --force given - will restore anyway!" >&2
 		else
-			rm -rf /tmp/new_config_dir
+			rm -rf /ext/new_config_dir /tmp/new_config_dir
 			v "Backup archive is not valid."
 			echo "$backup_valid"
-
 			exit $backup_valid
 		fi
 	}
 
 	v "Restoring config files..."
 	apply_backup "/tmp/new_config_dir"
+	rm -rf /ext/new_config_dir /tmp/new_config_dir
 
 	[ "$ret" -eq 0 ] && {
 		ubus call log write_ext "{

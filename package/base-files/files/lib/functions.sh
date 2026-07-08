@@ -363,7 +363,7 @@ default_postinst() {
 		fi
 
 		if grep -m1 -q -s "^$root/usr/share/acl.d" "$filelist"; then
-			kill -1 $(pgrep ubusd)
+			killall -q -1 ubusd
 		fi
 
 		if grep -m1 -q -s "^$root/etc/sysctl.d/" "$filelist"; then
@@ -376,6 +376,22 @@ default_postinst() {
 
 		if grep -m1 -q -s "^$root/etc/uci-defaults/" "$filelist"; then
 			uci_apply_defaults
+		fi
+
+		if grep -m1 -q -s "^$root/usr/share/rpcd/acl.d" "$filelist" && [ -x /etc/init.d/rpcd ]; then
+			ubus call session reload_acls
+		fi
+
+		if grep -m1 -q -s -E "^$root/usr/(libexec/rpcd|lib/rpcd)" "$filelist" && [ -x /etc/init.d/rpcd ]; then
+			/etc/init.d/rpcd reload
+		fi
+
+		if grep -m1 -q -s "^$root/usr/share/vuci/path.d" "$filelist" && [ -x /etc/init.d/uhttpd ]; then
+			killall -q -1 uhttpd
+		fi
+
+		if grep -m1 -q -s "^$root/usr/share/vuci/menu.d" "$filelist" && [ -x /etc/init.d/uhttpd ]; then
+			ubus send vuci.notify '{"event": "reload_routes"}'
 		fi
 
 		rm -fr /tmp/luci-indexcache

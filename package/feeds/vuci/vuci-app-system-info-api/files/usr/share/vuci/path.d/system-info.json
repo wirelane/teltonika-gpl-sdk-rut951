@@ -1,0 +1,1 @@
+[{"endpoint":"/system/device/{service_group}","lua_service":"system/board","allow_with_expired_password":[["GET","/system/device/status/"]]},{"endpoint":"/system/device/{service_group}/status","lua_service":"system/status","allow_with_expired_password":[["GET","/system/device/packages/status/"]]}]

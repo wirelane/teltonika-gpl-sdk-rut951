@@ -1,0 +1,1 @@
+[{"/speedtest/config/{?sid}":"services/speedtest_config"},{"endpoint":"/speedtest/{service_group}/{?sid}","lua_service":"services/speedtest","backup_order":68}]

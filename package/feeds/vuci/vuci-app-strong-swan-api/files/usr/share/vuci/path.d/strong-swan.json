@@ -1,0 +1,1 @@
+[{"endpoint":"/ipsec/global","lua_service":"services/ipsec_global","backup_order":113},{"endpoint":"/ipsec/secrets/{service_group}/{?sid}","lua_service":"services/ipsec_secret","backup_order":114},{"endpoint":"/ipsec/{service_group}/{?sid}","lua_service":"services/ipsec","backup_order":115}]

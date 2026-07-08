@@ -70,6 +70,17 @@ ifdef CONFIG_COLLECT_KERNEL_DEBUG
 		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
 		| zstd -T0 -f -o $(BIN_DIR)/kernel-debug.tar.zst
   endef
+else
+  define Kernel/CollectDebug
+	if [ -f $(LINUX_DIR)/System.map ]; then \
+		rm -rf $(KERNEL_BUILD_DIR)/system_map; \
+		mkdir -p $(KERNEL_BUILD_DIR)/system_map; \
+		$(CP) $(LINUX_DIR)/System.map $(KERNEL_BUILD_DIR)/system_map/; \
+		$(TAR) c -C $(KERNEL_BUILD_DIR) system_map \
+			$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
+			| zstd -T0 -f -o $(BIN_DIR)/kernel-system_map.tar.zst; \
+	fi
+  endef
 endif
 
 ifeq ($(DUMP)$(filter prereq clean refresh update,$(MAKECMDGOALS)),)

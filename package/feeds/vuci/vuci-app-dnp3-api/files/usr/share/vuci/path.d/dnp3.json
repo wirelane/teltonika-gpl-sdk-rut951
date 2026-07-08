@@ -1,0 +1,1 @@
+[{"endpoint":"/dnp3/global","lua_service":"services/dnp3_global","backup_order":133},{"/dnp3/database/entries/{service_group}":"services/dnp3_database_entries_status"}]

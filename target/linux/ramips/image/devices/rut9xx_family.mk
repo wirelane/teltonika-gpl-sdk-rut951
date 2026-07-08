@@ -39,7 +39,7 @@ define Device/template_rut9x
 	DEVICE_DOT1X_SERVER_CAPABILITIES := false false vlan
 
 	DEVICE_FEATURES := dual_sim ios mobile nat_offloading port_link \
-		wifi ethernet xfrm-offload soft_port_mirror reset_button 128mb_ram modbus dot1x-server dot1x-client port-mirror multi_tag
+		wifi ethernet xfrm-offload soft_port_mirror reset_button 128mb_ram modbus dot1x-server dot1x-client port-mirror multi_tag esim-p
 endef
 
 define Device/template_rut9x_io
@@ -122,7 +122,6 @@ define Device/TEMPLATE_teltonika_rut906
 	1 x Digital open collector output (30 V, 300 mA, on 4-pin power connector)
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232) 300 to 115200 baud rate
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485)
-	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem
 	HARDWARE/USB/Data_Rate := $(HW_USB_2_DATA_RATE)
 	HARDWARE/USB/Applications := $(HW_USB_APPLICATIONS)
 	HARDWARE/USB/External_Devices := $(HW_USB_EXTERNAL_DEV)
@@ -212,7 +211,6 @@ define Device/TEMPLATE_teltonika_rut956
 	1 x Digital open collector output (30 V, 300 mA, on 4-pin power connector)
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485)
-	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
 	HARDWARE/USB/Data_Rate := $(HW_USB_2_DATA_RATE)
 	HARDWARE/USB/Applications := $(HW_USB_APPLICATIONS)
 	HARDWARE/USB/External_Devices := $(HW_USB_EXTERNAL_DEV)
@@ -297,7 +295,6 @@ define Device/TEMPLATE_teltonika_rut976
 	1 x Digital open collector output (30 V, 300 mA, on 4-pin power connector)
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485)
-	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
 	HARDWARE/USB/Data_Rate := $(HW_USB_2_DATA_RATE)
 	HARDWARE/USB/Applications := $(HW_USB_APPLICATIONS)
 	HARDWARE/USB/External_Devices := $(HW_USB_EXTERNAL_DEV)
@@ -393,7 +390,6 @@ define Device/TEMPLATE_teltonika_rut986
 	1 x Digital open collector output (30 V, 300 mA, on 4-pin power connector)
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485)
-	HARDWARE/Serial/Serial_Functions := Console, Serial over IP, Modem, MODBUS gateway, NTRIP Client
 	HARDWARE/USB/Data_Rate := $(HW_USB_2_DATA_RATE)
 	HARDWARE/USB/Applications := $(HW_USB_APPLICATIONS)
 	HARDWARE/USB/External_Devices := $(HW_USB_EXTERNAL_DEV)

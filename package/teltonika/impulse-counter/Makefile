@@ -2,8 +2,8 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=impulse-counter
-PKG_VERSION:=2026-04-09
-PKG_SOURCE_VERSION:=7.23
+PKG_VERSION:=2026-06-04
+PKG_SOURCE_VERSION:=7.24
 PKG_LICENSE:=Teltonika-closed
 
 
@@ -38,8 +38,6 @@ endef
 define Package/$(PKG_NAME)/postinst
 	#!/bin/sh
 
-	/etc/init.d/rpcd reload
-
 	[ -z "$${IPKG_INSTROOT}" ] || exit 0
 	[ -e /lib/data_sender/libdata_sender.sh ] || exit 0
 
@@ -54,11 +52,6 @@ define Package/$(PKG_NAME)/prerm
 	#!/bin/sh
 
 	rm -f /tmp/impulse_counter.db
-endef
-
-define Package/$(PKG_NAME)/postrm
-	#!/bin/sh
-	/etc/init.d/rpcd reload
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))

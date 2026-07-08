@@ -1,0 +1,43 @@
+Index: lsqlite3_fsl09y/lsqlite3.c
+===================================================================
+--- lsqlite3_fsl09y.orig/lsqlite3.c
++++ lsqlite3_fsl09y/lsqlite3.c
+@@ -739,6 +739,7 @@ static sdb *lsqlite_checkdb(lua_State *L
+ typedef struct {
+     sqlite3_context *ctx;
+     int ud;
++    int count;          /* number of aggregate step calls so far */
+ } lcontext;
+ 
+ static lcontext *lsqlite_make_context(lua_State *L) {
+@@ -747,6 +748,7 @@ static lcontext *lsqlite_make_context(lu
+     lua_setmetatable(L, -2);
+     ctx->ctx = NULL;
+     ctx->ud = LUA_NOREF;
++    ctx->count = 0;
+     return ctx;
+ }
+ 
+@@ -806,7 +808,10 @@ static int lcontext_set_aggregate_contex
+ static int lcontext_aggregate_count(lua_State *L) {
+     lcontext *ctx = lsqlite_checkcontext(L, 1);
+     lcontext_check_aggregate(L, ctx);
+-    lua_pushinteger(L, sqlite3_aggregate_count(ctx->ctx));
++    /* sqlite3_aggregate_count() is deprecated (and removed when SQLite is
++    ** built with SQLITE_OMIT_DEPRECATED), so keep our own step counter in
++    ** the reused aggregate context instead. */
++    lua_pushinteger(L, ctx->count);
+     return 1;
+ }
+ 
+@@ -1028,6 +1033,10 @@ static void db_sql_normal_function(sqlit
+     /* set context */
+     ctx->ctx = context;
+ 
++    /* maintain our own step-call counter for context:aggregate_count() */
++    if (func->aggregate)
++        ctx->count++;
++
+     if (lua_pcall(L, argc + 1, 0, 0)) {
+         const char *errmsg = lua_tostring(L, -1);
+         int size = lua_strlen(L, -1);

@@ -1,0 +1,44 @@
+#!/bin/sh
+
+PACKAGE_FILE="/etc/package_restore.txt"
+
+[ -s "$PACKAGE_FILE" ] || exit 0
+
+has_serial_support() {
+	local b=/etc/board.json
+	[ "$(jsonfilter -q -i "$b" -e '@["hwinfo"]["rs232"]')" = "true" ] && return 0
+	[ "$(jsonfilter -q -i "$b" -e '@["hwinfo"]["rs485"]')" = "true" ] && return 0
+	[ "$(jsonfilter -q -i "$b" -e '@["hwinfo"]["usb-port"]')"   = "true" ] && return 0
+	return 1
+}
+
+add_if_missing() {
+	grep -qxF "$1" "$PACKAGE_FILE" || echo "$1" >> "$PACKAGE_FILE"
+}
+
+remove_entry() {
+	grep -qxF "$1" "$PACKAGE_FILE" || return 1
+	sed -i "\|^$1\$|d" "$PACKAGE_FILE"
+}
+
+SERIAL_OK=0
+has_serial_support && SERIAL_OK=1
+
+if remove_entry "modbus_client - MODBUS Client"; then
+        add_if_missing "modbus_tcp_client - Modbus TCP Client"
+        [ "$SERIAL_OK" = 1 ] && add_if_missing "modbus_serial_client - Modbus Serial Client"
+fi
+
+if remove_entry "modbus_server - MODBUS Server"; then
+	add_if_missing "modbus_tcp_server - Modbus TCP Server"
+	[ "$SERIAL_OK" = 1 ] && add_if_missing "modbus_serial_server - Modbus Serial Server"
+fi
+
+if remove_entry "dnp3 - DNP3"; then
+	add_if_missing "dnp3_tcp_outstation - DNP3 TCP Outstation"
+	add_if_missing "dnp3_tcp_client - DNP3 TCP Client"
+	[ "$SERIAL_OK" = 1 ] && add_if_missing "dnp3_serial_outstation - DNP3 Serial Outstation"
+	[ "$SERIAL_OK" = 1 ] && add_if_missing "dnp3_serial_client - DNP3 Serial Client"
+fi
+
+exit 0

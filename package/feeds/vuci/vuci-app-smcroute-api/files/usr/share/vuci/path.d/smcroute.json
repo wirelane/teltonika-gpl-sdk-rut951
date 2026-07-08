@@ -1,0 +1,1 @@
+[{"endpoint":"/smcroutes/interfaces/{service_group}/{?sid}","lua_service":"network/smcroute_interfaces","backup_order":379},{"endpoint":"/smcroutes/routes/{service_group}/{?sid}","lua_service":"network/smcroute_routes","backup_order":380}]

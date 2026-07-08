@@ -1,0 +1,1 @@
+[{"endpoint":"/azure/iot_hub/{service_group}/{?sid}","lua_service":"services/azure_iothub","backup_order":57},{"endpoint":"/azure/iot_hub/{service_group}/{sid}/{binding}","lua_service":"services/azure_iothub","exclude_from_backup":true},{"endpoint":"/azure_iot_hub/{service_group}/{?sid}","lua_service":"services/old_azure_iothub","backup_order":58}]

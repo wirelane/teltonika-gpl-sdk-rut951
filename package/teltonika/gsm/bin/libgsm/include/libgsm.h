@@ -989,6 +989,8 @@ typedef enum {
 	LGSM_UBUS_SET_S_NSSAI,
 	LGSM_UBUS_SET_EXTERNAL_ANTENNA_MODE,
 	LGSM_UBUS_GET_EXTERNAL_ANTENNA_MODE,
+	LGSM_UBUS_SET_SOFTRESET_MODE,
+	LGSM_UBUS_GET_SOFTRESET_MODE,
 	LGSM_UBUS_GET_SIM_SLOT_CFG,
 	LGSM_UBUS_SET_SIM_SLOT_CFG,
 	//------
@@ -3526,6 +3528,16 @@ lgsm_err_t lgsm_set_s_nssai(struct ubus_context *ctx, struct net_s_nssai *s_nssa
 lgsm_err_t lgsm_set_external_antenna_mode(struct ubus_context *ctx, bool enabled, func_t *resp,
 					  uint32_t modem_num);
 
+/**
+ * Set softreset mode configuration
+ * @param[ptr]  ctx         Ubus ctx.
+ * @param[in]   enabled	    Is SIM soft reset enabled.
+ * @param[char] resp        Response from modem for the executed command.
+ * @param[in]   modem_num   Modem identification number.
+ */
+lgsm_err_t lgsm_set_softreset_mode(struct ubus_context *ctx, bool enabled, func_t *resp,
+					  uint32_t modem_num);
+
 /******************
 *  GET HANDLERS  *
 ******************/
@@ -4290,6 +4302,13 @@ void handle_get_s_nssai_setting_rsp(struct blob_attr *info, lgsm_structed_info_t
  * @param[ptr]   parsed    Parsed union readable information.
  */
 void handle_get_external_antenna_mode(struct blob_attr *info, lgsm_structed_info_t *parsed);
+
+/**
+ * Parse softreset mode method response *@param[ptr] info
+ * @param[ptr]   info      Blob from gsmd.
+ * @param[ptr]   parsed    Parsed union readable information.
+ */
+void handle_get_softreset_mode(struct blob_attr *info, lgsm_structed_info_t *parsed);
 
 /*********************
 *  STRUCT HANDLERS  *

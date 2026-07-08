@@ -5,7 +5,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=vuci-ui-core
-PKG_VERSION:=2026-06-09-6252356e9a
+PKG_VERSION:=2026-06-29-1bc8f0b014
 PKG_RELEASE:=3
 PKG_LICENSE:=Teltonika-nda-source
 
@@ -63,7 +63,11 @@ define install_closed_gpl
 
 	echo "VITE_GPL_BUILD=1" >> $(PKG_BUILD_DIR)/.env
 
-	$(MAKE) -C $(PKG_BUILD_DIR) DL_DIR="$(TOPDIR)/dl/$(PKG_NAME)"
+	$(MAKE) -C $(PKG_BUILD_DIR) \
+		VUCI_APPS="$(VUCI_APPS)" \
+		VUCI_PLUGINS="$(VUCI_PLUGINS)" \
+		VUCI_BUILD_HASH="$(PKG_VERSION)" \
+		DL_DIR="$(TOPDIR)/dl/$(PKG_NAME)"
 
 	$(INSTALL_DIR) $(1)/vuci-ui-core/src/dist
 
@@ -82,7 +86,7 @@ endef
 
 
 ifneq ($(CONFIG_VUCI_BUILD_DEV),)
-	MAKE_VARS = NODE_ENV=development
+	MAKE_VARS += NODE_ENV=development
 endif
 
 ifneq ($(CONFIG_VUCI_USE_HOST_NODE),)
@@ -108,13 +112,11 @@ define Package/vuci-ui-core/install
 	$(INSTALL_DIR) $(1)/usr/share
 	$(INSTALL_DIR) $(1)/usr/share/vuci/menu.d
 	$(CP) $(PKG_BUILD_DIR)/vuci-ui-core/src/dist/www/* $(1)/www/
-	if [ ! -z "$$$$(ls ./modem-icons/$(TLT_PLATFORM_NAME)*)" ]; then \
-		$(CP) ./modem-icons/$(TLT_PLATFORM_NAME)* $(1)/www/icons/modem-icons/; \
-	fi
 	$(CP) ../menu_static.sh $(PKG_BUILD_DIR)
 	$(if $(and $(CONFIG_GPL_BUILD),$(if $(CONFIG_GPL_INCLUDE_WEB_SOURCES),,1)), \
 		$(RM) -rf $(PKG_BUILD_DIR)/$(MENU_OUTPUT_DIR); \
-		mkdir -p $(PKG_BUILD_DIR)/$(MENU_OUTPUT_DIR) && \
+		mkdir -p $(PKG_BUILD_DIR)/$(MENU_OUTPUT_DIR); \
+		$(CP) $(PKG_BUILD_DIR)/files/usr/share/vuci/menu.d/*.json $(PKG_BUILD_DIR)/$(MENU_OUTPUT_DIR); \
 		$(foreach app_dir,$(VUCI_APPS), \
 			$(eval app_ui_dir=$(notdir $(app_dir))) \
 			$(if $(shell find ../$(app_ui_dir)/src -type f -name '*.vue' -print -quit),, \

@@ -711,7 +711,7 @@ sub gen_image_cyclonedxsbom($) {
 			$version = $image_packages{$name};
 		}
 		# Handle special 'tistic versions that are references to variables / other versions
-		if($version =~ /<([^>]+)_VERSION>(.*)/) {
+		if($version =~ /<([^>]+)_VERSION>(?:[+-])?(.*)/) {
 			# my $ref_env_var = $1 eq "LIBGCC" ? "GCC" : $1; # LIBGCC = GCC <-- peak 'tism of this case; this is worked around in script's invocation at image.mk
 			if ($ENV{$1}."_VERSION") { # check if such variable exists in the environment
 				$version = $ENV{$1."_VERSION"}.$2;

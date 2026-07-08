@@ -1,0 +1,1 @@
+[{"endpoint":"/ulog/ftp/{service_group}/{?sid}","lua_service":"services/ulog_ftp","backup_order":70},{"/ulog/{service_group}/options":"services/ulog_options"},{"endpoint":"/ulog/{service_group}/{?sid}","lua_service":"services/ulog","backup_order":69}]

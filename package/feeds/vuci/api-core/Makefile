@@ -5,11 +5,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=api-core
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 PKG_LICENSE:=Teltonika-nda-source
-PKG_BUILD_DEPENDS:=VUCI_MINIFY_LUA:luasrcdiet/host VUCI_COMPILE_LUA:luajit2/host
+PKG_BUILD_DEPENDS:=VUCI_MINIFY_LUA:luasrcdiet/host VUCI_COMPILE_LUA:luajit2/host python3/host uhttpd
 
 include $(INCLUDE_DIR)/package.mk
+include $(TOPDIR)/package/lang/python/python3-host.mk
 include ../utils.mk
 
 define Package/api-core
@@ -21,7 +22,7 @@ define Package/api-core
 		+libuci-lua +luci-lib-jsonc +luci-lib-nixio \
 		+luci-lib-ip +rpcd-mod-rrdns +uhttpd-mod-lua \
 		+libubus +luasocket +lsqlite3 +rpcd-mod-mnfinfo +luasec +rpcd-mod-uci \
-		+rpcd-mod-rc +session +openssl-util +libopenssl +libpcre2
+		+rpcd-mod-rc +session +openssl-util +libopenssl +libpcre2 +libtlt-logger
 endef
 
 define Package/api-core/config
@@ -37,118 +38,37 @@ define Package/api-core/conffiles
 endef
 
 
+VUCI_DIR:="$(CURDIR)/.."
+ifeq ($(CONFIG_GPL_INCLUDE_WEB_SOURCES), y)
+VUCI_BACKUP_API_DIR:="$(VUCI_DIR)/vuci-app-backup-api"
+else
+VUCI_BACKUP_API_DIR:="$(VUCI_DIR)/applications/vuci-app-backup/vuci-app-backup-api"
+endif
 
-ifndef CONFIG_GPL_INCLUDE_WEB_SOURCES
-ifeq ("$(wildcard $(PKG_BUILD_DIR)/files)","")
-GPL_FILES_DIR := ./files
-else
-GPL_FILES_DIR := $(PKG_BUILD_DIR)/files
-endif
-else
-GPL_FILES_DIR := ./files
-endif
 
 define install_closed_gpl
-	$(INSTALL_DIR) -D $(PKG_GPL_BUILD_DIR)/files/sbin \
-		$(PKG_GPL_BUILD_DIR)/files/bin \
-		$(PKG_GPL_BUILD_DIR)/files/lib/config.d \
-		$(PKG_GPL_BUILD_DIR)/files/usr/sbin \
-		$(PKG_GPL_BUILD_DIR)/files/etc/init.d \
-		$(PKG_GPL_BUILD_DIR)/files/etc/permtab.d \
-		$(PKG_GPL_BUILD_DIR)/files/usr/share/acl.d \
-		$(PKG_GPL_BUILD_DIR)/files/etc/config \
-		$(PKG_GPL_BUILD_DIR)/files/etc/uci-defaults \
-		$(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/vuci/network \
-		$(PKG_GPL_BUILD_DIR)/files/www/cgi-bin \
-		$(PKG_GPL_BUILD_DIR)/files/etc/vuci-uploads \
-		$(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/ubus/services \
-		$(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/ubus/network \
-		$(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/ubus/status \
-		$(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/ubus/system \
-		$(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/api/core \
-		$(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/api/services \
-		$(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/api/status \
-		$(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/api/system \
-		$(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/api/network \
-		$(PKG_GPL_BUILD_DIR)/files/lib/upgrade/keep.d  \
-		$(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/vuci/certificates \
+	$(INSTALL_DIR) $(1)/lua_module
+	$(CP) $(PKG_BUILD_DIR)/lua_module/vuci.so $(1)/lua_module
 
-	$(CP) $(GPL_FILES_DIR)/etc/config/vuci $(PKG_GPL_BUILD_DIR)/files/etc/config
-	$(CP) $(GPL_FILES_DIR)/bin/trigger_vuci_routes_reload $(PKG_GPL_BUILD_DIR)/files/bin
-	$(CP) $(GPL_FILES_DIR)/etc/init.d/event_server $(PKG_GPL_BUILD_DIR)/files/etc/init.d
-	$(CP) $(GPL_FILES_DIR)/etc/permtab.d/vuci $(PKG_GPL_BUILD_DIR)/files/etc/permtab.d
-	$(CP) $(GPL_FILES_DIR)/usr/share/acl.d/api_acl.json $(PKG_GPL_BUILD_DIR)/files/usr/share/acl.d
-	$(CP) $(GPL_FILES_DIR)/usr/share/acl.d/api_modem_lib_acl.json $(PKG_GPL_BUILD_DIR)/files/usr/share/acl.d
-	$(CP) $(GPL_FILES_DIR)/sbin/event_server $(PKG_GPL_BUILD_DIR)/files/sbin
-	$(CP) $(GPL_FILES_DIR)/sbin/api $(PKG_GPL_BUILD_DIR)/files/sbin
-	$(CP) $(GPL_FILES_DIR)/usr/lib/lua/api/core/* $(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/api/core
-	$(CP) $(GPL_FILES_DIR)/usr/lib/lua/api/services/*.lua $(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/api/services
-	$(CP) $(GPL_FILES_DIR)/usr/lib/lua/api/network/*.lua $(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/api/network
-	$(CP) $(GPL_FILES_DIR)/usr/lib/lua/api/*.lua $(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/api
-	$(CP) $(GPL_FILES_DIR)/usr/lib/lua/vuci/*.lua $(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/vuci
-	$(CP) $(GPL_FILES_DIR)/usr/lib/lua/vuci/network/* $(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/vuci/network
-	$(CP) $(GPL_FILES_DIR)/www/cgi-bin/subscribe.lua $(PKG_GPL_BUILD_DIR)/files/www/cgi-bin
-	$(CP) $(GPL_FILES_DIR)/www/cgi-bin/sentry $(PKG_GPL_BUILD_DIR)/files/www/cgi-bin
-	$(CP) $(GPL_FILES_DIR)/www/cgi-bin/luci $(PKG_GPL_BUILD_DIR)/files/www/cgi-bin
-	$(CP) $(GPL_FILES_DIR)/www/cgi-bin/index $(PKG_GPL_BUILD_DIR)/files/www/cgi-bin
-	$(CP) $(GPL_FILES_DIR)/www/cgi-bin/api_dispatcher.lua $(PKG_GPL_BUILD_DIR)/files/www/cgi-bin
-	$(CP) $(GPL_FILES_DIR)/lib/upgrade/keep.d/legacy $(PKG_GPL_BUILD_DIR)/files/lib/upgrade/keep.d
-	$(CP) $(GPL_FILES_DIR)/lib/upgrade/keep.d/vuci.sysupgrade $(PKG_GPL_BUILD_DIR)/files/lib/upgrade/keep.d
-	$(CP) $(GPL_FILES_DIR)/usr/lib/lua/vuci/certificates/* $(PKG_GPL_BUILD_DIR)/files/usr/lib/lua/vuci/certificates
+	$(INSTALL_DIR) $(1)/uhttpd_api_subscriber
+	$(CP) $(PKG_BUILD_DIR)/uhttpd_api_subscriber/uhttpd_api_subscriber.so $(1)/uhttpd_api_subscriber
 
-	$(CP) $(PKG_BUILD_DIR)/vuci.so $(1)
+	$(CP) -a --no-preserve=ownership $(PKG_BUILD_DIR)/files $(1)/files
 endef
 
 
-
-# GPL has no PKG_BUILD_DIR in api-core so we need to use ./files dir
 define Package/api-core/install
-	files_dir="./files"; \
-	if [[ -d "$(PKG_BUILD_DIR)/files" ]]; then files_dir="$(PKG_BUILD_DIR)/files"; fi; \
-	$(INSTALL_DIR) -D $(1)/www/cgi-bin \
-				$(1)/bin \
-				$(1)/sbin \
-				$(1)/lib/config.d \
-				$(1)/usr/sbin \
-				$(1)/usr/lib/lua/ubus \
-				$(1)/usr/lib/lua/vuci/certificates \
-				$(1)/usr/lib/lua/vuci/network \
-				$(1)/usr/lib/lua/api/core \
-				$(1)/usr/lib/lua/api/system \
-				$(1)/usr/lib/lua/api/status \
-				$(1)/usr/lib/lua/api/network \
-				$(1)/usr/lib/lua/api/services \
-				$(1)/usr/lib/lua/ubus/system \
-				$(1)/usr/lib/lua/ubus/status \
-				$(1)/usr/lib/lua/ubus/network \
-				$(1)/usr/lib/lua/ubus/services \
-				$(1)/etc/vuci-uploads ; \
-				$(1)/lib/upgrade/keep.d ; \
-	$(INSTALL_CONF) -D "$$$$files_dir"/etc/config/vuci $(1)/etc/config/vuci ; \
-	$(INSTALL_DATA) -D "$$$$files_dir"/etc/permtab.d/vuci $(1)/etc/permtab.d/vuci ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/bin/trigger_vuci_routes_reload $(1)/bin/trigger_vuci_routes_reload ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/etc/init.d/event_server $(1)/etc/init.d/event_server ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/sbin/event_server $(1)/sbin/event_server ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/sbin/api $(1)/sbin/api ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/usr/lib/lua/vuci/*.lua $(1)/usr/lib/lua/vuci ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/usr/lib/lua/vuci/network/* $(1)/usr/lib/lua/vuci/network ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/www/cgi-bin/subscribe.lua $(1)/www/cgi-bin/subscribe.lua ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/www/cgi-bin/sentry $(1)/www/cgi-bin/sentry ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/www/cgi-bin/luci $(1)/www/cgi-bin/luci ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/www/cgi-bin/index $(1)/www/cgi-bin/index ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/www/cgi-bin/api_dispatcher.lua $(1)/www/cgi-bin/api_dispatcher.lua ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/usr/lib/lua/api/*.lua $(1)/usr/lib/lua/api ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/usr/lib/lua/api/core/* $(1)/usr/lib/lua/api/core ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/usr/lib/lua/api/services/* $(1)/usr/lib/lua/api/services ; \
-	$(INSTALL_DATA) -D "$$$$files_dir"/usr/share/acl.d/api_acl.json $(1)/usr/share/acl.d/api_acl.json ; \
-	$(INSTALL_DATA) -D "$$$$files_dir"/usr/share/acl.d/api_modem_lib_acl.json $(1)/usr/share/acl.d/api_modem_lib_acl.json ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/usr/lib/lua/api/network/* $(1)/usr/lib/lua/api/network ; \
-	$(INSTALL_DATA) -D "$$$$files_dir"/lib/upgrade/keep.d/legacy $(1)/lib/upgrade/keep.d/legacy ; \
-	$(INSTALL_DATA) -D "$$$$files_dir"/lib/upgrade/keep.d/vuci.sysupgrade $(1)/lib/upgrade/keep.d/vuci ; \
-	$(INSTALL_BIN) -D "$$$$files_dir"/usr/lib/lua/vuci/certificates/* $(1)/usr/lib/lua/vuci/certificates
+	$(CP) -a --no-preserve=ownership $(PKG_BUILD_DIR)/files/* $(1)
+	chmod +x "$(1)/www/cgi-bin/"*
+	chmod +x "$(1)/sbin/api"
+	chmod +x "$(1)/bin/trigger_vuci_routes_reload"
 
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/vuci.so $(1)/usr/lib/lua
-	$(INSTALL_DIR) $(1)/usr/share/acl.d/
+	$(INSTALL_DIR) $(1)/usr/lib/lua
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/lua_module/vuci.so $(1)/usr/lib/lua
+
+	$(INSTALL_DIR) $(1)/usr/lib
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd_api_subscriber/uhttpd_api_subscriber.so $(1)/usr/lib
+
 	# remove some core api files if none of these features are supported
 	$(if $(or $(CONFIG_IO_SUPPORT),\
 	     $(CONFIG_GPS_SUPPORT),\
@@ -159,15 +79,6 @@ define Package/api-core/install
 	)
 	$(if $(CONFIG_IO_MODBUS_SUPPORT),,\
 		$(RM) $(1)/usr/lib/lua/vuci/modbus_utils.lua; \
-	)
-	$(if $(or $(CONFIG_SERIAL_SUPPORT),\
-	     $(CONFIG_IO_MODBUS_SUPPORT),\
-	     $(CONFIG_NTRIP_SUPPORT),\
-	     $(CONFIG_MBUS),\
-	     $(CONFIG_DNP3_SUPPORT),\
-	     $(CONFIG_BACNET_SUPPORT)),,\
-		$(RM) $(1)/usr/lib/lua/api/services/serial_status.lua; \
-		$(RM) $(1)/usr/lib/lua/vuci/serial.lua; \
 	)
 endef
 

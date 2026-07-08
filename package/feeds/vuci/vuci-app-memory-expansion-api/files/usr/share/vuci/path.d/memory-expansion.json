@@ -1,0 +1,1 @@
+[{"endpoint":"/usb_tools/memory_expansion/{service_group}/{?sid}","lua_service":"services/memory_expansion","exclude_from_backup":true}]

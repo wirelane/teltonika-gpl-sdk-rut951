@@ -1,0 +1,1 @@
+[{"endpoint":"/modbus/serial_gateway/{service_group}/{?sid}","lua_service":"services/mqtt_serial_gateway","backup_order":228},{"endpoint":"/modbus/gateway/{service_group}/{?sid}","lua_service":"services/mqtt_gateway","backup_order":229}]

@@ -6,8 +6,8 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=speedtest
-PKG_VERSION:=2026-04-07
-PKG_RELEASE:=1
+PKG_VERSION:=2026-05-12
+PKG_RELEASE:=4
 
 PKG_SOURCE_VERSION:=1.13
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_SOURCE_VERSION)-$(PKG_VERSION)
@@ -33,22 +33,6 @@ define Package/speedtest/description
 	the data transfer speed of your WAN connection.
 endef
 
-
-define Package/speedtest/postinst
-#!/bin/sh
-if [ -z "$${IPKG_INSTROOT}" ] && [ -x /etc/init.d/rpcd ]; then
-	/etc/init.d/rpcd reload
-fi
-exit 0
-endef
-
-define Package/speedtest/postrm
-#!/bin/sh
-if [ -z "$${IPKG_INSTROOT}" ] && [ -x /etc/init.d/rpcd ]; then
-	/etc/init.d/rpcd reload
-fi
-exit 0
-endef
 
 define Package/speedtest/install
 	$(INSTALL_DIR) $(1)/etc/permtab.d

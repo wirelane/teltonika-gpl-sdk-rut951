@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uhttpd
-PKG_RELEASE:=17
+PKG_RELEASE:=23
 
 PKG_SOURCE_VERSION=15346de8d3ba422002496526ee24c62a3601ab8c
 PKG_SOURCE_DATE:=2021-03-21
@@ -98,7 +98,7 @@ endef
 define Package/uhttpd-mod-ubus/postinst
 #!/bin/sh
 [ -z "$${IPKG_INSTROOT}" ] || exit 0
-kill -1 $$(pgrep uhttpd)
+killall -q -1 uhttpd
 exit 0
 endef
 
@@ -127,7 +127,7 @@ CMAKE_OPTIONS += $(if $(CONFIG_TPM_SUPPORT),-DUHTTPD_TPM_SUPPORT=on)
 OPTION_HTTPS_SED_SCRIPT := sed -i "/config.*main/a\\\toption redirect_https '1'" $(1)
 
 define Package/uhttpd/install
-	$(INSTALL_DIR) $(1)/www/cgi-bin/custom $(1)/etc/init.d $(1)/etc/config $(1)/usr/sbin $(1)/etc/permtab.d $(1)/tmp/vuci
+	$(INSTALL_DIR) $(1)/www/cgi-bin/custom $(1)/etc/init.d $(1)/etc/config $(1)/usr/sbin $(1)/etc/permtab.d
 	$(INSTALL_BIN_USR) ./files/uhttpd.init $(1)/etc/init.d/uhttpd
 	$(INSTALL_CONF_USR) ./files/uhttpd.config $(1)/etc/config/uhttpd
 	$(INSTALL_DATA) ./files/uhttpd.permtab $(1)/etc/permtab.d/uhttpd

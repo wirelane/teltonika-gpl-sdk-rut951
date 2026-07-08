@@ -2,7 +2,7 @@
 
 local io = require "io"
 local os = require "os"
-local fs = require "nixio.fs"
+local ubus = require "ubus"
 
 -- data: [
 -- 	<pid>: {
@@ -19,8 +19,12 @@ local fs = require "nixio.fs"
 -- ]
 
 local function notify_webui(pid, message)
-	fs.mkdir("/tmp/vuci")
-	fs.writefile("/tmp/vuci/memleak_"..pid, message)
+	local con = ubus.connect()
+	con:send("vuci.notify", {
+		event = "memleak_"..pid,
+		data = message
+	})
+	con:close()
 end
 local function syslog(message)
 	os.execute("logger -t '" .. arg[0] .. "' '" .. message .. "'")

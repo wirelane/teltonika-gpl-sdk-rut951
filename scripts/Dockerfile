@@ -87,6 +87,7 @@ RUN apt update && apt upgrade -y \
 	wget \
 	zip \
 	zlib1g-dev \
+	libgnutls28-dev \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN curl -L -o- https://deb.nodesource.com/setup_"$NODE_MAJOR".x | bash - \

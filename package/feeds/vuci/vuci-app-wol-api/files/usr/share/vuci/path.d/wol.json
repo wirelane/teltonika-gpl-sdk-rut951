@@ -1,0 +1,1 @@
+[{"endpoint":"/wol/global","lua_service":"services/wol_setup","backup_order":66},{"endpoint":"/wol/{service_group}/{?sid}","lua_service":"services/wol_devices","backup_order":67}]

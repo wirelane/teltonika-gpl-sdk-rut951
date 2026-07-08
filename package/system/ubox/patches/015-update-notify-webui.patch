@@ -1,0 +1,114 @@
+diff --git a/log/logdb.c b/log/logdb.c
+index ce0b516..aaed39c 100644
+--- a/log/logdb.c
++++ b/log/logdb.c
+@@ -15,9 +15,6 @@
+ #define DB_BUFF_128 128
+ #define ROW_THRESHOLD 100
+ 
+-#define NOTIFY_VUCI_DIR "/tmp/vuci"
+-#define NOTIFY_LOG_DB_FILE "/tmp/vuci/log_db"
+-
+ #ifndef ARRAY_SIZE
+ #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
+ #endif
+@@ -45,21 +42,23 @@ static t_data g_info[] = {
+ static struct uloop_process g_cp_proc;
+ static bool g_vc_running;
+ static sqlite3 *conn;
++struct ubus_context *g_ubus = NULL;
+ 
+ static void open_bk_db(struct uloop_process *proc, int ret);
+ 
+ static void notify_webui(const char *message) {
+-	if (mkdir(NOTIFY_VUCI_DIR, 0755) != 0 && errno != EEXIST) {
++	if (!g_ubus) {
+ 		return;
+ 	}
+ 
+-	int fd = open(NOTIFY_LOG_DB_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+-	if (fd == -1) {
+-		return;
+-	}
++	struct blob_buf b = { 0 };
++	blob_buf_init(&b, 0);
++	blobmsg_add_string(&b, "event", "log_db");
++	blobmsg_add_string(&b, "data", message);
+ 
+-	write(fd, message, strlen(message));
+-	close(fd);
++	ubus_send_event(g_ubus, "vuci.notify", b.head);
++
++	blob_buf_free(&b);
+ }
+ 
+ static int check_column_exists(sqlite3 *con, const char *table, const char *column)
+@@ -143,7 +142,7 @@ static void execute_query(char *query)
+ 			syslog(LOG_CRIT, "sqlite3 database is corrupted\n");
+ 			sqlite3_close(conn);
+ 			unlink(DB);
+-			init_db();
++			init_db(g_ubus);
+ 		}
+ 		return;
+ 	}
+@@ -363,7 +362,7 @@ static void open_bk_db(struct uloop_process *proc, int ret)
+ 		sqlite3_close(conn);
+ 		unlink(DB_BAK);
+ 		unlink(DB);
+-		init_db();
++		init_db(g_ubus);
+ 		g_vc_running = false;
+ 		return;
+ 	}
+@@ -531,7 +530,7 @@ sqlite3_stmt *db_prepare(char *query)
+ 	return stmt;
+ }
+ 
+-int init_db(void)
++int init_db(struct ubus_context *ubus)
+ {
+ 	fprintf(stdout, "Initializing database...\n");
+ 	if (sqlite3_open(DB, &conn)) {
+@@ -554,5 +553,7 @@ int init_db(void)
+ 		}
+ 	}
+ 
++	g_ubus = ubus;
++
+ 	return SQLITE_SUCCESS;
+ }
+diff --git a/log/logdb.h b/log/logdb.h
+index 171aec0..0860641 100644
+--- a/log/logdb.h
++++ b/log/logdb.h
+@@ -2,6 +2,7 @@
+ #define LOGDB_H
+ 
+ #include <sqlite3.h>
++#include <libubus.h>
+ 
+ #define DB "/log/log.db"
+ #define DB_BAK "/tmp/log.db_bak"
+@@ -22,7 +23,7 @@
+ #define DB_CHECK_COLUMN "SELECT COUNT(*) FROM pragma_table_info('%s') WHERE name='%s';"
+ #define DB_ADD_COL "ALTER TABLE %s ADD COLUMN %s;"
+ 
+-int init_db(void);
++int init_db(struct ubus_context *ubus);
+ int db_action(int action, sqlite3_stmt **stmt);
+ sqlite3_stmt *db_prepare(char *query);
+ 
+diff --git a/log/logread.c b/log/logread.c
+index 76cd2f4..1901e8e 100644
+--- a/log/logread.c
++++ b/log/logread.c
+@@ -564,7 +564,7 @@ int main(int argc, char **argv)
+ 	}
+ 	ubus_add_uloop(ctx);
+ 
+-	if (log_db_init && init_db() != 0) {
++	if (log_db_init && init_db(ctx) != 0) {
+ 		fprintf(stderr, "Failed to init db\n");
+ 		return -1;
+ 	}

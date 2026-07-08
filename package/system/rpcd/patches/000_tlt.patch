@@ -1,6 +1,6 @@
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/.gitlab-ci.yml src/.gitlab-ci.yml
 --- upstream/.gitlab-ci.yml	1970-01-01 00:00:00.000000000 +0000
-+++ src/.gitlab-ci.yml	2026-04-13 09:41:33.000000000 +0000
++++ src/.gitlab-ci.yml	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,11 @@
 +stages:
 +  - check
@@ -15,7 +15,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +    - check
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/CMakeLists.txt src/CMakeLists.txt
 --- upstream/CMakeLists.txt	2021-03-11 00:17:58.000000000 +0000
-+++ src/CMakeLists.txt	2026-04-13 09:41:33.000000000 +0000
++++ src/CMakeLists.txt	2026-05-18 09:19:58.000000000 +0000
 @@ -8,7 +8,12 @@
  
  OPTION(FILE_SUPPORT "File plugin support" ON)
@@ -29,7 +29,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
  SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
  
-@@ -22,12 +27,28 @@
+@@ -22,15 +27,28 @@
    ADD_DEFINITIONS(-DHAVE_SHADOW)
  ENDIF()
  
@@ -53,12 +53,15 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  FIND_LIBRARY(blobmsg_json NAMES blobmsg_json)
  FIND_LIBRARY(json NAMES json-c json)
  FIND_LIBRARY(crypt NAMES crypt)
+-IF(crypt STREQUAL "crypt-NOTFOUND")
+-  SET(crypt "")
+-ENDIF()
 +FIND_LIBRARY(cap NAMES cap)
 +FIND_LIBRARY(tlt_logger NAMES tlt_logger)
- IF(crypt STREQUAL "crypt-NOTFOUND")
-   SET(crypt "")
- ENDIF()
-@@ -38,10 +59,18 @@
+ 
+ FIND_PATH(ubus_include_dir libubus.h)
+ INCLUDE_DIRECTORIES(${ubus_include_dir})
+@@ -38,10 +56,18 @@
  FIND_PATH(ubox_include_dir libubox/blobmsg_json.h)
  INCLUDE_DIRECTORIES(${ubox_include_dir})
  
@@ -74,13 +77,13 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +ADD_EXECUTABLE(rpcd main.c exec.c plugin.c)
 +TARGET_LINK_LIBRARIES(rpcd ${ubox} ${ubus} ${uci} ${blobmsg_json} ${json} ${cap} dl)
 +
-+ADD_EXECUTABLE(session session.c session-totp.c)
++ADD_EXECUTABLE(session session.c session-totp.c rpc_acl_group.c arena.c string_list.c utils.c)
 +SET_TARGET_PROPERTIES(session PROPERTIES ENABLE_EXPORTS 1)
 +TARGET_LINK_LIBRARIES(session ${ubox} ${ubus} ${uci} ${blobmsg_json} ${crypt} ${tlt_logger} ${json} dl)
  
  IF(FILE_SUPPORT)
    SET(PLUGINS ${PLUGINS} file_plugin)
-@@ -65,7 +94,29 @@
+@@ -65,7 +91,29 @@
    SET_TARGET_PROPERTIES(iwinfo_plugin PROPERTIES OUTPUT_NAME iwinfo PREFIX "")
  ENDIF()
  
@@ -111,9 +114,196 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	RUNTIME DESTINATION sbin
  	LIBRARY DESTINATION lib
  )
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/arena.c src/arena.c
+--- upstream/arena.c	1970-01-01 00:00:00.000000000 +0000
++++ src/arena.c	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,183 @@
++#include "libubox/list.h"
++#include <stddef.h>
++#include <stdint.h>
++
++#include <stdbool.h>
++#include <stdio.h>
++#include <string.h>
++
++#include <rpcd/arena.h>
++#include <rpcd/utils.h>
++
++#define DEFAULT_ALIGNMENT (2*sizeof(void *))
++#define BLOCK_SIZE (4 * 4096 - sizeof(struct arena_block))
++
++// Based of this article: https://www.gingerbill.org/article/2019/02/08/memory-allocation-strategies-002/
++// But extended to use a linked list of blocks in order to support having a growable arena
++
++static bool is_power_of_two(uintptr_t x)
++{
++	return (x & (x-1)) == 0;
++}
++
++static uintptr_t align_forward(uintptr_t ptr, size_t align)
++{
++	uintptr_t p, a, modulo;
++
++	ASSERT(is_power_of_two(align));
++
++	p = ptr;
++	a = (uintptr_t)align;
++	// Same as (p % a) but faster as 'a' is a power of two
++	modulo = p & (a-1);
++
++	if (modulo != 0) {
++		// If 'p' address is not aligned, push the address to the
++		// next value which is aligned
++		p += a - modulo;
++	}
++	return p;
++}
++
++void arena_init(struct arena *arena)
++{
++	*arena = (struct arena){ 0 };
++}
++
++static struct arena_block *arena_block_init(size_t buf_len)
++{
++	struct arena_block *block = calloc(1, sizeof(struct arena_block) + buf_len * sizeof(uint8_t));
++	if (!block) {
++		return NULL;
++	}
++
++	block->buf_len = buf_len;
++
++	return block;
++}
++
++static void arena_append_block(struct arena *arena, struct arena_block *block)
++{
++	block->next = arena->head;
++	arena->head = block;
++}
++
++static void arena_append_block_after_head(struct arena *arena, struct arena_block *block)
++{
++	if (arena->head) {
++		block->next = arena->head->next;
++		arena->head->next = block;
++	} else {
++		arena_append_block(arena, block);
++	}
++}
++
++static void *arena_block_alloc(struct arena_block *block, size_t size, size_t align)
++{
++	ASSERT(align != 0);
++
++	// Align 'offset' forward to the specified alignment
++	uintptr_t curr_ptr = (uintptr_t)block->buf + (uintptr_t)block->offset;
++	uintptr_t offset = align_forward(curr_ptr, align);
++	offset -= (uintptr_t)block->buf; // Change to relative offset
++
++	// Check to see if the backing memory has space left
++	if (offset + size > block->buf_len) {
++		return NULL;
++	}
++
++	void *ptr = &block->buf[offset];
++	block->offset = offset+size;
++
++	memset(ptr, 0, size);
++	return ptr;
++}
++
++void *arena_alloc_align(struct arena *arena, size_t size, size_t align)
++{
++	// Requested allocation is larger than our block size,
++	// So just allocate it in a separate block instead of the current head.
++	if (size >= BLOCK_SIZE) {
++		struct arena_block *block = arena_block_init(size);
++		if (!block) {
++			return NULL;
++		}
++		block->offset = size;
++		arena_append_block_after_head(arena, block);
++
++		return block->buf;
++	}
++
++	// This is an empty arena, initialize it with a single block
++	if (arena->head == NULL) {
++		struct arena_block *block = arena_block_init(BLOCK_SIZE);
++		if (!block) {
++			return NULL;
++		}
++		arena_append_block(arena, block);
++	}
++
++	void *buf = arena_block_alloc(arena->head, size, align);
++	if (buf == NULL) {
++		// Start a new block, because the current one doesn't have enough space
++		struct arena_block *block = arena_block_init(BLOCK_SIZE);
++		if (!block) {
++			return NULL;
++		}
++		arena_append_block(arena, block);
++
++		buf = arena_block_alloc(arena->head, size, align);
++	}
++
++	return buf;
++}
++
++void *arena_alloc(struct arena *arena, size_t size)
++{
++	return arena_alloc_align(arena, size, DEFAULT_ALIGNMENT);
++}
++
++char *arena_strdup(struct arena *arena, const char *str)
++{
++	if (!str) {
++		return NULL;
++	}
++
++	size_t mem_size = strlen(str)+1;
++	char *new_str = arena_alloc_align(arena, mem_size, 1);
++	if (!new_str) {
++		return NULL;
++	}
++
++	memcpy(new_str, str, mem_size);
++
++	return new_str;
++}
++
++void *arena_clone_align(struct arena *arena, void *buf, size_t buf_len, size_t align)
++{
++	void *new_buf = arena_alloc_align(arena, buf_len, align);
++	if (!new_buf) {
++		return NULL;
++	}
++	memcpy(new_buf, buf, buf_len);
++
++	return new_buf;
++}
++
++void *arena_clone(struct arena *arena, void *buf, size_t buf_len)
++{
++	return arena_clone_align(arena, buf, buf_len, DEFAULT_ALIGNMENT);
++}
++
++void arena_free(struct arena *arena)
++{
++	struct arena_block *block_iter = arena->head;
++	while (block_iter != NULL) {
++		struct arena_block *next = block_iter->next;
++		free(block_iter);
++		block_iter = next;
++	}
++
++	arena_init(arena);
++}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/exec.c src/exec.c
 --- upstream/exec.c	2021-03-11 00:17:58.000000000 +0000
-+++ src/exec.c	2026-04-13 09:41:33.000000000 +0000
++++ src/exec.c	2026-05-18 09:19:58.000000000 +0000
 @@ -16,6 +16,7 @@
   * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   */
@@ -199,7 +389,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  		dup2(epipe[1], 2);
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/file.c src/file.c
 --- upstream/file.c	2021-03-11 00:17:58.000000000 +0000
-+++ src/file.c	2026-04-13 09:41:33.000000000 +0000
++++ src/file.c	2026-05-18 09:19:58.000000000 +0000
 @@ -32,11 +32,13 @@
  #include <libubus.h>
  #include <libubox/blobmsg.h>
@@ -835,8 +1025,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  };
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/acl.d/rpcd.json src/files/acl.d/rpcd.json
 --- upstream/files/acl.d/rpcd.json	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/acl.d/rpcd.json	2026-04-13 09:41:33.000000000 +0000
-@@ -0,0 +1,71 @@
++++ src/files/acl.d/rpcd.json	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,74 @@
 +{
 +	"user": "rpcd",
 +	"access": {
@@ -854,6 +1044,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		},
 +		"rpc-format": {
 +				"methods": [ "*" ]
++		},
++		"rpc-power-manager": {
++			"methods": [ "sleep", "shutdown" ]
 +		},
 +		"lan_info": {
 +			"methods": [ "get" ]
@@ -902,15 +1095,15 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	"send": ["esim.state", "esim.cache_update", "sms.limit"],
 +	"listen": [ "sim.changed", "lpac.updates", "ubus.object.add", "session.created", "session.destroyed" ],
 +	"publish": [ "iwinfo", "sys", "rpc-sys", "rpc-sys-ext", "rpc-format", "mnfinfo",
-+				 "profile", "rut_fota", "rut_fota.internal", "mwan3", "rpc-ping", "lan_info", "wan_info",
++				 "profile", "rut_fota", "rut_fota.internal", "mwan3", "rpc-ping", "rpc-power-manager", "lan_info", "wan_info",
 +				 "serial", "file", "esim.modem*", "sms_limit", "boardjson", "rpc-dfota",
-+				 "modbus_client.rpc", "network.rrdns", "uci", "rc",
++				 "modbus_client.rpc", "canopen_client.rpc", "network.rrdns", "uci", "rc",
 +				 "dlms_client.rpc", "opcua_client.rpc", "mbus_client.rpc", "mbus_client.scan", "dnp3_client.rpc",
 +				 "speedtest", "networkmap", "iec60870_client.rpc", "ip", "totp", "integrity" ]
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/acl.d/session.json src/files/acl.d/session.json
 --- upstream/files/acl.d/session.json	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/acl.d/session.json	2026-04-13 09:41:33.000000000 +0000
++++ src/files/acl.d/session.json	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,15 @@
 +{
 +	"user": "session",
@@ -929,7 +1122,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/acl.d/uci.json src/files/acl.d/uci.json
 --- upstream/files/acl.d/uci.json	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/acl.d/uci.json	2026-04-13 09:41:33.000000000 +0000
++++ src/files/acl.d/uci.json	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,11 @@
 +{
 +	"user": "uci",
@@ -944,7 +1137,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/init.d/rpcd.init src/files/init.d/rpcd.init
 --- upstream/files/init.d/rpcd.init	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/init.d/rpcd.init	2026-04-13 09:41:33.000000000 +0000
++++ src/files/init.d/rpcd.init	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,29 @@
 +#!/bin/sh /etc/rc.common
 +
@@ -977,7 +1170,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/init.d/session.init src/files/init.d/session.init
 --- upstream/files/init.d/session.init	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/init.d/session.init	2026-04-13 09:41:33.000000000 +0000
++++ src/files/init.d/session.init	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,20 @@
 +#!/bin/sh /etc/rc.common
 +
@@ -1002,7 +1195,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 \ No newline at end of file
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/libexec/integrity src/files/libexec/integrity
 --- upstream/files/libexec/integrity	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/libexec/integrity	2026-04-13 09:41:33.000000000 +0000
++++ src/files/libexec/integrity	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,367 @@
 +#!/bin/sh
 +
@@ -1373,7 +1566,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +main "$@"
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/libexec/lan_info src/files/libexec/lan_info
 --- upstream/files/libexec/lan_info	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/libexec/lan_info	2026-04-13 09:41:33.000000000 +0000
++++ src/files/libexec/lan_info	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,65 @@
 +#!/bin/sh
 +
@@ -1442,7 +1635,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +main "$@"
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/libexec/rpc-sys-ext src/files/libexec/rpc-sys-ext
 --- upstream/files/libexec/rpc-sys-ext	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/libexec/rpc-sys-ext	2026-04-13 09:41:33.000000000 +0000
++++ src/files/libexec/rpc-sys-ext	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,63 @@
 +#!/bin/sh
 +
@@ -1509,7 +1702,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +main "$@"
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/rpcd.config src/files/rpcd.config
 --- upstream/files/rpcd.config	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/rpcd.config	2026-04-13 09:41:33.000000000 +0000
++++ src/files/rpcd.config	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,70 @@
 +config rpcd
 +	option socket /var/run/ubus/ubus.sock
@@ -1583,7 +1776,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	list write 'core'
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/rpcd.openrc src/files/rpcd.openrc
 --- upstream/files/rpcd.openrc	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/rpcd.openrc	2026-04-13 09:41:33.000000000 +0000
++++ src/files/rpcd.openrc	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,12 @@
 +#!/sbin/openrc-run
 +
@@ -1599,12 +1792,12 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/rpcd.permtab src/files/rpcd.permtab
 --- upstream/files/rpcd.permtab	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/rpcd.permtab	2026-04-13 09:41:33.000000000 +0000
++++ src/files/rpcd.permtab	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1 @@
 +/etc/config/rpcd                        rpcd:rpcd       660       -
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/superuser.json src/files/superuser.json
 --- upstream/files/superuser.json	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/superuser.json	2026-04-13 09:41:33.000000000 +0000
++++ src/files/superuser.json	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,20 @@
 +{
 +	"superuser": {
@@ -1628,7 +1821,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/uci-defaults/7.11/99_rpcd_sesitive_info_flag src/files/uci-defaults/7.11/99_rpcd_sesitive_info_flag
 --- upstream/files/uci-defaults/7.11/99_rpcd_sesitive_info_flag	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/uci-defaults/7.11/99_rpcd_sesitive_info_flag	2026-04-13 09:41:33.000000000 +0000
++++ src/files/uci-defaults/7.11/99_rpcd_sesitive_info_flag	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,23 @@
 +#!/bin/sh
 +. /lib/functions.sh
@@ -1656,7 +1849,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 \ No newline at end of file
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/uci-defaults/7.13/99_rpcd_increase_timeout src/files/uci-defaults/7.13/99_rpcd_increase_timeout
 --- upstream/files/uci-defaults/7.13/99_rpcd_increase_timeout	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/uci-defaults/7.13/99_rpcd_increase_timeout	2026-04-13 09:41:33.000000000 +0000
++++ src/files/uci-defaults/7.13/99_rpcd_increase_timeout	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,10 @@
 +#!/bin/sh
 +
@@ -1670,7 +1863,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +exit 0
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/uci-defaults/7.13/99_rpcd_rename_usb_tools_paths src/files/uci-defaults/7.13/99_rpcd_rename_usb_tools_paths
 --- upstream/files/uci-defaults/7.13/99_rpcd_rename_usb_tools_paths	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/uci-defaults/7.13/99_rpcd_rename_usb_tools_paths	2026-04-13 09:41:33.000000000 +0000
++++ src/files/uci-defaults/7.13/99_rpcd_rename_usb_tools_paths	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,29 @@
 +#!/bin/sh
 +
@@ -1703,7 +1896,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +uci_commit "rpcd"
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/uci-defaults/7.19/99_rpcd_migrate_shadow_entry src/files/uci-defaults/7.19/99_rpcd_migrate_shadow_entry
 --- upstream/files/uci-defaults/7.19/99_rpcd_migrate_shadow_entry	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/uci-defaults/7.19/99_rpcd_migrate_shadow_entry	2026-04-13 09:41:33.000000000 +0000
++++ src/files/uci-defaults/7.19/99_rpcd_migrate_shadow_entry	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,16 @@
 +#!/bin/sh
 +
@@ -1723,7 +1916,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +uci_commit "$CONFIG"
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/files/uci-defaults/7.22/99_rpcd_anonymous_migrate src/files/uci-defaults/7.22/99_rpcd_anonymous_migrate
 --- upstream/files/uci-defaults/7.22/99_rpcd_anonymous_migrate	1970-01-01 00:00:00.000000000 +0000
-+++ src/files/uci-defaults/7.22/99_rpcd_anonymous_migrate	2026-04-13 09:41:33.000000000 +0000
++++ src/files/uci-defaults/7.22/99_rpcd_anonymous_migrate	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,34 @@
 +#!/bin/sh
 +
@@ -1759,9 +1952,43 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +uci_commit "$CONFIG"
 +[ $PAM_COMMIT -eq 1 ] && uci_commit "$PAM_CONFIG"
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/include/rpcd/arena.h src/include/rpcd/arena.h
+--- upstream/include/rpcd/arena.h	1970-01-01 00:00:00.000000000 +0000
++++ src/include/rpcd/arena.h	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,30 @@
++#ifndef ARENA_H_
++#define ARENA_H_
++
++#include <stdlib.h>
++#include <stdint.h>
++
++struct arena_block {
++	struct arena_block *next;
++	size_t offset;
++	size_t buf_len;
++	uint8_t buf[];
++};
++
++struct arena {
++	struct arena_block *head;
++};
++
++void arena_init(struct arena *arena);
++void arena_free(struct arena *arena);
++void *arena_alloc(struct arena *arena, size_t size);
++void *arena_alloc_align(struct arena *arena, size_t size, size_t align);
++char *arena_strdup(struct arena *arena, const char *str);
++void *arena_clone(struct arena *arena, void *buf, size_t buf_len);
++void *arena_clone_align(struct arena *arena, void *buf, size_t buf_len, size_t align);
++
++#define ARENA_ALLOC_STRUCT_ARRAY(arena, len, struct_type) (struct_type*)arena_alloc_align(arena, (len) * sizeof(struct_type), __alignof__(struct_type))
++#define ARENA_ALLOC_STRUCT(arena, struct_type) (struct_type*)arena_alloc_align(arena, sizeof(struct_type), __alignof__(struct_type))
++#define ARENA_CLONE_STRUCT(arena, struct_instance) (typeof(struct_instance))arena_clone_align(arena, struct_instance, sizeof(*(struct_instance)), __alignof__(*(struct_instance)))
++
++#endif //ARENA_H_
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/include/rpcd/exec.h src/include/rpcd/exec.h
 --- upstream/include/rpcd/exec.h	2021-03-11 00:17:58.000000000 +0000
-+++ src/include/rpcd/exec.h	2026-04-13 09:41:33.000000000 +0000
++++ src/include/rpcd/exec.h	2026-05-18 09:19:58.000000000 +0000
 @@ -23,8 +23,12 @@
  #include <libubox/blobmsg.h>
  #include <libubox/ustream.h>
@@ -1786,7 +2013,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  #endif
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/include/rpcd/oauth2.h src/include/rpcd/oauth2.h
 --- upstream/include/rpcd/oauth2.h	1970-01-01 00:00:00.000000000 +0000
-+++ src/include/rpcd/oauth2.h	2026-04-13 09:41:33.000000000 +0000
++++ src/include/rpcd/oauth2.h	2026-05-18 09:19:58.000000000 +0000
 @@ -0,0 +1,58 @@
 +#ifndef OAUTH2_H
 +#define OAUTH2_H
@@ -1848,7 +2075,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +#endif //OAUTH2_H
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/include/rpcd/plugin.h src/include/rpcd/plugin.h
 --- upstream/include/rpcd/plugin.h	2021-03-11 00:17:58.000000000 +0000
-+++ src/include/rpcd/plugin.h	2026-04-13 09:41:33.000000000 +0000
++++ src/include/rpcd/plugin.h	2026-05-18 09:19:58.000000000 +0000
 @@ -21,6 +21,17 @@
  
  #define _GNU_SOURCE /* asprintf() */
@@ -1943,19 +2170,77 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 -int rpc_rc_api_init(struct ubus_context *ctx);
 -
 -#endif
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/include/rpcd/rpc_acl_group.h src/include/rpcd/rpc_acl_group.h
+--- upstream/include/rpcd/rpc_acl_group.h	1970-01-01 00:00:00.000000000 +0000
++++ src/include/rpcd/rpc_acl_group.h	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,50 @@
++#ifndef RPC_ACL_GROUP_H_
++#define RPC_ACL_GROUP_H_
++
++#include <rpcd/arena.h>
++#include <rpcd/string_list.h>
++#include <libubox/blobmsg.h>
++
++struct rpc_acl_object {
++	char *name;
++	struct string_list functions;
++
++	struct string_list api_options;
++};
++
++struct rpc_acl_scope {
++	char *name;
++
++	struct rpc_acl_object *objects;
++	size_t objects_len;
++
++	bool implict_functions_from_permission;
++};
++
++struct rpc_acl_permission {
++	struct rpc_acl_scope *scopes;
++	size_t scopes_len;
++};
++
++struct rpc_acl_group {
++	char *name;
++
++	struct rpc_acl_permission read;
++	struct rpc_acl_permission write;
++
++	struct rpc_acl_group *next;
++};
++
++int rpc_acl_group_parse_from_blob(
++	struct rpc_acl_group *result,
++	struct arena *arena,
++	struct blob_attr *acl_group_blob
++);
++
++int rpc_acl_group_append_from_file(
++	struct rpc_acl_group **head,
++	struct arena *arena,
++	const char *path
++);
++
++#endif //RPC_ACL_GROUP_H_
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/include/rpcd/session.h src/include/rpcd/session.h
 --- upstream/include/rpcd/session.h	2021-03-11 00:17:58.000000000 +0000
-+++ src/include/rpcd/session.h	2026-04-13 09:41:33.000000000 +0000
-@@ -29,22 +29,40 @@
++++ src/include/rpcd/session.h	2026-05-18 09:19:58.000000000 +0000
+@@ -29,58 +29,103 @@
  
  #include <libubox/avl.h>
  #include <libubox/blobmsg_json.h>
 +#include <uci.h>
++#include <libubus.h>
++#include <rpcd/string_list.h>
  
++// `RPC_SID_LEN` does not include NULL byte
  #define RPC_SID_LEN	32
++
  #define RPC_DEFAULT_SESSION_TIMEOUT	300
  #define RPC_DEFAULT_SESSION_ID	"00000000000000000000000000000000"
- #define RPC_SESSION_DIRECTORY	"/var/run/rpcd/sessions"
+-#define RPC_SESSION_DIRECTORY	"/var/run/rpcd/sessions"
  #define RPC_SESSION_ACL_DIR		"/usr/share/rpcd/acl.d"
 +#define RPC_SESSION_ACL_DIR2		"/usr/local/usr/share/rpcd/acl.d"
  
@@ -1976,101 +2261,175 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +};
 +#endif
  
- struct rpc_session {
+-struct rpc_session {
+-	struct avl_node avl;
+-	char id[RPC_SID_LEN + 1];
++struct rpc_session_acl_object {
++	char *name;
++	struct string_list functions;
+ 
+-	struct uloop_timeout t;
+-	struct avl_tree data;
+-	struct avl_tree acls;
++	struct rpc_session_acl_object *next;
++};
+ 
+-	int timeout;
++struct rpc_session_acl_scope {
++	char *name;
++	struct rpc_session_acl_object *objects_head;
++
++	struct rpc_session_acl_scope *next;
+ };
+ 
+-struct rpc_session_data {
+-	struct avl_node avl;
+-	struct blob_attr attr[];
++struct rpc_session_acls {
++	struct arena arena;
++	struct rpc_session_acl_scope *scopes_head;
+ };
+ 
+-struct rpc_session_acl_scope {
+-	struct avl_node avl;
+-	struct avl_tree acls;
++struct rpc_session_data_entry {
++	char *key;
++	struct blob_attr *attr;
+ };
+ 
+-struct rpc_session_acl {
++struct rpc_session_data {
++	struct rpc_session_data_entry *items;
++	size_t len;
++	size_t capacity;
++};
++
++struct rpc_session {
  	struct avl_node avl;
- 	char id[RPC_SID_LEN + 1];
- 
+-	const char *object;
+-	const char *function;
+-	int sort_len;
++	char id[RPC_SID_LEN + 1];
++
 +	time_t created_at;
- 	struct uloop_timeout t;
- 	struct avl_tree data;
- 	struct avl_tree acls;
++	struct uloop_timeout t;
 +	char *username;
- 
- 	int timeout;
- };
-@@ -66,20 +84,37 @@
- 	int sort_len;
- };
- 
-+struct acl_entry {
-+	struct list_head list;
-+	char *permission;
-+};
 +
-+struct rpc_permissions_manager {
-+	struct list_head source_permissions;
-+	struct list_head endpoint_permissions;
-+};
++	struct rpc_session_acls acls;
++	struct rpc_session_data data;
 +
++	int timeout;
+ };
+ 
 +void rpc_session_init(void);
  int rpc_session_api_init(struct ubus_context *ctx);
  
+-bool rpc_session_access(const char *sid, const char *scope,
+-                        const char *object, const char *function);
 +struct rpc_session *rpc_session_get(const char *id);
 +struct uci_section *rpc_login_test_login(struct uci_context *uci,
 +					 const char *username, const char *password, const char *rhost);
-+void rpc_login_setup_acls(struct rpc_session *ses, struct uci_section *login);
-+void rpc_session_to_blob(struct blob_buf *b, struct rpc_session *ses, bool acls, bool include_id);
++void rpc_login_setup_acls(struct rpc_session_acls *acls, struct uci_section *login);
++void rpc_session_setup_acls(struct rpc_session *ses, struct uci_section *login);
++void rpc_session_to_blob(struct blob_buf *b, struct rpc_session *ses, bool acls);
 +
++// ------------------------------------- 2fa ---------------------------------------------
 +bool rpc_session_2fa_pending(struct rpc_session *ses);
 +void rpc_session_2fa_mark_pending(struct rpc_session *ses);
 +bool rpc_session_2fa_status(struct ubus_context *ctx, const char *username);
 +
- bool rpc_session_access(const char *sid, const char *scope,
-                         const char *object, const char *function);
++// ------------------------------ struct rpc_session_data ---------------------------------
++void rpc_session_data_clear(struct rpc_session_data *ses);
  
 -struct rpc_session_cb {
 -	struct list_head list;
 -	void (*cb)(struct rpc_session *, void *);
 -	void *priv;
 -};
--
++void rpc_session_data_set(struct rpc_session_data *data, const char *key, struct blob_attr *attr);
++struct blob_attr *rpc_session_data_get(struct rpc_session_data *data, const char *key);
+ 
 -void rpc_session_create_cb(struct rpc_session_cb *cb);
 -void rpc_session_destroy_cb(struct rpc_session_cb *cb);
-+struct blob_attr *rpc_session_data(const char *sid, const char *element);
++void rpc_session_data_set_string(struct rpc_session_data *data, const char *key, const char *value);
++const char *rpc_session_data_get_string(struct rpc_session_data *data, const char *key);
  
-+int rpc_session_revoke_similar(struct rpc_session *ses, const char *scope,
-+					   const char *object);
-+int rpc_add_exceptions(struct rpc_session *ses, struct rpc_permissions_manager *permissions_manager);
- void rpc_session_freeze(void);
- void rpc_session_thaw(void);
+-void rpc_session_freeze(void);
+-void rpc_session_thaw(void);
++void rpc_session_data_set_boolean(struct rpc_session_data *data, const char *key, bool value);
++bool rpc_session_data_get_boolean(struct rpc_session_data *data, const char *key, bool def);
  
+ #endif
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/include/rpcd/session_api.h src/include/rpcd/session_api.h
 --- upstream/include/rpcd/session_api.h	1970-01-01 00:00:00.000000000 +0000
-+++ src/include/rpcd/session_api.h	2026-04-13 09:41:33.000000000 +0000
-@@ -0,0 +1,23 @@
++++ src/include/rpcd/session_api.h	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,19 @@
 +#ifndef _RPC_SESSION_API_H
 +#define _RPC_SESSION_API_H
 +
 +#include <rpcd/session.h>
++#include <libubus.h>
 +
-+struct rpc_session *rpc_session_create(int timeout, bool auto_register);
++struct rpc_session *rpc_session_create(int timeout);
 +struct rpc_session *rpc_session_get(const char *id);
 +void rpc_session_destroy(struct rpc_session *ses);
 +void rpc_touch_session(struct rpc_session *ses);
 +
-+void rpc_session_set(struct rpc_session *ses, struct blob_attr *val);
-+void rpc_session_to_blob(struct blob_buf *b, struct rpc_session *ses, bool acls, bool include_id);
-+
-+struct uci_section *rpc_login_test_login(struct uci_context *uci, const char *username, 
-+                                          const char *password, const char *rhost);
-+void rpc_login_setup_acls(struct rpc_session *ses, struct uci_section *login);
++void rpc_session_to_blob(struct blob_buf *b, struct rpc_session *ses, bool acls);
 +
 +int rpc_random(char *dest);
 +void send_session_event(struct ubus_context *ctx, const char *event_name, const char *session_id);
 +
-+extern struct avl_tree sessions;
++extern struct avl_tree g_sessions;
 +
 +#endif /* _RPC_SESSION_API_H */
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/include/rpcd/string_list.h src/include/rpcd/string_list.h
+--- upstream/include/rpcd/string_list.h	1970-01-01 00:00:00.000000000 +0000
++++ src/include/rpcd/string_list.h	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,33 @@
++#ifndef STRING_LIST_H_
++#define STRING_LIST_H_
++
++#include <stdlib.h>
++#include <rpcd/arena.h>
++#include <libubox/blobmsg.h>
++
++struct string_list {
++	const char **items;
++	size_t len;
++	size_t capacity;
++};
++
++int string_list_ensure_unused_capacity(
++	struct string_list *list,
++	struct arena *arena,
++	size_t min_unused_capacity
++);
++void string_list_append_assume_capacity(
++	struct string_list *list,
++	const char *str
++);
++int string_list_append_from_blob(
++	struct string_list *result,
++	struct arena *arena,
++	struct blob_attr *blob
++);
++bool string_list_contains(struct string_list *haystack, const char *needle);
++int string_list_index_of(struct string_list *haystack, const char *needle);
++void string_list_swap_remove(struct string_list *haystack, size_t index);
++int string_list_append(struct string_list *result, struct arena *arena, const char *str);
++
++#endif //STRING_LIST_H_
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/include/rpcd/uci.h src/include/rpcd/uci.h
 --- upstream/include/rpcd/uci.h	2021-03-11 00:17:58.000000000 +0000
-+++ src/include/rpcd/uci.h	2026-04-13 09:41:33.000000000 +0000
-@@ -30,15 +30,14 @@
++++ src/include/rpcd/uci.h	2026-05-18 09:19:58.000000000 +0000
+@@ -30,15 +30,13 @@
  #include <libubus.h>
  #include <uci.h>
  
 -#define RPC_UCI_DIR_PREFIX	"/var/run/rpcd"
 +#define RPC_SID_LEN 32
-+extern char apply_sid[RPC_SID_LEN + 1];
 +
 +#define RPC_UCI_DIR_PREFIX	"/var/run/session"
  #define RPC_UCI_SAVEDIR_PREFIX	RPC_UCI_DIR_PREFIX "/uci-"
@@ -2084,9 +2443,28 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 -void rpc_uci_purge_savedirs(void);
 -
  #endif
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/include/rpcd/utils.h src/include/rpcd/utils.h
+--- upstream/include/rpcd/utils.h	1970-01-01 00:00:00.000000000 +0000
++++ src/include/rpcd/utils.h	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,15 @@
++#ifndef UTILS_H_
++#define UTILS_H_
++
++#include <libubox/blobmsg.h>
++#include <stdio.h>
++
++size_t blob_count_attributes(struct blob_attr *blob);
++
++#define ASSERT(condition) \
++	if (!(condition)) { \
++		fprintf(stderr, "Assertion '%s' at %s:%d failed", #condition, __FILE__, __LINE__); \
++		exit(1); \
++	}
++
++#endif //UTILS_H_
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/iwinfo.c src/iwinfo.c
 --- upstream/iwinfo.c	2021-03-11 00:17:58.000000000 +0000
-+++ src/iwinfo.c	2026-04-13 09:41:33.000000000 +0000
++++ src/iwinfo.c	2026-05-18 09:19:58.000000000 +0000
 @@ -17,6 +17,7 @@
   */
  
@@ -2695,7 +3073,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  };
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/main.c src/main.c
 --- upstream/main.c	2021-03-11 00:17:58.000000000 +0000
-+++ src/main.c	2026-04-13 09:41:33.000000000 +0000
++++ src/main.c	2026-05-18 09:19:58.000000000 +0000
 @@ -17,6 +17,8 @@
   * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   */
@@ -2705,7 +3083,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  #include <unistd.h>
  #include <stdlib.h>
  
-@@ -24,46 +26,225 @@
+@@ -24,46 +26,226 @@
  #include <libubus.h>
  #include <signal.h>
  #include <sys/stat.h>
@@ -2839,7 +3217,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	int sig = usig->signo;
 +	if (sig == SIGHUP || sig == SIGUSR1) {
 +		if (reload_pipe[1] != -1) {
-+			write(reload_pipe[1], "X", 1);
++			int err = write(reload_pipe[1], "X", 1);
++			(void)err; // Ignore error
 +		}
 +	} else {
 +		uloop_cancelled = true;
@@ -2950,7 +3329,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  }
  
  int main(int argc, char **argv)
-@@ -73,6 +254,9 @@
+@@ -73,6 +255,9 @@
  	const char *ubus_socket = NULL;
  	int ch;
  
@@ -2960,7 +3339,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	while ((ch = getopt(argc, argv, "s:t:")) != -1) {
  		switch (ch) {
  		case 's':
-@@ -93,43 +277,30 @@
+@@ -93,43 +278,30 @@
  		return -1;
  	}
  
@@ -3018,9 +3397,10 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  }
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/oauth2.c src/oauth2.c
 --- upstream/oauth2.c	1970-01-01 00:00:00.000000000 +0000
-+++ src/oauth2.c	2026-04-13 09:41:33.000000000 +0000
-@@ -0,0 +1,915 @@
++++ src/oauth2.c	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,919 @@
 +#include <string.h>
++#include <strings.h>
 +#include <inttypes.h>
 +#include <curl/curl.h>
 +#include <json-c/json.h>
@@ -3487,7 +3867,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		session->access_token = strdup(access_token);
 +	}
 +
-+	if (token_type && !strcmp(token_type, "Bearer")) {
++	if (token_type && !strcasecmp(token_type, "bearer")) {
 +		session->token_type = OAUTH2_TOKEN_BEARER;
 +	} else {
 +		session->token_type = OAUTH2_TOKEN_UNKNOWN;
@@ -3697,14 +4077,16 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		return OAUTH2_ERR;
 +	}
 +
-+	asprintf(&post_data,
++	int result = asprintf(&post_data,
 +	         "grant_type=authorization_code&client_id=%s&client_secret=%s&redirect_uri=%s&code=%s",
 +	         session->client_id, session->client_secret, session->redirect_uri, session->code);
++	(void)result;
 +	if(!post_data){
 +		return OAUTH2_ERR;
 +	}
 +
-+	asprintf(&auth_header, "%s:%s", session->client_id, session->client_secret);
++	result = asprintf(&auth_header, "%s:%s", session->client_id, session->client_secret);
++	(void)result;
 +	if (!auth_header) {
 +		free(post_data);
 +		return OAUTH2_ERR;
@@ -3824,8 +4206,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		return OAUTH2_ERR;
 +	}
 +
-+	char *bearer_header;
-+	asprintf(&bearer_header, "Authorization: Bearer %s", session->access_token);
++	char *bearer_header = NULL;
++	int result = asprintf(&bearer_header, "Authorization: Bearer %s", session->access_token);
++	(void)result;
 +	if (!bearer_header) {
 +		return OAUTH2_ERR;
 +	}
@@ -3937,8 +4320,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/oauth2_plugin.c src/oauth2_plugin.c
 --- upstream/oauth2_plugin.c	1970-01-01 00:00:00.000000000 +0000
-+++ src/oauth2_plugin.c	2026-04-13 09:41:33.000000000 +0000
-@@ -0,0 +1,432 @@
++++ src/oauth2_plugin.c	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,399 @@
 +#include <libubox/avl-cmp.h>
 +#include <libubox/blobmsg.h>
 +#include <libubox/utils.h>
@@ -3984,13 +4367,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +{
 +	struct rpc_session *ses;
 +
-+	avl_for_each_element(&sessions, ses, avl)
-+	{
-+		struct rpc_session_data *data = avl_find_element(&ses->data, "state", data, avl);
-+		if (!data || blobmsg_type(data->attr) != BLOBMSG_TYPE_STRING) {
-+			continue;
-+		}
-+		if (!strcmp(blobmsg_get_string(data->attr), state)) {
++	avl_for_each_element(&g_sessions, ses, avl) {
++		const char *ses_state = rpc_session_data_get_string(&ses->data, "state");
++		if (ses_state && !strcmp(ses_state, state)) {
 +			rpc_touch_session(ses);
 +			return ses;
 +		}
@@ -4004,10 +4383,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	struct rpc_session *ses;
 +	int count = 0;
 +
-+	avl_for_each_element(&sessions, ses, avl)
-+	{
-+		struct rpc_session_data *data = avl_find_element(&ses->data, "sso_provider", data, avl);
-+		if (data) {
++	avl_for_each_element(&g_sessions, ses, avl) {
++		if (rpc_session_data_get_string(&ses->data, "sso_provider") != NULL) {
 +			count++;
 +		}
 +	}
@@ -4077,7 +4454,6 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +static int rpc_handle_sso_login(struct ubus_context *ctx, struct ubus_object *obj,
 +                                struct ubus_request_data *req, const char *method, struct blob_attr *msg)
 +{
-+	static struct blob_buf buf          = { 0 };
 +	struct uci_context *uci             = NULL;
 +	struct rpc_session *ses             = NULL;
 +	struct blob_attr *tb[__RPC_SSO_MAX] = { 0 };
@@ -4149,7 +4525,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		goto out;
 +	}
 +
-+	ses = rpc_session_create(timeout, true);
++	ses = rpc_session_create(timeout);
 +	if (!ses) {
 +		oauth2_clean_session(&oauth2_session);
 +		_log(L_DEBUG, "SSO login failed to create session");
@@ -4157,28 +4533,13 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		goto out;
 +	}
 +
-+	blob_buf_init(&buf, 0);
-+	blobmsg_add_string(&buf, "authorization_url", oauth2_session.authorization_url);
-+	rpc_session_set(ses, blob_data(buf.head));
-+	blob_buf_free(&buf);
-+
-+	blob_buf_init(&buf, 0);
-+	blobmsg_add_string(&buf, "redirect_uri", redirect_uri);
-+	rpc_session_set(ses, blob_data(buf.head));
-+	blob_buf_free(&buf);
-+
-+	blob_buf_init(&buf, 0);
-+	blobmsg_add_string(&buf, "state", state);
-+	rpc_session_set(ses, blob_data(buf.head));
-+	blob_buf_free(&buf);
-+
-+	blob_buf_init(&buf, 0);
-+	blobmsg_add_string(&buf, "sso_provider", provider);
-+	rpc_session_set(ses, blob_data(buf.head));
-+	blob_buf_free(&buf);
++	rpc_session_data_set_string(&ses->data, "authorization_url", oauth2_session.authorization_url);
++	rpc_session_data_set_string(&ses->data, "redirect_uri", redirect_uri);
++	rpc_session_data_set_string(&ses->data, "state", state);
++	rpc_session_data_set_string(&ses->data, "sso_provider", provider);
 +
 +	send_session_event(ctx, "session.created", ses->id);
-+	rpc_session_to_blob(&reply_buf, ses, true, true);
++	rpc_session_to_blob(&reply_buf, ses, true);
 +	ubus_send_reply(ctx, req, reply_buf.head);
 +	oauth2_clean_session(&oauth2_session);
 +
@@ -4194,9 +4555,6 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +static int rpc_handle_sso_callback(struct ubus_context *ctx, struct ubus_object *obj,
 +                                   struct ubus_request_data *req, const char *method, struct blob_attr *msg)
 +{
-+	static struct blob_buf buf                   = { 0 };
-+	struct rpc_session_data *data                = NULL;
-+	struct rpc_session_data *ndata               = NULL;
 +	struct uci_context *uci                      = NULL;
 +	struct rpc_session *ses                      = NULL;
 +	struct uci_section *login                    = NULL;
@@ -4237,21 +4595,19 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		goto out;
 +	}
 +
-+	data = avl_find_element(&ses->data, "redirect_uri", data, avl);
-+	if (!data || blobmsg_type(data->attr) != BLOBMSG_TYPE_STRING) {
++	redirect_uri = rpc_session_data_get_string(&ses->data, "redirect_uri");
++	if (!redirect_uri) {
 +		_log(L_DEBUG, "SSO callback missing redirect_uri in session data");
 +		rv = UBUS_STATUS_PERMISSION_DENIED;
 +		goto out;
 +	}
-+	redirect_uri = blobmsg_get_string(data->attr);
 +
-+	data = avl_find_element(&ses->data, "sso_provider", data, avl);
-+	if (!data || blobmsg_type(data->attr) != BLOBMSG_TYPE_STRING) {
++	provider = rpc_session_data_get_string(&ses->data, "sso_provider");
++	if (!provider) {
 +		_log(L_DEBUG, "SSO callback missing provider in session data");
 +		rv = UBUS_STATUS_PERMISSION_DENIED;
 +		goto out;
 +	}
-+	provider = blobmsg_get_string(data->attr);
 +
 +	oauth2_set_parameter_list(&oauth2_session,
 +	                          OAUTH2_OPT_RESPONSE_TYPE, OAUTH2_RESPONSE_TYPE_CODE,
@@ -4308,24 +4664,18 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		goto clean_oauth;
 +	}
 +
-+	avl_remove_all_elements(&ses->data, data, avl, ndata) free(data);
++	rpc_session_data_clear(&ses->data);
 +
-+	blob_buf_init(&buf, 0);
-+	blobmsg_add_string(&buf, "username", oauth2_session.username);
-+	rpc_session_set(ses, blob_data(buf.head));
-+	blob_buf_free(&buf);
++	rpc_session_data_set_string(&ses->data, "username", oauth2_session.username);
 +
 +	if (login->e.name) {
-+		blob_buf_init(&buf, 0);
-+		blobmsg_add_string(&buf, "group", login->e.name);
-+		rpc_session_set(ses, blob_data(buf.head));
-+		blob_buf_free(&buf);
++		rpc_session_data_set_string(&ses->data, "group", login->e.name);
 +	}
 +	ses->timeout = timeout;
 +	rpc_touch_session(ses);
 +
-+	rpc_login_setup_acls(ses, login);
-+	rpc_session_to_blob(&reply_buf, ses, true, true);
++	rpc_session_setup_acls(ses, login);
++	rpc_session_to_blob(&reply_buf, ses, true);
 +	ubus_send_reply(ctx, req, reply_buf.head);
 +
 +clean_oauth:
@@ -4373,7 +4723,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/plugin.c src/plugin.c
 --- upstream/plugin.c	2021-03-11 00:17:58.000000000 +0000
-+++ src/plugin.c	2026-04-13 09:41:33.000000000 +0000
++++ src/plugin.c	2026-05-18 09:19:58.000000000 +0000
 @@ -17,8 +17,18 @@
   */
  
@@ -4393,7 +4743,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
  struct rpc_plugin_lookup_context {
  	uint32_t id;
-@@ -26,6 +36,62 @@
+@@ -26,6 +36,63 @@
  	bool found;
  };
  
@@ -4427,7 +4777,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +	// If it is a child process it would additionally write the output to the stdout
 +	if (child_process && msg) {
-+		write(rpc_response_fd, blob_data(msg), blob_len(msg));
++		int result = write(rpc_response_fd, blob_data(msg), blob_len(msg));
++		(void)result; // Ignore errors
 +		fsync(rpc_response_fd);
 +		return 0;
 +	}
@@ -4456,7 +4807,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  static void
  rpc_plugin_lookup_plugin_cb(struct ubus_context *ctx,
                              struct ubus_object_data *obj, void *priv)
-@@ -103,6 +169,83 @@
+@@ -103,6 +170,83 @@
  	}
  }
  
@@ -4540,7 +4891,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  static void
  rpc_plugin_json_array_to_blob(struct array_list *a, struct blob_buf *blob)
  {
-@@ -205,6 +348,7 @@
+@@ -205,6 +349,7 @@
  	int rv = UBUS_STATUS_UNKNOWN_ERROR;
  	struct call_context *c;
  	char *plugin, *mptr;
@@ -4548,7 +4899,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
  	c = calloc_a(sizeof(*c), &mptr, strlen(method) + 1);
  
-@@ -219,12 +363,25 @@
+@@ -219,12 +364,25 @@
  		goto fail;
  
  	plugin = c->path + sprintf(c->path, "%s/", RPC_PLUGIN_DIRECTORY);
@@ -4575,7 +4926,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
  	c->argv[0] = c->path;
  	c->argv[1] = "call";
-@@ -232,7 +389,7 @@
+@@ -232,7 +390,7 @@
  
  	rv = rpc_exec(c->argv, rpc_plugin_call_stdin_cb,
  	              rpc_plugin_call_stdout_cb, rpc_plugin_call_stderr_cb,
@@ -4584,7 +4935,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
  	if (rv == UBUS_STATUS_OK)
  		return rv;
-@@ -470,77 +627,449 @@
+@@ -470,77 +628,462 @@
  	}
  }
  
@@ -4604,18 +4955,22 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 -rpc_plugin_register_library(struct ubus_context *ctx, const char *path)
 +static void rpc_ustream_to_std(struct ustream *s, const char *name)
 +{
-+    const char *rbuf;
-+    int len;
++	const char *rbuf;
++	int len;
 +
-+    ustream_for_each_read_buffer(s, rbuf, len) {
-+        if (len <= 0)
-+            continue;
-+        if (strcmp(name, "stdout") == 0) {
-+            write(STDOUT_FILENO, rbuf, len);
-+        } else if (strcmp(name, "stderr") == 0) {
-+            write(STDERR_FILENO, rbuf, len);
-+        }
-+    }
++	ustream_for_each_read_buffer(s, rbuf, len) {
++		if (len <= 0) 
++			continue;
++
++		if (strcmp(name, "stdout") == 0) {
++			int result = write(STDOUT_FILENO, rbuf, len);
++			(void)result; // Ignore error
++
++		} else if (strcmp(name, "stderr") == 0) {
++			int result = write(STDERR_FILENO, rbuf, len);
++			(void)result; // Ignore error
++		}
++	}
 +}
 +
 +static void rpc_ustream_to_blobmsg(struct ustream *s, struct rpc_lib_plugin_context *c)
@@ -4794,6 +5149,12 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	cap_free(caps);
 +}
 +
++static void pipe_assume_success(int pipedes[2])
++{
++	int err = pipe(pipedes);
++	(void)err; // Ignore error
++}
++
 +static int rpc_plugin_intercept(struct ubus_context *ctx, struct ubus_object *obj,
 +                                struct ubus_request_data *req, const char *method,
 +                                struct blob_attr *msg)
@@ -4809,10 +5170,10 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	struct rpc_lib_plugin_context *c;
 +
 +	c = calloc(1, sizeof(*c));
-+	pipe(opipe_rpcd);
-+	pipe(epipe_rpcd);
-+	pipe(response_pipe);
-+	pipe(timeout_pipe);
++	pipe_assume_success(opipe_rpcd);
++	pipe_assume_success(epipe_rpcd);
++	pipe_assume_success(response_pipe);
++	pipe_assume_success(timeout_pipe);
 +	switch ((pid = fork()))
 +	{
 +	case -1:
@@ -4863,8 +5224,10 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +			if (initgroups("root", 0) != 0) {
 +				LOG_ERROR("Failed to set supplementary groups for root");
 +			}
-+			setgid(0);
-+			setuid(0);
++			int err = setgid(0);
++			(void)err; // Ignore error
++			err = setuid(0);
++			(void)err; // Ignore error
 +		}
 +
 +		set_capabilities(plugin->capabilities ? plugin->capabilities : "");
@@ -4877,7 +5240,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		EXIT_ON_ERROR(!plugin_obj, UBUS_STATUS_UNKNOWN_ERROR, "Plugin initialization failed");
 +
 +		if (plugin->timeout) {
-+  			write(timeout_pipe[1], &plugin->timeout, sizeof(plugin->timeout));
++  			int result = write(timeout_pipe[1], &plugin->timeout, sizeof(plugin->timeout));
++			(void)result; // Ignore error
 +		}
 +		close(timeout_pipe[1]);
 +
@@ -4975,9 +5339,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	dlclose(dlh);
 +	return res;
 +}
- 
-+static LIST_HEAD(shared_plugins);
 +
++static LIST_HEAD(shared_plugins);
+ 
 +static int
 +rpc_plugin_load_library(struct ubus_context *ctx, const char *path)
 +{
@@ -5066,7 +5430,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  }
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/rc.c src/rc.c
 --- upstream/rc.c	2021-03-11 00:17:58.000000000 +0000
-+++ src/rc.c	2026-04-13 09:41:33.000000000 +0000
++++ src/rc.c	2026-05-18 09:19:58.000000000 +0000
 @@ -6,29 +6,31 @@
   */
  
@@ -5272,16 +5636,294 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +struct rpc_plugin rpc_plugin = {
 +	.init = rpc_rc_api_init
 +};
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/rpc_acl_group.c src/rpc_acl_group.c
+--- upstream/rpc_acl_group.c	1970-01-01 00:00:00.000000000 +0000
++++ src/rpc_acl_group.c	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,277 @@
++#include "rpcd/string_list.h"
++#include <rpcd/rpc_acl_group.h>
++
++#include <tlt_logger.h>
++#include <rpcd/utils.h>
++#include <libubox/blobmsg_json.h>
++
++/*
++ * Parse ACL scopes in array notation. The permission ("read" or "write")
++ * will be used as function name for each object.
++ *
++ *	"<scope>": [
++ *		"<object>",
++ *		"<object>",
++ *		...
++ *	]
++ */
++static int rpc_acl_scope_parse_from_blob_array(
++	struct rpc_acl_scope *scope,
++	struct arena *arena,
++	struct blob_attr *scope_blob
++)
++{
++	if (blobmsg_type(scope_blob) != BLOBMSG_TYPE_ARRAY) {
++		return -1;
++	}
++
++	*scope = (struct rpc_acl_scope){
++		.implict_functions_from_permission = true
++	};
++
++	scope->name = arena_strdup(arena, blobmsg_name(scope_blob));
++	if (!scope->name) {
++		return -1;
++	}
++
++	size_t objects_capacity = blob_count_attributes(scope_blob);
++	scope->objects = ARENA_ALLOC_STRUCT_ARRAY(arena, objects_capacity, struct rpc_acl_object);
++	if (!scope->objects) {
++		return -1;
++	}
++
++	struct blob_attr *obj_blob = NULL;
++	int rem = 0;
++	blobmsg_for_each_attr(obj_blob, scope_blob, rem) {
++		if (blobmsg_type(obj_blob) != BLOBMSG_TYPE_STRING) {
++			continue;
++		}
++
++		char *object_name = arena_strdup(arena, blobmsg_get_string(obj_blob));
++		if (!object_name) {
++			return -1;
++		}
++
++		ASSERT(scope->objects_len < objects_capacity);
++		struct rpc_acl_object *object = &scope->objects[scope->objects_len++];
++		*object = (struct rpc_acl_object){
++			.name = object_name
++		};
++	}
++
++	return 0;
++}
++
++/*
++ * Parse ACL scopes in table notation.
++ *
++ *	"<scope>": {
++ *		"<object>": [
++ *			"<function>",
++ *			"<function>",
++ *			...
++ *		]
++ *	}
++ */
++static int rpc_acl_scope_parse_from_blob_table(
++	struct rpc_acl_scope *scope,
++	struct arena *arena,
++	struct blob_attr *scope_blob
++)
++{
++	if (blobmsg_type(scope_blob) != BLOBMSG_TYPE_TABLE) {
++		return -1;
++	}
++
++	*scope = (struct rpc_acl_scope){
++		.implict_functions_from_permission = false
++	};
++
++	scope->name = arena_strdup(arena, blobmsg_name(scope_blob));
++	if (!scope->name) {
++		return -1;
++	}
++
++	size_t objects_capacity = blob_count_attributes(scope_blob);
++	scope->objects = ARENA_ALLOC_STRUCT_ARRAY(arena, objects_capacity, struct rpc_acl_object);
++	if (!scope->objects) {
++		return -1;
++	}
++
++	struct blob_attr *obj_blob = NULL;
++	int rem = 0;
++	blobmsg_for_each_attr(obj_blob, scope_blob, rem) {
++		if (blobmsg_type(obj_blob) != BLOBMSG_TYPE_ARRAY) {
++			continue;
++		}
++
++		char *object_name = arena_strdup(arena, blobmsg_name(obj_blob));
++		if (!object_name) {
++			return -1;
++		}
++
++		struct string_list functions = { 0 };
++		if (string_list_append_from_blob(&functions, arena, obj_blob)) {
++			return -1;
++		}
++
++		ASSERT(scope->objects_len < objects_capacity);
++		struct rpc_acl_object *object = &scope->objects[scope->objects_len++];
++		*object = (struct rpc_acl_object){
++			.name = object_name,
++			.functions = functions
++		};
++	}
++
++	return 0;
++}
++
++static int rpc_acl_scope_parse_from_blob(
++	struct rpc_acl_scope *scope,
++	struct arena *arena,
++	struct blob_attr *scope_blob
++)
++{
++	if (blobmsg_type(scope_blob) == BLOBMSG_TYPE_ARRAY) {
++		return rpc_acl_scope_parse_from_blob_array(scope, arena, scope_blob);
++
++	} else if (blobmsg_type(scope_blob) == BLOBMSG_TYPE_TABLE) {
++		return rpc_acl_scope_parse_from_blob_table(scope, arena, scope_blob);
++
++	} else {
++		return -1;
++	}
++}
++
++static int rpc_acl_permission_parse_from_blob(
++	struct rpc_acl_permission *permission,
++	struct arena *arena,
++	struct blob_attr *permission_blob
++)
++{
++	if (blobmsg_type(permission_blob) != BLOBMSG_TYPE_TABLE) {
++		return -1;
++	}
++
++	size_t scopes_capacity = blob_count_attributes(permission_blob);
++	permission->scopes = ARENA_ALLOC_STRUCT_ARRAY(arena, scopes_capacity, struct rpc_acl_scope);
++	if (!permission->scopes) {
++		return -1;
++	}
++
++	permission->scopes_len = 0;
++
++	struct blob_attr *scope_blob = NULL;
++	int rem = 0;
++	blobmsg_for_each_attr(scope_blob, permission_blob, rem) {
++		const char *scope_name = blobmsg_name(scope_blob);
++		struct rpc_acl_scope *scope = &permission->scopes[permission->scopes_len];
++
++		if (rpc_acl_scope_parse_from_blob(scope, arena, scope_blob)) {
++			return -1;
++		}
++
++		// api scope is special and needs extra logic for handling allowed options for each endpoint.
++		if (!strcmp(scope_name, "api")) {
++			if (scope->implict_functions_from_permission) {
++				// When the allowed options aren't specified, assume that everything is allowed
++				for (size_t i = 0; i < scope->objects_len; i++) {
++					struct rpc_acl_object *object = &scope->objects[i];
++					string_list_append(&object->api_options, arena, "*");
++				}
++
++			} else {
++				scope->implict_functions_from_permission = true;
++
++				// Move `object->functions` to `object->api_options`, because 'api' scopes
++				// don't follow standard acl format.
++				for (size_t i = 0; i < scope->objects_len; i++) {
++					struct rpc_acl_object *object = &scope->objects[i];
++					object->api_options = object->functions;
++					object->functions = (struct string_list){ 0 };
++				}
++			}
++		}
++
++		ASSERT(permission->scopes_len < scopes_capacity);
++		permission->scopes_len++;
++	}
++
++	return 0;
++}
++
++
++int rpc_acl_group_parse_from_blob(
++	struct rpc_acl_group *result,
++	struct arena *arena,
++	struct blob_attr *acl_group_blob
++)
++{
++	result->name = arena_strdup(arena, blobmsg_name(acl_group_blob));
++	if (!result->name) {
++		return -1;
++	}
++
++	int rem = 0;
++	struct blob_attr *field = NULL;
++	blobmsg_for_each_attr(field, acl_group_blob, rem) {
++		const char *field_name = blobmsg_name(field);
++		if (!strcmp(field_name, "read")) {
++			if (rpc_acl_permission_parse_from_blob(&result->read, arena, field)) {
++				return -1;
++			}
++
++		} else if (!strcmp(field_name, "write")) {
++			if (rpc_acl_permission_parse_from_blob(&result->write, arena, field)) {
++				return -1;
++			}
++		}
++	}
++
++	return 0;
++}
++
++int rpc_acl_group_append_from_file(struct rpc_acl_group **head, struct arena *arena, const char *path)
++{
++	int rc = -1;
++
++	struct blob_buf acl = { 0 };
++	blob_buf_init(&acl, 0);
++
++	if (!blobmsg_add_json_from_file(&acl, path)) {
++		ERROR("Failed to parse file '%s' as json", path);
++		goto err;
++	}
++
++	bool any_failed = false;
++
++	int rem = 0;
++	struct blob_attr *acl_group_blob = NULL;
++	blob_for_each_attr(acl_group_blob, acl.head, rem) {
++		struct rpc_acl_group temp_acl_group = { 0 };
++		const char *group_name = blobmsg_name(acl_group_blob);
++		if (rpc_acl_group_parse_from_blob(&temp_acl_group, arena, acl_group_blob)) {
++			ERROR("Failed to parse '%s' acl group from '%s'", group_name, path);
++			any_failed = true;
++			continue;
++		}
++
++		struct rpc_acl_group *acl_group = ARENA_CLONE_STRUCT(arena, &temp_acl_group);
++		if (!acl_group) {
++			goto err;
++		}
++
++		// Append to linked list
++		acl_group->next = *head;
++		*head = acl_group;
++	}
++
++	if (any_failed) {
++		goto err;
++	}
++
++	rc = 0;
++err:
++	blob_buf_free(&acl);
++	return rc;
++}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/session-totp.c src/session-totp.c
 --- upstream/session-totp.c	1970-01-01 00:00:00.000000000 +0000
-+++ src/session-totp.c	2026-04-13 09:41:33.000000000 +0000
-@@ -0,0 +1,249 @@
++++ src/session-totp.c	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,230 @@
 +#include <libubus.h>
 +#include <libubox/blobmsg.h>
 +#include <uci.h>
-+
-+#include <stdlib.h>
-+#include <string.h>
 +
 +#include <rpcd/session.h>
 +
@@ -5291,26 +5933,6 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +int rpc_handle_2fa_login(struct ubus_context *ctx, struct ubus_object *obj,
 +			 struct ubus_request_data *req, const char *method,
 +			 struct blob_attr *msg);
-+
-+static void
-+rpc_session_set_data(struct rpc_session *ses, struct blob_attr *val)
-+{
-+	struct rpc_session_data *data;
-+
-+	data = avl_find_element(&ses->data, blobmsg_name(val), data, avl);
-+	if (data) {
-+		avl_delete(&ses->data, &data->avl);
-+		free(data);
-+	}
-+
-+	data = calloc(1, sizeof(*data) + blob_pad_len(val));
-+	if (!data)
-+		return;
-+
-+	memcpy(data->attr, val, blob_pad_len(val));
-+	data->avl.key = blobmsg_name(data->attr);
-+	avl_insert(&ses->data, &data->avl);
-+}
 +
 +enum {
 +	RPC_TL_SID,
@@ -5325,13 +5947,21 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +enum {
 +	RPC_2FA_RES,
++	RPC_2FA_RECOVERY,
 +	RPC_2FA_ACTIVE,
 +	__RPC_2FA_MAX,
 +};
 +
 +static const struct blobmsg_policy rpc_2fa_policy[__RPC_2FA_MAX] = {
 +	[RPC_2FA_RES] = { .name = "res", .type = BLOBMSG_TYPE_BOOL },
++	[RPC_2FA_RECOVERY] = { .name = "recovery", .type = BLOBMSG_TYPE_BOOL },
 +	[RPC_2FA_ACTIVE] = { .name = "active", .type = BLOBMSG_TYPE_BOOL },
++};
++
++struct rpc_2fa_check_req {
++	bool res;
++	bool recovery;
++	bool active;
 +};
 +
 +static void rpc_2fa_check_cb(struct ubus_request *req, int type, struct blob_attr *msg)
@@ -5339,42 +5969,39 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	(void)type;
 +
 +	struct blob_attr *tb[__RPC_2FA_MAX] = { 0 };
-+	bool *res = (bool *)req->priv;
++	struct rpc_2fa_check_req *req_data = (struct rpc_2fa_check_req *)req->priv;
 +
 +	blobmsg_parse(rpc_2fa_policy, __RPC_2FA_MAX, tb, blob_data(msg), blob_len(msg));
 +
 +	if (tb[RPC_2FA_RES]) {
-+		*res = blobmsg_get_bool(tb[RPC_2FA_RES]);
-+	} else if (tb[RPC_2FA_ACTIVE]) {
-+		*res = blobmsg_get_bool(tb[RPC_2FA_ACTIVE]);
++		req_data->res = blobmsg_get_bool(tb[RPC_2FA_RES]);
++	}
++	if (tb[RPC_2FA_RECOVERY]) {
++		req_data->recovery = blobmsg_get_bool(tb[RPC_2FA_RECOVERY]);
++	}
++	if (tb[RPC_2FA_ACTIVE]) {
++		req_data->active = blobmsg_get_bool(tb[RPC_2FA_ACTIVE]);
 +	}
 +}
 +
 +bool
 +rpc_session_2fa_pending(struct rpc_session *ses)
 +{
-+	struct rpc_session_data *data;
-+
-+	if (!ses)
++	if (!ses) {
 +		return false;
++	}
 +
-+	data = avl_find_element(&ses->data, "2fa_login", data, avl);
-+
-+	return !!data;
++	return rpc_session_data_get_boolean(&ses->data, "2fa_login", false);
 +}
 +
 +void
 +rpc_session_2fa_mark_pending(struct rpc_session *ses)
 +{
-+	struct blob_buf b = { 0 };
-+
-+	if (!ses)
++	if (!ses) {
 +		return;
++	}
 +
-+	blob_buf_init(&b, 0);
-+	blobmsg_add_u8(&b, "2fa_login", 1);
-+	rpc_session_set_data(ses, blob_data(b.head));
-+	blob_buf_free(&b);
++	rpc_session_data_set_boolean(&ses->data, "2fa_login", true);
 +}
 +
 +bool
@@ -5382,36 +6009,36 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +{
 +	static struct blob_buf b = { 0 };
 +	uint32_t id = 0;
-+	bool active = false;
++	struct rpc_2fa_check_req res = { 0 };
 +
 +	if (!username || !ctx || ubus_lookup_id(ctx, "totp", &id))
-+		return active;
++		return false;
 +
 +	blob_buf_init(&b, 0);
 +	blobmsg_add_string(&b, "username", username);
-+	ubus_invoke(ctx, id, "status", b.head, rpc_2fa_check_cb, &active, UBUS_TIMEOUT);
++	ubus_invoke(ctx, id, "status", b.head, rpc_2fa_check_cb, &res, UBUS_TIMEOUT);
 +	blob_buf_free(&b);
 +
-+	return active;
++	return res.active;
 +}
 +
-+static bool
++static struct rpc_2fa_check_req
 +rpc_2fa_check(struct ubus_context *ctx, struct rpc_session *ses, const char *otp)
 +{
 +	static struct blob_buf b = { 0 };
 +	uint32_t id = 0;
-+	struct rpc_session_data *username = NULL;
-+	bool res = false;
++	struct rpc_2fa_check_req res = { 0 };
 +
 +	if (!ctx || ubus_lookup_id(ctx, "totp", &id))
-+		return false;
++		return res;
 +
-+	username = avl_find_element(&ses->data, "username", username, avl);
-+	if (!username || blobmsg_type(username->attr) != BLOBMSG_TYPE_STRING)
-+		return false;
++	const char *username = rpc_session_data_get_string(&ses->data, "username");
++	if (!username) {
++		return res;
++	}
 +
 +	blob_buf_init(&b, 0);
-+	blobmsg_add_string(&b, "username", blobmsg_get_string(username->attr));
++	blobmsg_add_string(&b, "username", username);
 +	blobmsg_add_string(&b, "totp", otp);
 +	ubus_invoke(ctx, id, "check", b.head, rpc_2fa_check_cb, &res, UBUS_TIMEOUT);
 +	blob_buf_free(&b);
@@ -5422,13 +6049,13 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +static struct uci_section *
 +rpc_reclaim_uci_section(struct uci_context *uci, struct rpc_session *ses)
 +{
-+	struct rpc_session_data *username;
 +
-+	username = avl_find_element(&ses->data, "username", username, avl);
-+	if (!username || blobmsg_type(username->attr) != BLOBMSG_TYPE_STRING)
++	const char *username = rpc_session_data_get_string(&ses->data, "username");
++	if (!username) {
 +		return NULL;
++	}
 +
-+	return rpc_login_test_login(uci, blobmsg_get_string(username->attr), NULL, NULL);
++	return rpc_login_test_login(uci, username, NULL, NULL);
 +}
 +
 +int
@@ -5442,7 +6069,6 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	struct rpc_session *ses = NULL;
 +	const char *otp = NULL;
 +	int rv = 0;
-+	struct rpc_session_data *data;
 +	struct blob_buf reply_buf = { 0 };
 +
 +	(void)obj;
@@ -5469,13 +6095,13 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		goto out;
 +	}
 +
-+	data = avl_find_element(&ses->data, "2fa_login", data, avl);
-+	if (!data) {
++	if (!rpc_session_2fa_pending(ses)) {
 +		rv = UBUS_STATUS_PERMISSION_DENIED;
 +		goto out;
 +	}
 +
-+	if (!rpc_2fa_check(ctx, ses, otp)) {
++	struct rpc_2fa_check_req res = rpc_2fa_check(ctx, ses, otp);
++	if (!res.res) {
 +		rv = UBUS_STATUS_PERMISSION_DENIED;
 +		goto out;
 +	}
@@ -5486,11 +6112,11 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		goto out;
 +	}
 +
-+	avl_delete(&ses->data, &data->avl);
-+	free(data);
++	rpc_session_data_set(&ses->data, "2fa_login", NULL);
++	rpc_session_data_set_boolean(&ses->data, "2fa_recovery", res.recovery);
 +
-+	rpc_login_setup_acls(ses, login);
-+	rpc_session_to_blob(&reply_buf, ses, true, true);
++	rpc_session_setup_acls(ses, login);
++	rpc_session_to_blob(&reply_buf, ses, true);
 +	ubus_send_reply(ctx, req, reply_buf.head);
 +
 +out:
@@ -5527,8 +6153,14 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +#endif
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/session.c src/session.c
 --- upstream/session.c	2021-03-11 00:17:58.000000000 +0000
-+++ src/session.c	2026-04-13 09:41:33.000000000 +0000
-@@ -22,23 +22,199 @@
++++ src/session.c	2026-05-18 09:19:58.000000000 +0000
+@@ -17,28 +17,229 @@
+  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  */
+ 
+-#define _GNU_SOURCE	/* crypt() */
++#include "libubox/blob.h"
+ 
  #include <libubox/avl-cmp.h>
  #include <libubox/blobmsg.h>
  #include <libubox/utils.h>
@@ -5542,6 +6174,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +#include <errno.h>
 +#include <tlt_logger.h>
 +#include <dlfcn.h>
++#include <pwd.h>
++#include <sys/param.h>
++#include <crypt.h>
  
  #ifdef HAVE_SHADOW
  #include <shadow.h>
@@ -5551,6 +6186,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +#define LOGIN_NAME_MAX sysconf(_SC_LOGIN_NAME_MAX)
 +#endif
 +
++#include <rpcd/string_list.h>
++#include <rpcd/rpc_acl_group.h>
++#include <rpcd/arena.h>
  #include <rpcd/session.h>
 +#include <rpcd/session_api.h>
 +
@@ -5558,6 +6196,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +typedef int (*session_plugin_init_fn)(struct ubus_context *ctx);
 +typedef void (*session_plugin_deinit_fn)(struct ubus_context *ctx);
++
++static int rpc_session_grant(struct rpc_session_acls *acls, const char *scope_name, const char *object_name, const char *function);
++static int rpc_session_revoke(struct rpc_session_acls *acls, const char *scope_name, const char *object_name, const char *function);
 +
 +#define vlog _log
 +
@@ -5570,7 +6211,24 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	char path[PATH_MAX];
 +};
 +
++struct group_permission {
++	struct string_list allowed;
++	struct string_list denied;
++
++	bool allowed_by_default;
++};
++
++struct group_permissions {
++	struct arena arena;
++
++	struct group_permission read;
++	struct group_permission write;
++};
++
 +static LIST_HEAD(session_plugin_handles);
++
++static struct rpc_acl_group *g_acl_groups_head = NULL;
++static struct arena g_acl_groups_arena = { 0 };
 +
 +static bool
 +session_plugin_is_loaded(const char *path)
@@ -5609,13 +6267,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +
 +	if (!name)
 +		return false;
- 
--static struct avl_tree sessions;
--static struct blob_buf buf;
++
 +	len = strlen(name);
- 
--static LIST_HEAD(create_callbacks);
--static LIST_HEAD(destroy_callbacks);
++
 +	return (len > 3 && !strcmp(name + len - 3, ".so"));
 +}
 +
@@ -5662,7 +6316,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +			dlclose(dlh);
 +			continue;
 +		}
-+
+ 
+-static struct avl_tree sessions;
+-static struct blob_buf buf;
 +		if (init_fn(ctx) == 0) {
 +			plugin = calloc(1, sizeof(*plugin));
 +			if (!plugin) {
@@ -5705,7 +6361,9 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +		free(plugin);
 +	}
 +}
-+
+ 
+-static LIST_HEAD(create_callbacks);
+-static LIST_HEAD(destroy_callbacks);
 +static void
 +load_session_plugins(struct ubus_context *ctx)
 +{
@@ -5713,12 +6371,11 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	load_session_plugins_from_dir(ctx, SESSION_PLUGIN_DIR_LOCAL);
 +}
 +
-+struct avl_tree sessions;
-+struct rpc_session_acl *rpc_session_get_acl(struct rpc_session *ses, const char *scope, const char *object);
++struct avl_tree g_sessions;
++
++struct rpc_session_acl_object *rpc_session_get_acl(struct rpc_session *ses, const char *scope, const char *object);
 +void rpc_grant_endpoint_options(struct rpc_session *ses, struct blob_attr *api_attr);
-+struct rpc_session *rpc_session_thaw_single(const char *sid);
 +static struct ubus_auto_conn conn;
-+static bool respawn = false;
 +static bool plugins_reload = false;
 +
 +#ifdef ENABLE_2FA_SUPPORT
@@ -5732,22 +6389,45 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
  enum {
  	RPC_SN_TIMEOUT,
-@@ -93,6 +269,7 @@
+@@ -69,9 +270,8 @@
+ enum {
+ 	RPC_SG_SID,
+ 	RPC_SG_KEYS,
+-	__RPC_SG_MAX,
+ };
+-static const struct blobmsg_policy get_policy[__RPC_SG_MAX] = {
++static const struct blobmsg_policy get_policy[] = {
+ 	[RPC_SG_SID] = { .name = "ubus_rpc_session", .type = BLOBMSG_TYPE_STRING },
+ 	[RPC_SG_KEYS] = { .name = "keys", .type = BLOBMSG_TYPE_ARRAY },
+ };
+@@ -93,60 +293,43 @@
  	RPC_SP_SCOPE,
  	RPC_SP_OBJECT,
  	RPC_SP_FUNCTION,
+-	__RPC_SP_MAX,
 +	RPC_SP_CHECKS,
- 	__RPC_SP_MAX,
  };
- static const struct blobmsg_policy perm_policy[__RPC_SP_MAX] = {
-@@ -100,6 +277,17 @@
+-static const struct blobmsg_policy perm_policy[__RPC_SP_MAX] = {
++static const struct blobmsg_policy perm_policy[] = {
+ 	[RPC_SP_SID] = { .name = "ubus_rpc_session", .type = BLOBMSG_TYPE_STRING },
  	[RPC_SP_SCOPE] = { .name = "scope", .type = BLOBMSG_TYPE_STRING },
  	[RPC_SP_OBJECT] = { .name = "object", .type = BLOBMSG_TYPE_STRING },
  	[RPC_SP_FUNCTION] = { .name = "function", .type = BLOBMSG_TYPE_STRING },
 +	[RPC_SP_CHECKS] = { .name = "checks", .type = BLOBMSG_TYPE_ARRAY },
-+};
-+
-+enum {
+ };
+ 
+ enum {
+-	RPC_DUMP_SID,
+-	RPC_DUMP_TIMEOUT,
+-	RPC_DUMP_EXPIRES,
+-	RPC_DUMP_DATA,
+-	__RPC_DUMP_MAX,
+-};
+-static const struct blobmsg_policy dump_policy[__RPC_DUMP_MAX] = {
+-	[RPC_DUMP_SID] = { .name = "ubus_rpc_session", .type = BLOBMSG_TYPE_STRING },
+-	[RPC_DUMP_TIMEOUT] = { .name = "timeout", .type = BLOBMSG_TYPE_INT32 },
+-	[RPC_DUMP_EXPIRES] = { .name = "expires", .type = BLOBMSG_TYPE_INT32 },
+-	[RPC_DUMP_DATA] = { .name = "data", .type = BLOBMSG_TYPE_TABLE },
 +	RPC_CHECK_OBJECT,
 +	RPC_CHECK_FUNCTION,
 +	__RPC_CHECK_MAX,
@@ -5757,8 +6437,6 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +    [RPC_CHECK_FUNCTION] = { .name = "function", .type = BLOBMSG_TYPE_STRING },
  };
  
- enum {
-@@ -119,13 +307,17 @@
  enum {
  	RPC_L_USERNAME,
  	RPC_L_PASSWORD,
@@ -5774,57 +6452,128 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	[RPC_L_USERNAME]   = { .name = "username", .type = BLOBMSG_TYPE_STRING },
 +	[RPC_L_PASSWORD]   = { .name = "password", .type = BLOBMSG_TYPE_STRING },
 +	[RPC_L_RHOST]      = { .name = "rhost", .type = BLOBMSG_TYPE_STRING },
-+	[RPC_L_BASIC_AUTH] = { .name = "basic", .type = BLOBMSG_TYPE_BOOL },
 +	[RPC_L_TIMEOUT]	   = { .name = "timeout", .type = BLOBMSG_TYPE_INT32 },
++	[RPC_L_BASIC_AUTH] = { .name = "basic", .type = BLOBMSG_TYPE_BOOL },
  };
  
- /*
-@@ -146,7 +338,7 @@
- 		    !fnmatch((_acl)->object, (_obj), FNM_NOESCAPE) &&		\
- 		    !fnmatch((_acl)->function, (_func), FNM_NOESCAPE))
- 
+-/*
+- * Keys in the AVL tree contain all pattern characters up to the first wildcard.
+- * To look up entries, start with the last entry that has a key less than or
+- * equal to the method name, then work backwards as long as the AVL key still
+- * matches its counterpart in the object name
+- */
+-#define uh_foreach_matching_acl_prefix(_acl, _avl, _obj, _func)		\
+-	for (_acl = avl_find_le_element(_avl, _obj, _acl, avl);			\
+-	     _acl;														\
+-	     _acl = avl_is_first(_avl, &(_acl)->avl) ? NULL :			\
+-		    avl_prev_element((_acl), avl))
+-
+-#define uh_foreach_matching_acl(_acl, _avl, _obj, _func)			\
+-	uh_foreach_matching_acl_prefix(_acl, _avl, _obj, _func)			\
+-		if (!strncmp((_acl)->object, _obj, (_acl)->sort_len) &&		\
+-		    !fnmatch((_acl)->object, (_obj), FNM_NOESCAPE) &&		\
+-		    !fnmatch((_acl)->function, (_func), FNM_NOESCAPE))
+-
 -static int
 +int
  rpc_random(char *dest)
  {
  	unsigned char buf[16] = { 0 };
-@@ -171,13 +363,16 @@
+@@ -171,115 +354,125 @@
  }
  
  static void
 -rpc_session_dump_data(struct rpc_session *ses, struct blob_buf *b)
-+rpc_session_dump_data(struct blob_buf *b, struct rpc_session *ses)
++rpc_session_data_entry_add_to_blob(struct blob_buf *b, struct rpc_session_data_entry *entry)
  {
 -	struct rpc_session_data *d;
--
-+	struct rpc_session_data *d = NULL;
- 	avl_for_each_element(&ses->data, d, avl) {
++	if (!entry->attr) {
++		return;
++	}
+ 
+-	avl_for_each_element(&ses->data, d, avl) {
 -		blobmsg_add_field(b, blobmsg_type(d->attr), blobmsg_name(d->attr),
 -				  blobmsg_data(d->attr), blobmsg_data_len(d->attr));
-+		blobmsg_add_field(b,
-+			blobmsg_type(d->attr),
-+			blobmsg_name(d->attr),
-+			blobmsg_data(d->attr),
-+			blobmsg_data_len(d->attr)
-+		);
++	if (blobmsg_type(entry->attr) == BLOBMSG_TYPE_STRING) {
++		blobmsg_add_string(b, entry->key, blobmsg_get_string(entry->attr));
++	} else if (blobmsg_type(entry->attr) == BLOBMSG_TYPE_BOOL) {
++		blobmsg_add_u8(b, entry->key, blobmsg_get_bool(entry->attr));
  	}
  }
  
-@@ -217,69 +412,93 @@
- 	if (c) blobmsg_close_table(b, c);
+ static void
+-rpc_session_dump_acls(struct rpc_session *ses, struct blob_buf *b)
++rpc_session_dump_data(struct blob_buf *b, struct rpc_session *ses)
+ {
+-	struct rpc_session_acl *acl;
+-	struct rpc_session_acl_scope *acl_scope;
+-	const char *lastobj = NULL;
+-	const char *lastscope = NULL;
+-	void *c = NULL, *d = NULL;
++	for (int i = 0; i < ses->data.len; i++) {
++		rpc_session_data_entry_add_to_blob(b, &ses->data.items[i]);
++	}
++}
+ 
+-	avl_for_each_element(&ses->acls, acl_scope, avl) {
+-		if (!lastscope || strcmp(acl_scope->avl.key, lastscope))
+-		{
+-			if (c) blobmsg_close_table(b, c);
+-			c = blobmsg_open_table(b, acl_scope->avl.key);
+-			lastobj = NULL;
+-		}
++static void
++rpc_session_dump_acls(struct rpc_session_acls *acls, struct blob_buf *b)
++{
++	struct rpc_session_acl_scope *scope_iter = acls->scopes_head;
++	while (scope_iter != NULL) {
++		void *c = blobmsg_open_table(b, scope_iter->name);
++
++		struct rpc_session_acl_object *object_iter = scope_iter->objects_head;
++		while (object_iter != NULL) {
++			struct rpc_session_acl_object *object = object_iter;
++			object_iter = object_iter->next;
++
++			if (object->functions.len == 0) {
++				continue;
++			}
+ 
+-		d = NULL;
++			void *d = blobmsg_open_array(b, object->name);
+ 
+-		avl_for_each_element(&acl_scope->acls, acl, avl) {
+-			if (!lastobj || strcmp(acl->object, lastobj))
+-			{
+-				if (d) blobmsg_close_array(b, d);
+-				d = blobmsg_open_array(b, acl->object);
++			for (int i = 0; i < object->functions.len; i++) {
++				blobmsg_add_string(b, NULL, object->functions.items[i]);
+ 			}
+ 
+-			blobmsg_add_string(b, NULL, acl->function);
+-			lastobj = acl->object;
++			blobmsg_close_array(b, d);
+ 		}
+ 
+-		if (d) blobmsg_close_array(b, d);
+-	}
++		blobmsg_close_table(b, c);
+ 
+-	if (c) blobmsg_close_table(b, c);
++		scope_iter = scope_iter->next;
++	}
  }
  
 -static void
 -rpc_session_to_blob(struct rpc_session *ses, bool acls)
 +void
-+rpc_session_to_blob(struct blob_buf *b, struct rpc_session *ses, bool acls, bool include_id)
++rpc_session_to_blob(struct blob_buf *b, struct rpc_session *ses, bool acls)
  {
 -	void *c;
--
--	blob_buf_init(&buf, 0);
-+	if (include_id)
-+		blobmsg_add_string(b, "ubus_rpc_session", ses->id);
++	blobmsg_add_string(b, "ubus_rpc_session", ses->id);
  
+-	blob_buf_init(&buf, 0);
+-
 -	blobmsg_add_string(&buf, "ubus_rpc_session", ses->id);
 -	blobmsg_add_u32(&buf, "timeout", ses->timeout);
 -	blobmsg_add_u32(&buf, "expires", uloop_timeout_remaining(&ses->t) / 1000);
@@ -5837,49 +6586,38 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 -		rpc_session_dump_acls(ses, &buf);
 -		blobmsg_close_table(&buf, c);
 +		void *acl_table = blobmsg_open_table(b, "acls");
-+		rpc_session_dump_acls(ses, b);
++		rpc_session_dump_acls(&ses->acls, b);
 +		blobmsg_close_table(b, acl_table);
  	}
  
 -	c = blobmsg_open_table(&buf, "data");
 -	rpc_session_dump_data(ses, &buf);
 -	blobmsg_close_table(&buf, c);
+-}
+-
+-static void
+-rpc_session_dump(struct rpc_session *ses, struct ubus_context *ctx,
+-                 struct ubus_request_data *req)
+-{
+-	rpc_session_to_blob(ses, true);
+-
+-	ubus_send_reply(ctx, req, buf.head);
 +	void *data_table = blobmsg_open_table(b, "data");
 +	rpc_session_dump_data(b, ses);
 +	blobmsg_close_table(b, data_table);
  }
  
 -static void
--rpc_session_dump(struct rpc_session *ses, struct ubus_context *ctx,
--                 struct ubus_request_data *req)
 +void
-+rpc_touch_session(struct rpc_session *ses)
+ rpc_touch_session(struct rpc_session *ses)
  {
--	rpc_session_to_blob(ses, true);
-+	if (ses->timeout > 0)
-+		uloop_timeout_set(&ses->t, ses->timeout * 1000);
-+}
- 
--	ubus_send_reply(ctx, req, buf.head);
-+static inline void
-+rpc_session_destroy_alcs(struct avl_tree *acls, struct rpc_session_acl_scope *acl_scope) {
-+	struct rpc_session_acl *acl = NULL;
-+	struct rpc_session_acl *nacl = NULL;
-+
-+	avl_remove_all_elements(&acl_scope->acls, acl, avl, nacl) {
-+		free(acl);
-+	}
-+
-+	avl_delete(acls, &acl_scope->avl);
-+	free(acl_scope);
+ 	if (ses->timeout > 0)
+ 		uloop_timeout_set(&ses->t, ses->timeout * 1000);
  }
  
 -static void
--rpc_touch_session(struct rpc_session *ses)
 +void send_session_event(struct ubus_context *ctx, const char *event_name, const char *session_id)
- {
--	if (ses->timeout > 0)
--		uloop_timeout_set(&ses->t, ses->timeout * 1000);
++{
 +	if (!ctx || !event_name || !session_id) {
 +		return;
 +	}
@@ -5895,53 +6633,66 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	}
 +
 +	blob_buf_free(&b);
- }
- 
--static void
++}
++
 +void
  rpc_session_destroy(struct rpc_session *ses)
  {
 -	struct rpc_session_acl *acl, *nacl;
+-	struct rpc_session_acl_scope *acl_scope, *nacl_scope;
+-	struct rpc_session_data *data, *ndata;
+-	struct rpc_session_cb *cb;
 +	if (!ses)
 +		return;
-+
-+	vlog(L_DEBUG, "Destroying session %s", ses->id);
- 	struct rpc_session_acl_scope *acl_scope, *nacl_scope;
- 	struct rpc_session_data *data, *ndata;
--	struct rpc_session_cb *cb;
--
+ 
 -	list_for_each_entry(cb, &destroy_callbacks, list)
 -		cb->cb(ses, cb->priv);
-+	struct rpc_session *registered = NULL;
++	vlog(L_DEBUG, "Destroying session %s", ses->id);
  
  	uloop_timeout_cancel(&ses->t);
  
- 	avl_for_each_element_safe(&ses->acls, acl_scope, avl, nacl_scope) {
+-	avl_for_each_element_safe(&ses->acls, acl_scope, avl, nacl_scope) {
 -		avl_remove_all_elements(&acl_scope->acls, acl, avl, nacl)
 -			free(acl);
--
++	arena_free(&ses->acls.arena);
++	rpc_session_data_clear(&ses->data);
+ 
 -		avl_delete(&ses->acls, &acl_scope->avl);
 -		free(acl_scope);
-+		rpc_session_destroy_alcs(&ses->acls, acl_scope);
++	struct rpc_session *registered = avl_find_element(&g_sessions, ses->id, registered, avl);
++	if (registered == ses) {
++		avl_delete(&g_sessions, &ses->avl);
++	} else {
++		vlog(L_DEBUG, "Session %s is not registered in sessions tree", ses->id);
  	}
  
- 	avl_remove_all_elements(&ses->data, data, avl, ndata)
- 		free(data);
- 
+-	avl_remove_all_elements(&ses->data, data, avl, ndata)
+-		free(data);
+-
 -	avl_delete(&sessions, &ses->avl);
-+	registered = avl_find_element(&sessions, ses->id, registered, avl);
-+	if (registered == ses)
-+		avl_delete(&sessions, &ses->avl);
-+	else
-+		vlog(L_DEBUG, "Session %s is not registered in sessions tree", ses->id);
-+
 +	free(ses->username);
  	free(ses);
  }
  
-@@ -307,46 +526,56 @@
- 	avl_init(&ses->data, avl_strcmp, false, NULL);
+@@ -294,59 +487,62 @@
+ static struct rpc_session *
+ rpc_session_new(void)
+ {
+-	struct rpc_session *ses;
+-
+-	ses = calloc(1, sizeof(*ses));
+-
+-	if (!ses)
++	struct rpc_session *ses = calloc(1, sizeof(*ses));
++	if (!ses) {
+ 		return NULL;
++	}
  
+ 	ses->avl.key = ses->id;
+ 
+-	avl_init(&ses->acls, avl_strcmp, true, NULL);
+-	avl_init(&ses->data, avl_strcmp, false, NULL);
+-
  	ses->t.cb = rpc_session_timeout;
 +	ses->created_at = time(NULL);
  
@@ -5949,9 +6700,8 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  }
  
 -static struct rpc_session *
--rpc_session_create(int timeout)
 +struct rpc_session *
-+rpc_session_create(int timeout, bool auto_register)
+ rpc_session_create(int timeout)
  {
  	struct rpc_session *ses;
 -	struct rpc_session_cb *cb;
@@ -5970,7 +6720,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	ses->timeout = timeout;
  
 -	avl_insert(&sessions, &ses->avl);
-+	if (auto_register && avl_insert(&sessions, &ses->avl)) {
++	if (avl_insert(&g_sessions, &ses->avl)) {
 +		vlog(L_ERROR, "Failed to register session %s", ses->id);
 +		free(ses->username);
 +		free(ses);
@@ -5991,13 +6741,11 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  {
  	struct rpc_session *ses;
  
- 	ses = avl_find_element(&sessions, id, ses, avl);
+-	ses = avl_find_element(&sessions, id, ses, avl);
 -	if (!ses)
--		return NULL;
++	ses = avl_find_element(&g_sessions, id, ses, avl);
 +	if (!ses) {
-+		ses = rpc_session_thaw_single(id);
-+		if (!ses)
-+			return NULL;
+ 		return NULL;
 +	}
 +
 +	if (!rpc_session_2fa_pending(ses)) {
@@ -6008,7 +6756,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	return ses;
  }
  
-@@ -356,18 +585,29 @@
+@@ -356,18 +552,29 @@
                    struct blob_attr *msg)
  {
  	struct rpc_session *ses;
@@ -6016,38 +6764,36 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	struct blob_attr *tb[ARRAY_SIZE(new_policy)];
  	int timeout = RPC_DEFAULT_SESSION_TIMEOUT;
 +	int ret = UBUS_STATUS_OK;
++
++	struct blob_buf buf = { 0 };
++	blob_buf_init(&buf, 0);
  
 -	blobmsg_parse(new_policy, __RPC_SN_MAX, &tb, blob_data(msg), blob_len(msg));
 -	if (tb)
 -		timeout = blobmsg_get_u32(tb);
--
--	ses = rpc_session_create(timeout);
--	if (ses)
--		rpc_session_dump(ses, ctx, req);
-+	struct blob_buf buf = { 0 };
-+	blob_buf_init(&buf, 0);
- 
--	return 0;
 +	blobmsg_parse(new_policy, ARRAY_SIZE(new_policy), tb, blob_data(msg), blob_len(msg));
 +	if (tb[RPC_SN_TIMEOUT])
 +		timeout = blobmsg_get_u32(tb[RPC_SN_TIMEOUT]);
-+
-+	ses = rpc_session_create(timeout, true);
+ 
+ 	ses = rpc_session_create(timeout);
+-	if (ses)
+-		rpc_session_dump(ses, ctx, req);
 +	if (!ses) {
 +		ret = UBUS_STATUS_UNKNOWN_ERROR;
 +		goto free;
 +	}
-+	rpc_session_to_blob(&buf, ses, true, true);
++	rpc_session_to_blob(&buf, ses, true);
 +	ubus_send_reply(ctx, req, buf.head);
 +	send_session_event(ctx, "session.created", ses->id);
-+
+ 
+-	return 0;
 +free:
 +	blob_buf_free(&buf);
 +	return ret;
  }
  
  static int
-@@ -375,24 +615,44 @@
+@@ -375,210 +582,241 @@
                  struct ubus_request_data *req, const char *method,
                  struct blob_attr *msg)
  {
@@ -6059,27 +6805,29 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	struct blob_attr *tb[ARRAY_SIZE(sid_policy)];
 +	blobmsg_parse(sid_policy, ARRAY_SIZE(sid_policy), tb, blob_data(msg), blob_len(msg));
 +	const char *id = blobmsg_get_string(tb[RPC_SI_SID]);
-+
-+	struct blob_buf buf = { 0 };
-+	blob_buf_init(&buf, 0);
  
 -	if (!tb) {
-+	void *array = blobmsg_open_array(&buf, "sessions");
-+	if (!id) {
-+		struct rpc_session *ses = NULL;
- 		avl_for_each_element(&sessions, ses, avl)
+-		avl_for_each_element(&sessions, ses, avl)
 -			rpc_session_dump(ses, ctx, req);
 -		return 0;
 -	}
-+		{
-+			void *table = blobmsg_open_table(&buf, NULL);
-+			rpc_session_to_blob(&buf, ses, true, true);
-+			blobmsg_close_table(&buf, table);
-+		}
++	struct blob_buf buf = { 0 };
++	blob_buf_init(&buf, 0);
  
 -	ses = rpc_session_get(blobmsg_data(tb));
 -	if (!ses)
 -		return UBUS_STATUS_NOT_FOUND;
++	void *array = blobmsg_open_array(&buf, "sessions");
++	if (!id) {
++		struct rpc_session *ses = NULL;
++		avl_for_each_element(&g_sessions, ses, avl)
++		{
++			void *table = blobmsg_open_table(&buf, NULL);
++			rpc_session_to_blob(&buf, ses, true);
++			blobmsg_close_table(&buf, table);
++		}
+ 
+-	rpc_session_dump(ses, ctx, req);
 +	} else {
 +		struct rpc_session *ses = rpc_session_get(id);
 +		if (!ses) {
@@ -6087,14 +6835,18 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +			goto end;
 +		}
  
--	rpc_session_dump(ses, ctx, req);
+-	return 0;
+-}
 +		void *table = blobmsg_open_table(&buf, NULL);
-+		rpc_session_to_blob(&buf, ses, true, true);
++		rpc_session_to_blob(&buf, ses, true);
 +		blobmsg_close_table(&buf, table);
 +	}
 +	blobmsg_close_array(&buf, array);
  
--	return 0;
+-static int
+-uh_id_len(const char *str)
+-{
+-	return strcspn(str, "*?[");
 +	ubus_send_reply(ctx, req, buf.head);
 +
 +	err = UBUS_STATUS_OK;
@@ -6103,174 +6855,344 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	return err;
  }
  
- static int
-@@ -430,7 +690,7 @@
- 		if (!acl_scope)
- 			return UBUS_STATUS_UNKNOWN_ERROR;
+-static int
+-rpc_session_grant(struct rpc_session *ses,
+-                  const char *scope, const char *object, const char *function)
+-{
+-	struct rpc_session_acl *acl;
+-	struct rpc_session_acl_scope *acl_scope;
+-	char *new_scope, *new_obj, *new_func, *new_id;
+-	int id_len;
++static struct rpc_session_acl_scope *
++rpc_session_find_acl_scope(struct rpc_session_acls *acls, const char *scope_name)
++{
++	struct rpc_session_acl_scope *scope_iter = acls->scopes_head;
++	while (scope_iter != NULL) {
++		if (!strcmp(scope_iter->name, scope_name)) {
++			return scope_iter;
++		}
+ 
+-	if (!object || !function)
+-		return UBUS_STATUS_INVALID_ARGUMENT;
++		scope_iter = scope_iter->next;
++	}
+ 
+-	acl_scope = avl_find_element(&ses->acls, scope, acl_scope, avl);
++	return NULL;
++}
++
++static struct rpc_session_acl_scope *
++rpc_session_find_or_add_acl_scope(struct rpc_session_acls *acls, const char *scope_name)
++{
++	if (!scope_name) {
++		return NULL;
++	}
+ 
+-	if (acl_scope) {
+-		uh_foreach_matching_acl_prefix(acl, &acl_scope->acls, object, function) {
+-			if (!strcmp(acl->object, object) &&
+-				!strcmp(acl->function, function))
+-				return 0;
++	struct rpc_session_acl_scope *scope = rpc_session_find_acl_scope(acls, scope_name);
++	if (!scope) {
++		scope = ARENA_ALLOC_STRUCT(&acls->arena, struct rpc_session_acl_scope);
++		if (!scope) {
++			return NULL;
+ 		}
++		scope->name = arena_strdup(&acls->arena, scope_name);
++		if (!scope->name) {
++			return NULL;
++		}
++		scope->next = acls->scopes_head;
++		acls->scopes_head = scope;
+ 	}
+ 
+-	if (!acl_scope) {
+-		acl_scope = calloc_a(sizeof(*acl_scope),
+-		                     &new_scope, strlen(scope) + 1);
++	return scope;
++}
+ 
+-		if (!acl_scope)
+-			return UBUS_STATUS_UNKNOWN_ERROR;
++static struct rpc_session_acl_object *
++rpc_session_match_acl_object(struct rpc_session_acl_scope *scope, const char *object_name)
++{
++	struct rpc_session_acl_object *objects_iter = scope->objects_head;
++	while (objects_iter != NULL) {
++		if (!fnmatch(objects_iter->name, object_name, FNM_NOESCAPE)) {
++			return objects_iter;
++		}
  
 -		acl_scope->avl.key = strcpy(new_scope, scope);
-+		acl_scope->avl.key = strncpy(new_scope, scope, strlen(scope) + 1);
- 		avl_init(&acl_scope->acls, avl_strcmp, true, NULL);
- 		avl_insert(&ses->acls, &acl_scope->avl);
+-		avl_init(&acl_scope->acls, avl_strcmp, true, NULL);
+-		avl_insert(&ses->acls, &acl_scope->avl);
++		objects_iter = objects_iter->next;
  	}
-@@ -441,12 +701,14 @@
- 		&new_func, strlen(function) + 1,
- 		&new_id, id_len + 1);
  
-+
- 	if (!acl)
- 		return UBUS_STATUS_UNKNOWN_ERROR;
+-	id_len = uh_id_len(object);
+-	acl = calloc_a(sizeof(*acl),
+-		&new_obj, strlen(object) + 1,
+-		&new_func, strlen(function) + 1,
+-		&new_id, id_len + 1);
++	return NULL;
++}
+ 
+-	if (!acl)
+-		return UBUS_STATUS_UNKNOWN_ERROR;
++static struct rpc_session_acl_object *
++rpc_session_match_or_add_acl_object(struct rpc_session_acl_scope *scope, struct arena *arena, const char *object_name)
++{
++	if (!object_name) {
++		return NULL;
++	}
  
 -	acl->object = strcpy(new_obj, object);
 -	acl->function = strcpy(new_func, function);
-+	acl->object = strncpy(new_obj, object, strlen(object) + 1);
-+	acl->function = strncpy(new_func, function, strlen(function) + 1);
- 	acl->avl.key = strncpy(new_id, object, id_len);
-+	new_id[id_len] = '\0';
- 	avl_insert(&acl_scope->acls, &acl->avl);
+-	acl->avl.key = strncpy(new_id, object, id_len);
+-	avl_insert(&acl_scope->acls, &acl->avl);
++	struct rpc_session_acl_object *obj = rpc_session_match_acl_object(scope, object_name);
++	if (!obj) {
++		obj = ARENA_ALLOC_STRUCT(arena, struct rpc_session_acl_object);
++		if (!obj) {
++			return NULL;
++		}
++		obj->name = arena_strdup(arena, object_name);
++		if (!obj->name) {
++			return NULL;
++		}
++		obj->next = scope->objects_head;
++		scope->objects_head = obj;
++	}
  
- 	return 0;
-@@ -467,10 +729,7 @@
- 		return 0;
+-	return 0;
++	return obj;
+ }
  
- 	if (!object && !function) {
+ static int
+-rpc_session_revoke(struct rpc_session *ses,
+-                   const char *scope, const char *object, const char *function)
++rpc_session_append_function(struct rpc_session_acl_object *obj, struct arena *arena, const char *function)
+ {
+-	struct rpc_session_acl *acl, *next;
+-	struct rpc_session_acl_scope *acl_scope;
+-	int id_len;
+-	char *id;
+-
+-	acl_scope = avl_find_element(&ses->acls, scope, acl_scope, avl);
+-
+-	if (!acl_scope)
+-		return 0;
+-
+-	if (!object && !function) {
 -		avl_remove_all_elements(&acl_scope->acls, acl, avl, next)
 -			free(acl);
 -		avl_delete(&ses->acls, &acl_scope->avl);
 -		free(acl_scope);
-+		rpc_session_destroy_alcs(&ses->acls, acl_scope);
- 		return 0;
+-		return 0;
++	if (!function) {
++		return -1;
  	}
  
-@@ -505,6 +764,80 @@
+-	id_len = uh_id_len(object);
+-	id = alloca(id_len + 1);
+-	strncpy(id, object, id_len);
+-	id[id_len] = 0;
+-
+-	acl = avl_find_element(&acl_scope->acls, id, acl, avl);
+-	while (acl) {
+-		if (!avl_is_last(&acl_scope->acls, &acl->avl))
+-			next = avl_next_element(acl, avl);
+-		else
+-			next = NULL;
+-
+-		if (strcmp(id, acl->avl.key) != 0)
+-			break;
+-
+-		if (!strcmp(acl->object, object) &&
+-		    !strcmp(acl->function, function)) {
+-			avl_delete(&acl_scope->acls, &acl->avl);
+-			free(acl);
++	if (!string_list_contains(&obj->functions, function)) {
++		char *function_copy = arena_strdup(arena, function);
++		if (!function_copy) {
++			return -1;
+ 		}
+-		acl = next;
+-	}
+ 
+-	if (avl_is_empty(&acl_scope->acls)) {
+-		avl_delete(&ses->acls, &acl_scope->avl);
+-		free(acl_scope);
++		if (string_list_append(&obj->functions, arena, function_copy)) {
++			return -1;
++		}
+ 	}
+ 
  	return 0;
  }
  
-+int rpc_session_revoke_similar(struct rpc_session *ses, const char *scope, const char *object) {
-+	struct rpc_session_acl *acl, *next;
-+	struct rpc_session_acl_scope *acl_scope;
-+	int id_len;
-+	char *id;
-+
-+	acl_scope = avl_find_element(&ses->acls, scope, acl_scope, avl);
-+	if (!acl_scope)
-+		return 0;
-+	id_len = uh_id_len(object);
-+	id = alloca(id_len + 1);
-+	strncpy(id, object, id_len);
-+	id[id_len] = '\0';
-+	acl = avl_find_element(&acl_scope->acls, id, acl, avl);
-+
-+	while (acl && strncmp(acl->object, object, id_len) == 0) {
-+		next = avl_next_element(acl, avl);
-+		avl_delete(&acl_scope->acls, &acl->avl);
-+		free(acl);
-+		acl = next;
-+	}
-+	if (avl_is_empty(&acl_scope->acls)) {
-+		avl_delete(&ses->acls, &acl_scope->avl);
-+		free(acl_scope);
-+	}
-+	return 0;
-+}
-+
-+static void cleanup_temp_scope(struct rpc_session *ses) {
-+	struct rpc_session_acl_scope *acl_scope = NULL;
-+	struct rpc_session_acl *current_acl = NULL, *tmp_acl = NULL;
-+
-+	acl_scope = avl_find_element(&ses->acls, "temp", acl_scope, avl);
-+	if (acl_scope == NULL)
-+		return;
-+
-+	avl_for_each_element_safe(&acl_scope->acls, current_acl, avl, tmp_acl) {
-+		avl_delete(&acl_scope->acls, &current_acl->avl);
-+		free(current_acl);
-+	}
-+	avl_delete(&ses->acls, &acl_scope->avl);
-+	free(acl_scope);
-+}
-+
-+int rpc_add_exceptions(struct rpc_session *ses, struct rpc_permissions_manager *permissions_manager) {
-+	struct rpc_session_acl_scope *acl_scope = NULL;
-+	struct rpc_session_acl *current_acl = NULL, *tmp_acl = NULL;
-+	struct acl_entry *entry;
-+	struct list_head *pos, *tmp;
-+
-+	acl_scope = avl_find_element(&ses->acls, "temp", acl_scope, avl);
-+	if (acl_scope == NULL) {
-+		return -1;
-+	}
-+
-+	list_for_each_safe(pos, tmp, &permissions_manager->endpoint_permissions) {
-+		entry = list_entry(pos, struct acl_entry, list);
-+		avl_for_each_element_safe(&acl_scope->acls, current_acl, avl, tmp_acl) {
-+			if (strcmp(current_acl->object, entry->permission) == 0) {
-+				if (strcmp(current_acl->function, "*") == 0) {
-+					rpc_session_grant(ses, "api", current_acl->object, "read");
-+					list_del(pos);
-+					free(entry->permission);
-+					free(entry);
-+					break;
-+				}
-+				rpc_session_grant(ses, "exceptions", current_acl->object, current_acl->function);
-+				rpc_session_revoke(ses, "api", current_acl->object, "read");
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
- 
+-
  static int
  rpc_handle_acl(struct ubus_context *ctx, struct ubus_object *obj,
-@@ -584,10 +917,44 @@
- 	return false;
+                struct ubus_request_data *req, const char *method,
+                struct blob_attr *msg)
+ {
+-	struct rpc_session *ses;
+-	struct blob_attr *tb[__RPC_SA_MAX];
+-	struct blob_attr *attr, *sattr;
+-	const char *object, *function;
+-	const char *scope = "ubus";
+-	int rem1, rem2;
+-
+-	int (*cb)(struct rpc_session *ses,
+-	          const char *scope, const char *object, const char *function);
++	int (*cb)(struct rpc_session_acls *acls, const char *scope_name, const char *object_name, const char *function);
+ 
+-	blobmsg_parse(acl_policy, __RPC_SA_MAX, tb, blob_data(msg), blob_len(msg));
++	struct blob_attr *tb[ARRAY_SIZE(acl_policy)] = { 0 };
++	blobmsg_parse(acl_policy, ARRAY_SIZE(acl_policy), tb, blob_data(msg), blob_len(msg));
+ 
+-	if (!tb[RPC_SA_SID])
++	if (!tb[RPC_SA_SID] || !tb[RPC_SA_OBJECTS]) {
+ 		return UBUS_STATUS_INVALID_ARGUMENT;
++	}
+ 
+-	ses = rpc_session_get(blobmsg_data(tb[RPC_SA_SID]));
+-	if (!ses)
++	struct rpc_session *ses = rpc_session_get(blobmsg_data(tb[RPC_SA_SID]));
++	if (!ses) {
+ 		return UBUS_STATUS_NOT_FOUND;
++	}
+ 
+-	if (tb[RPC_SA_SCOPE])
++	const char *scope = "ubus";
++	if (tb[RPC_SA_SCOPE]) {
+ 		scope = blobmsg_data(tb[RPC_SA_SCOPE]);
++	}
+ 
+-	if (!strcmp(method, "grant"))
++	if (!strcmp(method, "grant")) {
+ 		cb = rpc_session_grant;
+-	else
++	} else {
+ 		cb = rpc_session_revoke;
++	}
+ 
+-	if (!tb[RPC_SA_OBJECTS])
+-		return cb(ses, scope, NULL, NULL);
+-
++	struct blob_attr *attr = NULL;
++	int rem1 = 0;
+ 	blobmsg_for_each_attr(attr, tb[RPC_SA_OBJECTS], rem1) {
+-		if (blobmsg_type(attr) != BLOBMSG_TYPE_ARRAY)
++		if (blobmsg_type(attr) != BLOBMSG_TYPE_ARRAY) {
+ 			continue;
++		}
+ 
+-		object = NULL;
+-		function = NULL;
++		const char *object = NULL;
++		const char *function = NULL;
+ 
++		struct blob_attr *sattr = NULL;
++		int rem2 = 0;
+ 		blobmsg_for_each_attr(sattr, attr, rem2) {
+-			if (blobmsg_type(sattr) != BLOBMSG_TYPE_STRING)
++			if (blobmsg_type(sattr) != BLOBMSG_TYPE_STRING) {
+ 				continue;
++			}
+ 
+-			if (!object)
++			if (!object) {
+ 				object = blobmsg_data(sattr);
+-			else if (!function)
++			} else if (!function) {
+ 				function = blobmsg_data(sattr);
+-			else
++			} else {
+ 				break;
++			}
+ 		}
+ 
+-		if (object && function)
+-			cb(ses, scope, object, function);
++		if (object && function) {
++			cb(&ses->acls, scope, object, function);
++		}
+ 	}
+ 
+ 	return 0;
  }
  
-+static void rpc_session_dump_acls_for_object(struct rpc_session *ses, struct blob_buf *b, const char *object)
+ static bool
+-rpc_session_acl_allowed(struct rpc_session *ses, const char *scope,
+-                        const char *obj, const char *fun)
++has_matching_function(struct string_list *functions, const char *fun)
 +{
-+	struct rpc_session_acl *acl;
-+	struct rpc_session_acl_scope *acl_scope = NULL;
-+	void *array = NULL;
-+
-+	acl_scope = avl_find_element(&ses->acls, "exceptions", acl_scope, avl);
-+	if (!acl_scope)
-+		return;
-+
-+	avl_for_each_element(&acl_scope->acls, acl, avl) {
-+		size_t acl_object_len = strlen(acl->object);
-+
-+		if (acl->object[acl_object_len - 1] == '*') {
-+			if (strncmp(acl->object, object, acl_object_len - 1) == 0) {
-+				if (!array)
-+					array = blobmsg_open_array(b, object);
-+				blobmsg_add_string(b, NULL, acl->function);
-+			}
-+		} else {
-+			if (strncmp(acl->object, object, acl_object_len) == 0 ||
-+			    strncmp(object, acl->object, acl_object_len) == 0) {
-+				if (!array)
-+					array = blobmsg_open_array(b, object);
-+				blobmsg_add_string(b, NULL, acl->function);
-+			}
++	for (int i = 0; i < functions->len; i++) {
++		if (!fnmatch(functions->items[i], fun, FNM_NOESCAPE)) {
++			return true;
 +		}
 +	}
-+
-+	if (array)
-+		blobmsg_close_array(b, array);
++	return false;
 +}
 +
- static int
++static bool
++rpc_session_acl_allowed(struct rpc_session_acls *acls, const char *scope, const char *obj, const char *fun)
+ {
+-	struct rpc_session_acl *acl;
+-	struct rpc_session_acl_scope *acl_scope;
+ 
+-	acl_scope = avl_find_element(&ses->acls, scope, acl_scope, avl);
++	struct rpc_session_acl_scope *acl_scope = rpc_session_find_acl_scope(acls, scope);
++	if (!acl_scope) {
++		return false;
++	}
+ 
+-	if (acl_scope) {
+-		uh_foreach_matching_acl(acl, &acl_scope->acls, obj, fun)
++	struct rpc_session_acl_object *objects_iter = acl_scope->objects_head;
++	while (objects_iter) {
++		struct rpc_session_acl_object *acl_obj = objects_iter;
++		objects_iter = objects_iter->next;
++
++		if (fnmatch(acl_obj->name, obj, 0) == FNM_NOMATCH) {
++			continue;
++		}
++
++		if (has_matching_function(&acl_obj->functions, fun)) {
+ 			return true;
++		}
+ 	}
+ 
+ 	return false;
+@@ -588,62 +826,235 @@
  rpc_handle_access(struct ubus_context *ctx, struct ubus_object *obj,
                    struct ubus_request_data *req, const char *method,
                    struct blob_attr *msg)
-+
- {
- 	struct rpc_session *ses;
- 	struct blob_attr *tb[__RPC_SP_MAX];
-@@ -603,30 +970,67 @@
- 	if (!ses)
+-{
+-	struct rpc_session *ses;
+-	struct blob_attr *tb[__RPC_SP_MAX];
+-	const char *scope = "ubus";
+-	bool allow;
+ 
+-	blobmsg_parse(perm_policy, __RPC_SP_MAX, tb, blob_data(msg), blob_len(msg));
++{
++	struct blob_attr *tb[ARRAY_SIZE(perm_policy)] = { 0 };
++	blobmsg_parse(perm_policy, ARRAY_SIZE(perm_policy), tb, blob_data(msg), blob_len(msg));
+ 
+-	if (!tb[RPC_SP_SID])
++	if (!tb[RPC_SP_SID]) {
+ 		return UBUS_STATUS_INVALID_ARGUMENT;
++	}
+ 
+-	ses = rpc_session_get(blobmsg_data(tb[RPC_SP_SID]));
+-	if (!ses)
++	struct rpc_session *ses = rpc_session_get(blobmsg_data(tb[RPC_SP_SID]));
++	if (!ses) {
  		return UBUS_STATUS_NOT_FOUND;
++	}
  
 +	struct blob_buf buf = { 0 };
  	blob_buf_init(&buf, 0);
@@ -6283,86 +7205,311 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 -		allow = rpc_session_acl_allowed(ses, scope,
 -		                                blobmsg_data(tb[RPC_SP_OBJECT]),
 -		                                blobmsg_data(tb[RPC_SP_FUNCTION]));
-+	if (tb[RPC_SP_SCOPE])
++	const char *scope = "ubus";
++	if (tb[RPC_SP_SCOPE]) {
 +		scope = blobmsg_data(tb[RPC_SP_SCOPE]);
++	}
  
 +	if (tb[RPC_SP_OBJECT] && tb[RPC_SP_FUNCTION]) {
-+		allow = rpc_session_acl_allowed(ses, scope, blobmsg_data(tb[RPC_SP_OBJECT]),
-+						blobmsg_data(tb[RPC_SP_FUNCTION]));
++		bool allow = rpc_session_acl_allowed(
++			&ses->acls,
++			scope,
++			blobmsg_data(tb[RPC_SP_OBJECT]),
++			blobmsg_data(tb[RPC_SP_FUNCTION])
++		);
  		blobmsg_add_u8(&buf, "access", allow);
 -	}
 -	else
 -	{
+-		rpc_session_dump_acls(ses, &buf);
++
 +	} else if (tb[RPC_SP_CHECKS]) {
 +		struct blob_attr *check;
 +		int rem;
 +		void *results = blobmsg_open_table(&buf, "results");
 +		blobmsg_for_each_attr (check, tb[RPC_SP_CHECKS], rem) {
-+			struct blob_attr *check_tb[__RPC_CHECK_MAX];
-+			const char *object   = NULL;
-+			const char *function = NULL;
 +
-+			blobmsg_parse(check_policy, __RPC_CHECK_MAX, check_tb, blobmsg_data(check),
-+				      blobmsg_data_len(check));
-+
-+			if (check_tb[RPC_CHECK_OBJECT])
-+				object = blobmsg_get_string(check_tb[RPC_CHECK_OBJECT]);
-+			if (check_tb[RPC_CHECK_FUNCTION])
-+				function = blobmsg_get_string(check_tb[RPC_CHECK_FUNCTION]);
-+
-+			char key[256];
-+			snprintf(key, sizeof(key), "%s:%s", object, function);
-+
-+			allow = rpc_session_acl_allowed(ses, scope, object, function);
-+			if (!allow && strcmp(scope, "api") == 0) {
-+				// TODO: with a large enough object you could crash the program by exhausting the stack
-+				char modified_object_value[strlen(object) + 2];
-+				snprintf(modified_object_value, sizeof(modified_object_value), "%s*", object);
-+				rpc_session_dump_acls_for_object(ses, &buf, modified_object_value);
++			struct blob_attr *check_tb[ARRAY_SIZE(check_policy)] = { 0 };
++			blobmsg_parse(
++				check_policy,
++				ARRAY_SIZE(check_policy),
++				check_tb,
++				blobmsg_data(check),
++				blobmsg_data_len(check)
++			);
++			if (!check_tb[RPC_CHECK_OBJECT] || !check_tb[RPC_CHECK_FUNCTION]) {
++				continue;
 +			}
++
++			const char *object = blobmsg_get_string(check_tb[RPC_CHECK_OBJECT]);
++			const char *function = blobmsg_get_string(check_tb[RPC_CHECK_FUNCTION]);
++			bool allow = rpc_session_acl_allowed(&ses->acls, scope, object, function);
++
++			char key[256] = { 0 };
++			snprintf(key, sizeof(key), "%s:%s", object, function);
 +			blobmsg_add_u8(&buf, key, allow);
 +		}
 +		blobmsg_close_table(&buf, results);
-+	} else if (tb[RPC_SP_SCOPE] && tb[RPC_SP_OBJECT]) {
-+		const char *scope_value	 = blobmsg_get_string(tb[RPC_SP_SCOPE]);
-+		const char *object_value = blobmsg_get_string(tb[RPC_SP_OBJECT]);
 +
-+		if (strcmp(scope_value, "exceptions") == 0) {
-+			// TODO: with a large enough object you could crash the program by exhausting the stack
-+			char modified_object_value[strlen(object_value) +
-+						   2]; // +1 for '*', +1 for null terminator
-+			snprintf(modified_object_value, sizeof(modified_object_value), "%s*", object_value);
-+			rpc_session_dump_acls_for_object(ses, &buf, modified_object_value);
-+		}
 +	} else {
- 		rpc_session_dump_acls(ses, &buf);
++		rpc_session_dump_acls(&ses->acls, &buf);
  	}
  
  	ubus_send_reply(ctx, req, buf.head);
--
 +	blob_buf_free(&buf);
++	return 0;
++}
++
++static void rpc_session_data_entry_free(struct rpc_session_data_entry *entry)
++{
++	free(entry->key);
++	free(entry->attr);
++	*entry = (struct rpc_session_data_entry){ 0 };
++}
++
++void
++rpc_session_data_clear(struct rpc_session_data *data)
++{
++	for (int i = 0; i < data->len; i++) {
++		struct rpc_session_data_entry *entry = &data->items[i];
++		rpc_session_data_entry_free(entry);
++	}
++	
++	free(data->items);
++	*data = (struct rpc_session_data){ 0 };
++}
++
++static int
++rpc_session_data_find(struct rpc_session_data *data, const char *key)
++{
++	if (!key) {
++		return -1;
++	}
++
++	for (int i = 0; i < data->len; i++) {
++		struct rpc_session_data_entry *entry = &data->items[i];
++		if (!strcmp(entry->key, key)) {
++			return i;
++		}
++	}
++
++	return -1;
++}
++static int
++rpc_session_ensure_unused_capacity(struct rpc_session_data *data, size_t min_unused_capacity)
++{
++	size_t unused_capacity = data->capacity - data->len;
++	if (unused_capacity < min_unused_capacity) {
++		size_t larger_capacity = MAX(data->len + min_unused_capacity, data->capacity*2);
++		struct rpc_session_data_entry *larger_items = realloc(data->items, sizeof(*larger_items) * larger_capacity);
++		if (!larger_items) {
++			return -1;
++		}
++
++		data->items = larger_items;
++		data->capacity = larger_capacity;
++	}
+ 
  	return 0;
  }
  
 -static void
-+void
- rpc_session_set(struct rpc_session *ses, struct blob_attr *val)
+-rpc_session_set(struct rpc_session *ses, struct blob_attr *val)
++static int
++rpc_session_data_append(struct rpc_session_data *data, const char *key)
  {
- 	struct rpc_session_data *data;
-@@ -696,6 +1100,7 @@
+-	struct rpc_session_data *data;
++	char *key_owned = NULL;
+ 
+-	data = avl_find_element(&ses->data, blobmsg_name(val), data, avl);
+-	if (data) {
+-		avl_delete(&ses->data, &data->avl);
+-		free(data);
++	if (rpc_session_ensure_unused_capacity(data, 1)) {
++		goto err;
+ 	}
+ 
+-	data = calloc(1, sizeof(*data) + blob_pad_len(val));
+-	if (!data)
+-		return;
++	key_owned = strdup(key);
++	if (!key_owned) {
++		goto err;
++	}
++
++	int entry_index = data->len;
++	data->items[entry_index] = (struct rpc_session_data_entry){
++		.key = key_owned,
++	};
++	data->len++;
++
++	return entry_index;
++err:
++	free(key_owned);
++	return -1;
++}
++
++void
++rpc_session_data_set(struct rpc_session_data *data, const char *key, struct blob_attr *attr)
++{
++	int entry_index = rpc_session_data_find(data, key);
++	if (entry_index == -1) {
++		if (attr == NULL) {
++			return;
++		}
+ 
+-	memcpy(data->attr, val, blob_pad_len(val));
+-	data->avl.key = blobmsg_name(data->attr);
+-	avl_insert(&ses->data, &data->avl);
++		entry_index = rpc_session_data_append(data, key);
++		if (entry_index == -1) {
++			return;
++		}
++	}
++
++	if (attr != NULL) {
++		struct rpc_session_data_entry *entry = &data->items[entry_index];
++		
++		size_t attr_size = blob_pad_len(attr);
++		struct blob_attr *attr_owned = malloc(attr_size);
++		if (!attr_owned) {
++			return;
++		}
++		memcpy(attr_owned, attr, attr_size);
++
++		free(entry->attr);
++		entry->attr = attr_owned;
++
++	} else {
++		rpc_session_data_entry_free(&data->items[entry_index]);
++		data->items[entry_index] = data->items[data->len-1];
++		data->len--;
++	}
++}
++
++const char *
++rpc_session_data_get_string(struct rpc_session_data *data, const char *key)
++{
++	int entry_index = rpc_session_data_find(data, key);
++	if (entry_index == -1) {
++		return NULL;
++	}
++
++	struct rpc_session_data_entry *entry = &data->items[entry_index];
++	if (blobmsg_type(entry->attr) != BLOBMSG_TYPE_STRING) {
++		return NULL;
++	}
++
++	return blobmsg_get_string(entry->attr);
++}
++
++bool rpc_session_data_get_boolean(struct rpc_session_data *data, const char *key, bool def)
++{
++	int entry_index = rpc_session_data_find(data, key);
++	if (entry_index == -1) {
++		return def;
++	}
++
++	struct rpc_session_data_entry *entry = &data->items[entry_index];
++	if (blobmsg_type(entry->attr) != BLOBMSG_TYPE_BOOL) {
++		return def;
++	}
++
++	return blobmsg_get_u8(entry->attr);
++}
++
++void rpc_session_data_set_string(struct rpc_session_data *data, const char *key, const char *value)
++{
++	struct blob_buf b = { 0 };
++	blob_buf_init(&b, 0);
++	blobmsg_add_string(&b, key, value);
++	rpc_session_data_set(data, key, blob_data(b.head));
++	blob_buf_free(&b);
++}
++
++void rpc_session_data_set_boolean(struct rpc_session_data *data, const char *key, bool value)
++{
++	struct blob_buf b = { 0 };
++	blob_buf_init(&b, 0);
++	blobmsg_add_u8(&b, key, value);
++	rpc_session_data_set(data, key, blob_data(b.head));
++	blob_buf_free(&b);
+ }
+ 
+ static int
+@@ -666,10 +1077,15 @@
+ 		return UBUS_STATUS_NOT_FOUND;
+ 
+ 	blobmsg_for_each_attr(attr, tb[RPC_SS_VALUES], rem) {
+-		if (!blobmsg_name(attr)[0])
++		if (!blobmsg_name(attr)[0]) {
+ 			continue;
++		}
++
++		if (!(blobmsg_type(attr) == BLOBMSG_TYPE_STRING || blobmsg_type(attr) == BLOBMSG_TYPE_BOOL)) {
++			continue;
++		}
+ 
+-		rpc_session_set(ses, attr);
++		rpc_session_data_set(&ses->data, blobmsg_name(attr), attr);
+ 	}
+ 
+ 	return 0;
+@@ -680,44 +1096,42 @@
+                struct ubus_request_data *req, const char *method,
+                struct blob_attr *msg)
+ {
+-	struct rpc_session *ses;
+-	struct rpc_session_data *data;
+-	struct blob_attr *tb[__RPC_SG_MAX];
+-	struct blob_attr *attr;
+-	void *c;
+-	int rem;
+-
+-	blobmsg_parse(get_policy, __RPC_SG_MAX, tb, blob_data(msg), blob_len(msg));
++	struct blob_attr *tb[ARRAY_SIZE(get_policy)] = { 0 };
++	blobmsg_parse(get_policy, ARRAY_SIZE(get_policy), tb, blob_data(msg), blob_len(msg));
+ 
+ 	if (!tb[RPC_SG_SID])
+ 		return UBUS_STATUS_INVALID_ARGUMENT;
+ 
+-	ses = rpc_session_get(blobmsg_data(tb[RPC_SG_SID]));
++	struct rpc_session *ses = rpc_session_get(blobmsg_data(tb[RPC_SG_SID]));
  	if (!ses)
  		return UBUS_STATUS_NOT_FOUND;
  
 +	struct blob_buf buf = { 0 };
  	blob_buf_init(&buf, 0);
- 	c = blobmsg_open_table(&buf, "values");
+-	c = blobmsg_open_table(&buf, "values");
++	void *c = blobmsg_open_table(&buf, "values");
  
-@@ -714,10 +1119,11 @@
- 					  blobmsg_data_len(data->attr));
+-	if (tb[RPC_SG_KEYS])
++	if (tb[RPC_SG_KEYS]) {
++		int rem = 0;
++		struct blob_attr *attr = NULL;
+ 		blobmsg_for_each_attr(attr, tb[RPC_SG_KEYS], rem) {
+ 			if (blobmsg_type(attr) != BLOBMSG_TYPE_STRING)
+ 				continue;
+ 
+-			data = avl_find_element(&ses->data, blobmsg_data(attr), data, avl);
+-			if (!data)
++			char *field_key = blobmsg_get_string(attr);
++			int entry_index = rpc_session_data_find(&ses->data, field_key);
++			if (entry_index == -1) {
+ 				continue;
++			}
+ 
+-			blobmsg_add_field(&buf, blobmsg_type(data->attr),
+-					  blobmsg_name(data->attr),
+-					  blobmsg_data(data->attr),
+-					  blobmsg_data_len(data->attr));
++			rpc_session_data_entry_add_to_blob(&buf, &ses->data.items[entry_index]);
  		}
- 	else
+-	else
 -		rpc_session_dump_data(ses, &buf);
++	} else {
 +		rpc_session_dump_data(&buf, ses);
++	}
  
  	blobmsg_close_table(&buf, c);
  	ubus_send_reply(ctx, req, buf.head);
@@ -6370,7 +7517,46 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  
  	return 0;
  }
-@@ -783,12 +1189,12 @@
+@@ -728,12 +1142,11 @@
+                  struct blob_attr *msg)
+ {
+ 	struct rpc_session *ses;
+-	struct rpc_session_data *data, *ndata;
+-	struct blob_attr *tb[__RPC_SA_MAX];
+ 	struct blob_attr *attr;
+ 	int rem;
+ 
+-	blobmsg_parse(get_policy, __RPC_SG_MAX, tb, blob_data(msg), blob_len(msg));
++	struct blob_attr *tb[ARRAY_SIZE(get_policy)] = { 0 };
++	blobmsg_parse(get_policy, ARRAY_SIZE(get_policy), tb, blob_data(msg), blob_len(msg));
+ 
+ 	if (!tb[RPC_SG_SID])
+ 		return UBUS_STATUS_INVALID_ARGUMENT;
+@@ -743,8 +1156,7 @@
+ 		return UBUS_STATUS_NOT_FOUND;
+ 
+ 	if (!tb[RPC_SG_KEYS]) {
+-		avl_remove_all_elements(&ses->data, data, avl, ndata)
+-			free(data);
++		rpc_session_data_clear(&ses->data);
+ 		return 0;
+ 	}
+ 
+@@ -752,12 +1164,7 @@
+ 		if (blobmsg_type(attr) != BLOBMSG_TYPE_STRING)
+ 			continue;
+ 
+-		data = avl_find_element(&ses->data, blobmsg_data(attr), data, avl);
+-		if (!data)
+-			continue;
+-
+-		avl_delete(&ses->data, &data->avl);
+-		free(data);
++		rpc_session_data_set_string(&ses->data, blobmsg_get_string(attr), NULL);
+ 	}
+ 
+ 	return 0;
+@@ -783,12 +1190,12 @@
  	if (!ses)
  		return UBUS_STATUS_NOT_FOUND;
  
@@ -6384,7 +7570,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  static bool
  rpc_login_test_password(const char *hash, const char *password)
  {
-@@ -825,20 +1231,195 @@
+@@ -825,20 +1232,195 @@
  	return (crypt_hash && !strcmp(crypt_hash, hash));
  }
  
@@ -6585,7 +7771,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  	uci_foreach_element(&p->sections, e)
  	{
  		s = uci_to_section(e);
-@@ -856,6 +1437,9 @@
+@@ -856,6 +1438,9 @@
  		if (uci_lookup_ptr(uci, &ptr, NULL, true))
  			continue;
  
@@ -6595,7 +7781,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  		if (ptr.o->type != UCI_TYPE_STRING)
  			continue;
  
-@@ -864,24 +1448,41 @@
+@@ -864,570 +1449,646 @@
  
  		/* If password is NULL, we're restoring ACLs for an existing session,
  		 * in this case do not check the password again. */
@@ -6648,589 +7834,792 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	return rpc_login_group_search(uci, p, s, e, user_group, privilege_lvl);
  }
  
- static bool
-@@ -917,7 +1518,8 @@
- 			if (!p || *p != '!')
- 				continue;
- 
--			while (isspace(*++p));
-+			while (isspace(*++p))
-+				;
- 
- 			if (!*p)
- 				continue;
-@@ -972,7 +1574,7 @@
- 
- 				rpc_session_grant(ses, blobmsg_name(acl_scope),
- 				                       blobmsg_name(acl_obj),
--				                       blobmsg_data(acl_func));
-+				                       strcmp(blobmsg_name(acl_scope), "api") == 0 ? blobmsg_name(acl_perm) : blobmsg_data(acl_func));
- 			}
- 		}
- 	}
-@@ -999,32 +1601,113 @@
- 	}
- }
- 
-+void rpc_grant_endpoint_options(struct rpc_session *ses, struct blob_attr *api_attr) {
-+	struct blob_attr *endpoint_attr;
-+	int rem_endpoint;
-+	blobmsg_for_each_attr(endpoint_attr, api_attr, rem_endpoint) {
-+		const char *endpoint_name = blobmsg_name(endpoint_attr);
-+
-+		if (blobmsg_type(endpoint_attr) != BLOBMSG_TYPE_ARRAY) {
-+			continue;
-+		}
-+
-+		struct blob_attr *option_attr;
-+		int rem_option;
-+
-+		// Iterate over each option in the array
-+		blobmsg_for_each_attr(option_attr, endpoint_attr, rem_option) {
-+			// Get the option name
-+			const char *option_name = blobmsg_data(option_attr);
-+			rpc_session_grant(ses, "temp", endpoint_name, option_name);
-+		}
-+	}
-+}
-+
-+static void add_acl_entry(struct list_head *list, const char *permission) {
-+	struct acl_entry *new_entry = malloc(sizeof(struct acl_entry));
-+	if (!new_entry) {
-+		return;
-+	}
-+	new_entry->permission = strdup(permission);
-+	if (!new_entry->permission) {
-+		free(new_entry);
-+		return;
-+	}
-+	list_add_tail(&new_entry->list, list);
-+}
-+
-+static void remove_acl_entry(struct list_head *list, const char *permission) {
-+	struct list_head *pos, *tmp;
-+	struct acl_entry *entry;
-+
-+	list_for_each_safe(pos, tmp, list) {
-+		entry = list_entry(pos, struct acl_entry, list);
-+		if (strcmp(entry->permission, permission) == 0) {
-+			list_del(pos);
-+			free(entry->permission);
-+			free(entry);
-+			break;
-+		}
-+	}
-+}
-+
-+static int process_permissions(struct blob_attr *acl_perm, struct list_head *permissions) {
-+	struct blob_attr *cur;
-+	int rem;
-+
-+	blobmsg_for_each_attr(cur, acl_perm, rem) {
-+		const char *attr_value = blobmsg_get_string(cur);
-+		if (!attr_value) {
-+			continue;
-+		}
-+		add_acl_entry(permissions, attr_value);
-+	}
-+	return 0;
-+}
-+
- static void
- rpc_login_setup_acl_file(struct rpc_session *ses, struct uci_section *login,
--                         const char *path)
-+                         const char *path, struct rpc_permissions_manager *permissions_manager)
+-static bool
+-rpc_login_test_permission(struct uci_section *s,
+-                          const char *perm, const char *group)
++static int
++group_permission_parse_from_uci_option(struct group_permission *result, struct arena *arena, struct uci_option *opt)
  {
- 	struct blob_buf acl = { 0 };
- 	struct blob_attr *acl_group, *acl_perm, *acl_scope;
- 	int rem, rem2, rem3;
-+	LIST_HEAD(whitelist_sources);
- 
- 	blob_buf_init(&acl, 0);
- 
- 	if (!blobmsg_add_json_from_file(&acl, path)) {
--		fprintf(stderr, "Failed to parse %s\n", path);
-+		vlog(L_ERROR, "Failed to parse %s\n", path);
- 		goto out;
+-	const char *p;
+-	struct uci_option *o;
+-	struct uci_element *e, *l;
+-
+-	/* If the login section is not provided, we're setting up acls for the
+-	 * default session, in this case uncondionally allow access to the
+-	 * "unauthenticated" access group */
+-	if (!s) {
+-		return !strcmp(group, "unauthenticated");
++	if (opt->type != UCI_TYPE_LIST) {
++		return 0;
  	}
  
- 	/* Iterate access groups in toplevel object */
- 	blob_for_each_attr(acl_group, acl.head, rem) {
--		/* Iterate permission objects in each access group object */
-+			bool read_perm = true;
-+			bool write_perm = true;
-+
- 		blobmsg_for_each_attr(acl_perm, acl_group, rem2) {
--			if (blobmsg_type(acl_perm) != BLOBMSG_TYPE_TABLE)
+-	uci_foreach_element(&s->options, e)
+-	{
+-		o = uci_to_option(e);
+-
+-		if (o->type != UCI_TYPE_LIST)
+-			continue;
+-
+-		if (strcmp(o->e.name, perm))
++	struct uci_element *l = NULL;
++	uci_foreach_element(&opt->v.list, l) {
++		const char *p = l->name;
++		if (p == NULL || p[0] == '\0') {
+ 			continue;
++		}
+ 
+-		/* Match negative expressions first. If a negative expression matches
+-		 * the current group name then deny access. */
+-		uci_foreach_element(&o->v.list, l) {
+-			p = l->name;
+-
+-			if (!p || *p != '!')
 -				continue;
+-
+-			while (isspace(*++p));
++		struct string_list *list = NULL;
++		if (p[0] == '!') {
++			while (isspace(*++p)) { }
++			list = &result->denied;
++		} else {
++			list = &result->allowed;
  
--			/* Only "read" and "write" permissions are defined */
--			if (strcmp(blobmsg_name(acl_perm), "read") &&
--				strcmp(blobmsg_name(acl_perm), "write"))
-+			if (strcmp(blobmsg_name(acl_perm), "source") == 0 && !read_perm && !write_perm) {
-+				process_permissions(acl_perm, &permissions_manager->source_permissions);
-+			}
-+			if (strcmp(blobmsg_name(acl_perm), "exception") == 0 && !read_perm && !write_perm) {
-+				process_permissions(acl_perm, &permissions_manager->endpoint_permissions);
-+			}
-+			if (strcmp(blobmsg_name(acl_perm), "source") == 0 && read_perm) {
-+				struct blob_attr *cur;
-+				int rem;
-+				blobmsg_for_each_attr(cur, acl_perm, rem) {
-+					const char *attr_value = blobmsg_get_string(cur);
-+					if (!attr_value) {
-+						continue;
-+					}
-+					add_acl_entry(&whitelist_sources, attr_value);				}
-+			}
-+
-+			if (strcmp(blobmsg_name(acl_perm), "read") && strcmp(blobmsg_name(acl_perm), "write")) {
+-			if (!*p)
++			if (!strcmp(p, "*")) {
++				result->allowed_by_default = true;
  				continue;
+-
+-			if (!fnmatch(p, group, 0))
+-				return false;
 +			}
+ 		}
  
- 			/*
- 			 * Check if the current user context specifies the current
-@@ -1032,7 +1715,26 @@
- 			 */
- 			if (!rpc_login_test_permission(login, blobmsg_name(acl_perm),
- 			                                      blobmsg_name(acl_group)))
-+			{
-+				if (strcmp(blobmsg_name(acl_perm), "read") == 0) {
-+					read_perm = false;
-+				}
-+				if (strcmp(blobmsg_name(acl_perm), "write") == 0) {
-+					write_perm = false;
-+				}
- 				continue;
-+			} else {
-+				if (strcmp(blobmsg_name(acl_perm), "read") == 0){
-+					struct blob_attr *api_attr;
-+					int rem_api;
-+					blobmsg_for_each_attr(api_attr, acl_perm, rem_api) {
-+						if (!(strcmp(blobmsg_name(api_attr), "api") == 0)) {
-+							continue;
-+						}
-+						rpc_grant_endpoint_options(ses, api_attr);
-+					}
-+				}
-+			}
+-		uci_foreach_element(&o->v.list, l) {
+-			if (!l->name || !*l->name || *l->name == '!')
+-				continue;
++		char *owned_p = arena_strdup(arena, p);
++		if (!owned_p) {
++			return -1;
++		}
  
- 			/* Iterate scope objects within the permission object */
- 			blobmsg_for_each_attr(acl_scope, acl_perm, rem3) {
-@@ -1065,26 +1767,72 @@
- 			}
+-			if (!fnmatch(l->name, group, 0))
+-				return true;
++		if (string_list_append(list, arena, owned_p)) {
++			return -1;
  		}
  	}
+ 
+-	/* make sure that write permission implies read permission */
+-	if (!strcmp(perm, "read"))
+-		return rpc_login_test_permission(s, "write", group);
 -
-+	struct list_head *pos, *tmp;
-+	list_for_each_safe(pos, tmp, &whitelist_sources) {
-+		struct acl_entry *entry = list_entry(pos, struct acl_entry, list);
-+		remove_acl_entry(&permissions_manager->source_permissions, entry->permission);
-+		list_del(pos);
-+		free(entry->permission);
-+		free(entry);
-+	}
- out:
- 	blob_buf_free(&acl);
+-	return false;
++	return 0;
  }
  
 -static void
-+void
- rpc_login_setup_acls(struct rpc_session *ses, struct uci_section *login)
+-rpc_login_setup_acl_scope(struct rpc_session *ses,
+-                          struct blob_attr *acl_perm,
+-                          struct blob_attr *acl_scope)
+-{
+-	struct blob_attr *acl_obj, *acl_func;
+-	int rem, rem2;
+-
+-	/*
+-	 * Parse ACL scopes in table notation.
+-	 *
+-	 *	"<scope>": {
+-	 *		"<object>": [
+-	 *			"<function>",
+-	 *			"<function>",
+-	 *			...
+-	 *		]
+-	 *	}
+-	 */
+-	if (blobmsg_type(acl_scope) == BLOBMSG_TYPE_TABLE) {
+-		blobmsg_for_each_attr(acl_obj, acl_scope, rem) {
+-			if (blobmsg_type(acl_obj) != BLOBMSG_TYPE_ARRAY)
+-				continue;
++static int
++group_permissions_parse_from_uci_section(struct group_permissions *result, struct uci_section *login)
++{
++	result->read = (struct group_permission){ 0 };
++	result->write = (struct group_permission){ 0 };
+ 
+-			blobmsg_for_each_attr(acl_func, acl_obj, rem2) {
+-				if (blobmsg_type(acl_func) != BLOBMSG_TYPE_STRING)
+-					continue;
+-
+-				rpc_session_grant(ses, blobmsg_name(acl_scope),
+-				                       blobmsg_name(acl_obj),
+-				                       blobmsg_data(acl_func));
+-			}
++	/* If the login section is not provided, we're setting up acls for the
++	 * default session, in this case uncondionally allow access to the
++	 * "unauthenticated" access group */
++	if (login == NULL) {
++		if (string_list_append(&result->read.allowed, &result->arena, "unauthenticated")) {
++			return -1;
+ 		}
+-	}
+ 
+-	/*
+-	 * Parse ACL scopes in array notation. The permission ("read" or "write")
+-	 * will be used as function name for each object.
+-	 *
+-	 *	"<scope>": [
+-	 *		"<object>",
+-	 *		"<object>",
+-	 *		...
+-	 *	]
+-	 */
+-	else if (blobmsg_type(acl_scope) == BLOBMSG_TYPE_ARRAY) {
+-		blobmsg_for_each_attr(acl_obj, acl_scope, rem) {
+-			if (blobmsg_type(acl_obj) != BLOBMSG_TYPE_STRING)
+-				continue;
+-
+-			rpc_session_grant(ses, blobmsg_name(acl_scope),
+-			                       blobmsg_data(acl_obj),
+-			                       blobmsg_name(acl_perm));
++		if (string_list_append(&result->write.allowed, &result->arena, "unauthenticated")) {
++			return -1;
+ 		}
+-	}
+-}
+ 
+-static void
+-rpc_login_setup_acl_file(struct rpc_session *ses, struct uci_section *login,
+-                         const char *path)
+-{
+-	struct blob_buf acl = { 0 };
+-	struct blob_attr *acl_group, *acl_perm, *acl_scope;
+-	int rem, rem2, rem3;
+-
+-	blob_buf_init(&acl, 0);
+-
+-	if (!blobmsg_add_json_from_file(&acl, path)) {
+-		fprintf(stderr, "Failed to parse %s\n", path);
+-		goto out;
++		return 0;
+ 	}
+ 
+-	/* Iterate access groups in toplevel object */
+-	blob_for_each_attr(acl_group, acl.head, rem) {
+-		/* Iterate permission objects in each access group object */
+-		blobmsg_for_each_attr(acl_perm, acl_group, rem2) {
+-			if (blobmsg_type(acl_perm) != BLOBMSG_TYPE_TABLE)
+-				continue;
+-
+-			/* Only "read" and "write" permissions are defined */
+-			if (strcmp(blobmsg_name(acl_perm), "read") &&
+-				strcmp(blobmsg_name(acl_perm), "write"))
+-				continue;
+-
+-			/*
+-			 * Check if the current user context specifies the current
+-			 * "read" or "write" permission in the given access group.
+-			 */
+-			if (!rpc_login_test_permission(login, blobmsg_name(acl_perm),
+-			                                      blobmsg_name(acl_group)))
+-				continue;
+-
+-			/* Iterate scope objects within the permission object */
+-			blobmsg_for_each_attr(acl_scope, acl_perm, rem3) {
+-				/* Setup the scopes of the access group */
+-				rpc_login_setup_acl_scope(ses, acl_perm, acl_scope);
+-
+-				/*
+-				 * Add the access group itself as object to the "access-group"
+-				 * meta scope and the the permission level ("read" or "write")
+-				 * as function, so
+-				 *	"<group>": {
+-				 *		"<permission>": {
+-				 *			"<scope>": ...
+-				 *		}
+-				 *	}
+-				 * becomes
+-				 *	"access-group": {
+-				 *		"<group>": [
+-				 *			"<permission>"
+-				 *		]
+-				 *	}
+-				 *
+-				 * This allows session clients to easily query the allowed
+-				 * access groups without having to test access of each single
+-				 * <scope>/<object>/<function> tuple defined in a group.
+-				 */
+-				rpc_session_grant(ses, "access-group",
+-				                       blobmsg_name(acl_group),
+-				                       blobmsg_name(acl_perm));
++	struct uci_element *e = NULL;
++	uci_foreach_element(&login->options, e) {
++		struct uci_option *o = uci_to_option(e);
++
++		if (!strcmp(o->e.name, "read")) {
++			if (group_permission_parse_from_uci_option(&result->read, &result->arena, o)) {
++				return -1;
++			}
++		} else if (!strcmp(o->e.name, "write")) {
++			if (group_permission_parse_from_uci_option(&result->write, &result->arena, o)) {
++				return -1;
+ 			}
+ 		}
+ 	}
+ 
+-out:
+-	blob_buf_free(&acl);
++	return 0;
+ }
+ 
+-static void
+-rpc_login_setup_acls(struct rpc_session *ses, struct uci_section *login)
++static bool
++rpc_login_test_permission(struct group_permissions *permissions, const char *perm, const char *group)
  {
 -	int i;
-+	struct rpc_permissions_manager permissions_manager;
-+	struct acl_entry *acl_entry;
-+	struct list_head *pos, *tmp;
- 	glob_t gl;
+-	glob_t gl;
++	struct group_permission *permission = NULL;
++	if (!strcmp(perm, "read")) {
++		permission = &permissions->read;
++	} else if (!strcmp(perm, "write")) {
++		permission = &permissions->write;
++	}
  
 -	if (glob(RPC_SESSION_ACL_DIR "/*.json", 0, NULL, &gl))
-+	if (rpc_session_2fa_pending(ses)) {
-+		return;
-+	}
-+
-+	INIT_LIST_HEAD(&permissions_manager.source_permissions);
-+	INIT_LIST_HEAD(&permissions_manager.endpoint_permissions);
-+
-+	int ret1 = glob(RPC_SESSION_ACL_DIR "/*.json", 0, NULL, &gl);
-+	int ret2 = glob(RPC_SESSION_ACL_DIR2 "/*.json", GLOB_APPEND, NULL, &gl);
-+
-+	if (ret1 != 0 && ret2 != 0) {
-+		globfree(&gl);
- 		return;
-+	}
-+
-+	for (int i = 0; i < gl.gl_pathc; i++) {
-+		rpc_login_setup_acl_file(ses, login, gl.gl_pathv[i], &permissions_manager);
-+	}
-+
-+	if (!list_empty(&permissions_manager.source_permissions) || !list_empty(&permissions_manager.endpoint_permissions)) {
-+		list_for_each(pos, &permissions_manager.source_permissions) {
-+			acl_entry = list_entry(pos, struct acl_entry, list);
-+			rpc_session_revoke_similar(ses, "api", acl_entry->permission);
+-		return;
++	/* Match negative expressions first. If a negative expression matches
++	 * the current group name then deny access. */
++	for (int i = 0; i < permission->denied.len; i++) {
++		if (!fnmatch(permission->denied.items[i], group, 0)) {
++			return false;
 +		}
-+		rpc_add_exceptions(ses, &permissions_manager);
 +	}
  
 -	for (i = 0; i < gl.gl_pathc; i++)
 -		rpc_login_setup_acl_file(ses, login, gl.gl_pathv[i]);
-+	list_for_each_safe(pos, tmp, &permissions_manager.source_permissions) {
-+		acl_entry = list_entry(pos, struct acl_entry, list);
-+		list_del(pos);
-+		free(acl_entry->permission);
-+		free(acl_entry);
++	for (int i = 0; i < permission->allowed.len; i++) {
++		if (!fnmatch(permission->allowed.items[i], group, 0)) {
++			return true;
++		}
 +	}
 +
-+	list_for_each_safe(pos, tmp, &permissions_manager.endpoint_permissions) {
-+		acl_entry = list_entry(pos, struct acl_entry, list);
-+		list_del(pos);
-+		free(acl_entry->permission);
-+		free(acl_entry);
++	/* make sure that write permission implies read permission */
++	if (!strcmp(perm, "write") && !rpc_login_test_permission(permissions, "read", group)) {
++		return false;
 +	}
  
-+	cleanup_temp_scope(ses);
- 	globfree(&gl);
+-	globfree(&gl);
++	return permission->allowed_by_default;
  }
  
-+
- static struct rpc_session *
- rpc_reclaim_apply_session(const char *expected_username)
+-static struct rpc_session *
+-rpc_reclaim_apply_session(const char *expected_username)
++static struct rpc_session_acl_object *
++rpc_session_acls_get_object(struct rpc_session_acls *acls, const char *scope_name, const char *object_name)
  {
-@@ -1110,6 +1858,34 @@
- 	return ses;
+-	struct rpc_session_data *username;
+-	struct rpc_session *ses;
+-
+-	if (!apply_sid[0])
+-		return NULL;
+-
+-	ses = rpc_session_get(apply_sid);
+-
+-	if (!ses)
++	struct rpc_session_acl_scope *scope = rpc_session_find_acl_scope(acls, scope_name);
++	if (!scope) {
+ 		return NULL;
++	}
+ 
+-	username = avl_find_element(&ses->data, "username", username, avl);
+ 
+-	if (!username || blobmsg_type(username->attr) != BLOBMSG_TYPE_STRING)
+-		return NULL;
++	struct rpc_session_acl_object *objects_iter = scope->objects_head;
++	while (objects_iter != NULL) {
++		struct rpc_session_acl_object *object = objects_iter;
++		objects_iter = objects_iter->next;
+ 
+-	if (strcmp(blobmsg_get_string(username->attr), expected_username))
+-		return NULL;
++		if (!strcmp(object->name, object_name)) {
++			return object;
++		}
++	}
+ 
+-	return ses;
++	return NULL;
  }
  
-+static bool uci_basic_auth_enabled(struct uci_context *uci)
-+{
-+	struct uci_package *pkg = NULL;
-+	struct uci_element *e;
-+	bool enabled = false;
-+
-+	if (!uci)
-+		return false;
-+
-+	if (uci_load(uci, "uhttpd", &pkg) != UCI_OK)
-+		return false;
-+
-+	uci_foreach_element (&pkg->sections, e) {
-+		struct uci_section *s = uci_to_section(e);
-+
-+		if (strcmp(e->name, "main") != 0)
-+			continue;
-+
-+		struct uci_option *opt = uci_lookup_option(uci, s, "enable_basic_auth");
-+		if (opt && opt->type == UCI_TYPE_STRING && strcmp(opt->v.string, "1") == 0) {
-+			enabled = true;
-+			break;
-+		}
-+	}
-+
-+	return enabled;
-+}
-+
  static int
- rpc_handle_login(struct ubus_context *ctx, struct ubus_object *obj,
-                  struct ubus_request_data *req, const char *method,
-@@ -1121,6 +1897,10 @@
- 	struct blob_attr *tb[__RPC_L_MAX];
- 	int timeout = RPC_DEFAULT_SESSION_TIMEOUT;
- 	int rv = 0;
-+	bool basic_auth = false;
-+
-+	struct blob_buf reply_buf = { 0 };
-+	blob_buf_init(&reply_buf, 0);
- 
- 	blobmsg_parse(login_policy, __RPC_L_MAX, tb, blob_data(msg), blob_len(msg));
- 
-@@ -1137,7 +1917,8 @@
- 	}
- 
- 	login = rpc_login_test_login(uci, blobmsg_get_string(tb[RPC_L_USERNAME]),
--	                                  blobmsg_get_string(tb[RPC_L_PASSWORD]));
-+	                                  blobmsg_get_string(tb[RPC_L_PASSWORD]),
-+	                                  blobmsg_get_string(tb[RPC_L_RHOST]));
- 
- 	if (!login) {
- 		rv = UBUS_STATUS_PERMISSION_DENIED;
-@@ -1147,6 +1928,16 @@
- 	if (tb[RPC_L_TIMEOUT])
- 		timeout = blobmsg_get_u32(tb[RPC_L_TIMEOUT]);
- 
-+	if (tb[RPC_L_BASIC_AUTH]) {
-+		if (!uci_basic_auth_enabled(uci)) {
-+			blobmsg_add_string(&reply_buf, "error", "Basic auth is not enabled");
-+			ubus_send_reply(ctx, req, reply_buf.head);
-+			goto out;
-+		}
-+		timeout = 0; // Basic auth sessions do not persist
-+		basic_auth = blobmsg_get_bool(tb[RPC_L_BASIC_AUTH]);
+-rpc_handle_login(struct ubus_context *ctx, struct ubus_object *obj,
+-                 struct ubus_request_data *req, const char *method,
+-                 struct blob_attr *msg)
++rpc_session_revoke(struct rpc_session_acls *acls, const char *scope_name, const char *object_name, const char *function)
+ {
+-	struct uci_context *uci = NULL;
+-	struct uci_section *login;
+-	struct rpc_session *ses;
+-	struct blob_attr *tb[__RPC_L_MAX];
+-	int timeout = RPC_DEFAULT_SESSION_TIMEOUT;
+-	int rv = 0;
++	struct rpc_session_acl_scope *scope = rpc_session_find_acl_scope(acls, scope_name);
++	if (!scope) {
++		return 0;
 +	}
-+
- 	/*
- 	 * attempt to reclaim a pending apply session, but only accept it
- 	 * if the username matches, otherwise perform a new login
-@@ -1155,25 +1946,107 @@
- 	ses = rpc_reclaim_apply_session(blobmsg_get_string(tb[RPC_L_USERNAME]));
  
- 	if (!ses)
--		ses = rpc_session_create(timeout);
-+		ses = rpc_session_create(timeout, !basic_auth);
+-	blobmsg_parse(login_policy, __RPC_L_MAX, tb, blob_data(msg), blob_len(msg));
++	if (object_name && function) {
++		struct rpc_session_acl_object *obj = rpc_session_match_acl_object(scope, object_name);
++		if (obj) {
++			int index = string_list_index_of(&obj->functions, function);
++			if (index >= -1) {
++				string_list_swap_remove(&obj->functions, index);
++			}
++		}
  
- 	if (!ses) {
- 		rv = UBUS_STATUS_UNKNOWN_ERROR;
- 		goto out;
+-	if (!tb[RPC_L_USERNAME] || !tb[RPC_L_PASSWORD]) {
+-		rv = UBUS_STATUS_INVALID_ARGUMENT;
+-		goto out;
+-	}
++		return 0;
++	} else if (!object_name && !function) {
++		struct rpc_session_acl_object *objects_iter = scope->objects_head;
++		while (objects_iter != NULL) {
++			objects_iter->functions.len = 0;
+ 
+-	uci = uci_alloc_context();
++			objects_iter = objects_iter->next;
++		}
+ 
+-	if (!uci) {
+-		rv = UBUS_STATUS_UNKNOWN_ERROR;
+-		goto out;
++	} else {
++		return -1;
  	}
+ 
+-	login = rpc_login_test_login(uci, blobmsg_get_string(tb[RPC_L_USERNAME]),
+-	                                  blobmsg_get_string(tb[RPC_L_PASSWORD]));
++	return -1;
++}
+ 
+-	if (!login) {
+-		rv = UBUS_STATUS_PERMISSION_DENIED;
+-		goto out;
++static int
++rpc_session_grant(struct rpc_session_acls *acls, const char *scope_name, const char *object_name, const char *function)
++{
++	struct rpc_session_acl_scope *scope = rpc_session_find_or_add_acl_scope(acls, scope_name);
++	if (!scope) {
++		return -1;
+ 	}
+ 
+-	if (tb[RPC_L_TIMEOUT])
+-		timeout = blobmsg_get_u32(tb[RPC_L_TIMEOUT]);
+-
+-	/*
+-	 * attempt to reclaim a pending apply session, but only accept it
+-	 * if the username matches, otherwise perform a new login
+-	 */
++	struct rpc_session_acl_object *obj = rpc_session_match_or_add_acl_object(scope, &acls->arena, object_name);
++	if (!obj) {
++		return -1;
++	}
+ 
+-	ses = rpc_reclaim_apply_session(blobmsg_get_string(tb[RPC_L_USERNAME]));
++	return rpc_session_append_function(obj, &acls->arena, function);
++}
+ 
+-	if (!ses)
+-		ses = rpc_session_create(timeout);
++static int
++rpc_session_grant_permission(struct rpc_session_acls *acls, struct rpc_acl_permission *permission, const char *permission_name)
++{
++	bool any_failed = false;
+ 
+-	if (!ses) {
+-		rv = UBUS_STATUS_UNKNOWN_ERROR;
+-		goto out;
+-	}
++	for (int i = 0; i < permission->scopes_len; i++) {
++		struct rpc_acl_scope *scope = &permission->scopes[i];
  
 -	rpc_login_setup_acls(ses, login);
-+	free(ses->username);
-+	ses->username = strdup(blobmsg_get_string(tb[RPC_L_USERNAME]));
-+	if (!ses->username) {
-+		rv = UBUS_STATUS_UNKNOWN_ERROR;
-+		goto out;
-+	}
++		for (int j = 0; j < scope->objects_len; j++) {
++			struct rpc_acl_object *object = &scope->objects[j];
++
++			if (scope->implict_functions_from_permission) {
++				if (rpc_session_grant(acls, scope->name, object->name, permission_name)) {
++					any_failed = true;
++				}
++
++			} else {
++				for (int k = 0; k < object->functions.len; k++) {
++					if (rpc_session_grant(acls, scope->name, object->name, object->functions.items[k])) {
++						any_failed = true;
++					}
++				}
++			}
  
- 	rpc_session_set(ses, tb[RPC_L_USERNAME]);
+-	rpc_session_set(ses, tb[RPC_L_USERNAME]);
 -	rpc_session_dump(ses, ctx, req);
-+
-+	if (login->e.name) {
-+		struct blob_buf buf = { 0 };
-+		blob_buf_init(&buf, 0);
-+
-+		blobmsg_add_string(&buf, "group", login->e.name);
-+		struct blob_attr *group_attr = blob_data(buf.head);
-+		rpc_session_set(ses, group_attr);
-+
-+		blob_buf_free(&buf);
++			for (int k = 0; k < object->api_options.len; k++) {
++				if (rpc_session_grant(acls, "exceptions", object->name, object->api_options.items[k])) {
++					any_failed = true;
++				}
++			}
++		}
 +	}
-+
-+	send_session_event(ctx, "session.created", ses->id);
-+	if (!basic_auth && rpc_session_2fa_status(ctx, ses->username)) {
-+		rpc_session_2fa_mark_pending(ses);
-+		rpc_session_to_blob(&reply_buf, ses, true, !basic_auth);
-+		ubus_send_reply(ctx, req, reply_buf.head);
-+		goto out;
-+	}
-+
-+	rpc_login_setup_acls(ses, login);
-+	rpc_session_to_blob(&reply_buf, ses, true, !basic_auth);
-+	ubus_send_reply(ctx, req, reply_buf.head);
  
- out:
+-out:
 -	if (uci)
-+	if (uci) {
- 		uci_free_context(uci);
-+	}
-+
-+	blob_buf_free(&reply_buf);
-+
-+	if (basic_auth) {
-+		rpc_session_destroy(ses);
+-		uci_free_context(uci);
++	if (any_failed) {
++		return -1;
 +	}
  
- 	return rv;
+-	return rv;
++	return 0;
  }
  
-+static int
-+rpc_handle_reload_acls(struct ubus_context *ctx, struct ubus_object *obj,
-+                 struct ubus_request_data *req, const char *method,
-+                 struct blob_attr *msg)
-+{
-+	vlog(L_DEBUG, "Reloading session ACLs\n");
-+	int rv			  = 0;
-+	struct rpc_session *ses	  = NULL;
-+	struct uci_section *login = NULL;
-+	struct uci_context *uci	  = uci_alloc_context();
-+
-+	if (!uci) {
-+		return UBUS_STATUS_UNKNOWN_ERROR;
+-
+-static bool
+-rpc_validate_sid(const char *id)
++void
++rpc_session_setup_acls(struct rpc_session *ses, struct uci_section *login)
+ {
+-	if (!id)
+-		return false;
+-
+-	if (strlen(id) != RPC_SID_LEN)
+-		return false;
+-
+-	while (*id)
+-		if (!isxdigit(*id++))
+-			return false;
++	if (rpc_session_2fa_pending(ses)) {
++		return;
 +	}
-+
-+	avl_for_each_element(&sessions, ses, avl)
-+	{
-+		if (!strcmp(ses->id, RPC_DEFAULT_SESSION_ID)) {
-+			continue;
-+		}
-+
-+		if (!ses->username) {
-+			continue;
-+		}
-+
-+		login = rpc_login_test_login(uci, ses->username, NULL, NULL);
-+
-+		if (!login) {
-+			continue;
-+		}
-+
-+		struct rpc_session_acl_scope *acl_scope	 = NULL;
-+		struct rpc_session_acl_scope *nacl_scope = NULL;
-+
-+		avl_for_each_element_safe(&ses->acls, acl_scope, avl, nacl_scope) {
-+			rpc_session_destroy_alcs(&ses->acls, acl_scope);
-+		}
-+
-+		avl_init(&ses->acls, avl_strcmp, true, NULL);
-+		rpc_login_setup_acls(ses, login);
-+	}
-+
-+	if (uci) {
-+		uci_free_context(uci);
-+	}
-+
-+	return rv;
-+}
  
- static bool
- rpc_validate_sid(const char *id)
-@@ -1191,33 +2064,45 @@
- 	return true;
+-	return true;
++	rpc_login_setup_acls(&ses->acls, login);
  }
  
 -static int
 -rpc_blob_to_file(const char *path, struct blob_attr *attr)
--{
++static bool
++has_function_in_broader_object(struct rpc_session_acl_scope *scope, const char *narrow_object_name, const char *function_name)
+ {
 -	int fd, len;
-+static int rpc_blob_to_file(const char *path, struct blob_attr *attr) {
-+	int fd;
-+	ssize_t total_written = 0;
-+	ssize_t blob_size = blob_pad_len(attr);
++	struct rpc_session_acl_object *objects_iter = scope->objects_head;
++	while (objects_iter != NULL) {
++		struct rpc_session_acl_object *object = objects_iter;
++		objects_iter = objects_iter->next;
  
 -	fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0600);
-+	if (blob_size <= 0)
-+		return -1;
- 
-+	fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0600);
- 	if (fd < 0)
- 		return fd;
- 
--	len = write(fd, attr, blob_pad_len(attr));
 -
+-	if (fd < 0)
+-		return fd;
+-
+-	len = write(fd, attr, blob_pad_len(attr));
++		// An object name will never be narrower, if it's shorter
++		if (strlen(object->name) >= strlen(narrow_object_name)) {
++			continue;
++		}
+ 
 -	close(fd);
-+	while (total_written < blob_size) {
-+	   	ssize_t written = write(fd, (char *)attr + total_written, blob_size - total_written);
-+	   	if (written < 0) {
-+	   	   	if (errno == EINTR)
-+	   	   	   	continue;
-+			vlog(L_ERROR, "Failed to write to file %s: %s", path, strerror(errno));
-+	   	   	unlink(path);
-+	   	   	close(fd);
-+	   	   	return -1;
-+	   	}
-+	   	total_written += written;
-+	}
++		if (fnmatch(object->name, narrow_object_name, FNM_NOESCAPE) == FNM_NOMATCH) {
++			continue;
++		}
  
 -	if (len != blob_pad_len(attr))
 -	{
-+	if (close(fd) < 0) {
-+		vlog(L_ERROR, "Failed to close file %s: %s", path, strerror(errno));
- 		unlink(path);
+-		unlink(path);
 -		return -1;
-+	   	return -1;
- 	}
- 
--	return len;
-+	return total_written;
- }
- 
- static struct blob_attr *
- rpc_blob_from_file(const char *path)
- {
--	int fd = -1, len;
-+	int fd = -1;
-+	ssize_t len, total_read = 0;
- 	struct stat s;
- 	struct blob_attr head, *attr = NULL;
- 
-@@ -1241,13 +2126,18 @@
- 
- 	memcpy(attr, &head, sizeof(head));
- 
--	len += read(fd, (char *)attr + sizeof(head), s.st_size - sizeof(head));
-+	while (total_read < s.st_size - sizeof(head)) {
-+	   	len = read(fd, (char *)attr + sizeof(head) + total_read, s.st_size - sizeof(head) - total_read);
-+	   	if (len < 0) {
-+	   	   	if (errno == EINTR)
-+				continue;
- 
--	if (len != blob_pad_len(&head))
--		goto fail;
-+		   	goto fail;
-+	   	}
-+	   	total_read += len;
-+	}
- 
- 	close(fd);
--
- 	return attr;
- 
- fail:
-@@ -1265,6 +2155,7 @@
- {
- 	int i, rem;
- 	const char *user = NULL;
-+	const char *sid = NULL;
- 	struct rpc_session *ses;
- 	struct uci_section *login;
- 	struct blob_attr *tb[__RPC_DUMP_MAX], *data;
-@@ -1276,12 +2167,22 @@
- 		if (!tb[i])
- 			return false;
- 
-+	sid = blobmsg_data(tb[RPC_DUMP_SID]);
-+	if (!rpc_validate_sid(sid))
-+		return false;
-+
-+	ses = avl_find_element(&sessions, sid, ses, avl);
-+	if (ses) {
-+		vlog(L_DEBUG, "Session %s already present, skipping restore", sid);
-+		return true;
-+	}
-+
- 	ses = rpc_session_new();
- 
- 	if (!ses)
- 		return false;
- 
--	memcpy(ses->id, blobmsg_data(tb[RPC_DUMP_SID]), RPC_SID_LEN);
-+	memcpy(ses->id, sid, RPC_SID_LEN);
- 
- 	ses->timeout = blobmsg_get_u32(tb[RPC_DUMP_TIMEOUT]);
- 
-@@ -1296,84 +2197,96 @@
- 	}
- 
- 	if (uci && user) {
--		login = rpc_login_test_login(uci, user, NULL);
--		if (login)
-+		login = rpc_login_test_login(uci, user, NULL, NULL);
-+		if (login) {
-+			free(ses->username);
-+			ses->username = strdup(user);
-+			if (!ses->username) {
-+				vlog(L_ERROR, "Cannot save username!");
-+				return false;
-+			}
-+
- 			rpc_login_setup_acls(ses, login);
++		if (string_list_contains(&object->functions, function_name)) {
++			return true;
 +		}
  	}
  
--	avl_insert(&sessions, &ses->avl);
-+	if (avl_insert(&sessions, &ses->avl)) {
-+		vlog(L_ERROR, "Failed to restore session %s from persisted state", ses->id);
-+		rpc_session_destroy(ses);
-+		return false;
+-	return len;
++	return false;
+ }
+ 
+-static struct blob_attr *
+-rpc_blob_from_file(const char *path)
++
++void
++rpc_login_setup_acls(struct rpc_session_acls *acls, struct uci_section *login)
+ {
+-	int fd = -1, len;
+-	struct stat s;
+-	struct blob_attr head, *attr = NULL;
++	if (g_acl_groups_head == NULL) {
++		arena_init(&g_acl_groups_arena);
+ 
+-	if (stat(path, &s) || !S_ISREG(s.st_mode))
+-		return NULL;
++		glob_t gl = { 0 };
++		int ret1 = glob(RPC_SESSION_ACL_DIR "/*.json", 0, NULL, &gl);
++		int ret2 = glob(RPC_SESSION_ACL_DIR2 "/*.json", GLOB_APPEND, NULL, &gl);
++
++		if (ret1 == 0 || ret2 == 0) {
++			for (size_t i = 0; i < gl.gl_pathc; i++) {
++				int err = rpc_acl_group_append_from_file(&g_acl_groups_head, &g_acl_groups_arena, gl.gl_pathv[i]);
++				(void)err; // Ignore error
++			}
++		}
+ 
+-	fd = open(path, O_RDONLY);
++		globfree(&gl);
 +	}
  
- 	uloop_timeout_set(&ses->t, blobmsg_get_u32(tb[RPC_DUMP_EXPIRES]) * 1000);
+-	if (fd < 0)
+-		goto fail;
++	arena_free(&acls->arena);
++	*acls = (struct rpc_session_acls){ 0 };
  
- 	return true;
+-	len = read(fd, &head, sizeof(head));
++	struct group_permissions group_permissions = { 0 };
++	group_permissions_parse_from_uci_section(&group_permissions, login);
+ 
+-	if (len != sizeof(head) || blob_pad_len(&head) != s.st_size)
+-		goto fail;
++	struct rpc_acl_group *group_iter = g_acl_groups_head;
++	while (group_iter != NULL) {
++		if (rpc_login_test_permission(&group_permissions, "read", group_iter->name)) {
++			rpc_session_grant(acls, "access-group", group_iter->name, "read");
++			rpc_session_grant_permission(acls, &group_iter->read, "read");
++		}
+ 
+-	attr = calloc(1, s.st_size);
++		if (rpc_login_test_permission(&group_permissions, "write", group_iter->name)) {
++			rpc_session_grant(acls, "access-group", group_iter->name, "write");
++			rpc_session_grant_permission(acls, &group_iter->write, "write");
++		}
+ 
+-	if (!attr)
+-		goto fail;
++		group_iter = group_iter->next;
++	}
+ 
+-	memcpy(attr, &head, sizeof(head));
++	struct rpc_session_acl_scope *api_scope = rpc_session_find_acl_scope(acls, "api");
++	if (api_scope) {
++		struct rpc_session_acl_object *object_iter = api_scope->objects_head;
++		while (object_iter != NULL) {
++			struct rpc_session_acl_object *object = object_iter;
++			object_iter = object_iter->next;
++
++			// If an object with a broader pattern match and broader permissions exists,
++			// then all narrower objects needs to be removed with their exceptions
++			int i = 0;
++			while (i < object->functions.len) {
++				if (has_function_in_broader_object(api_scope, object->name, object->functions.items[i])) {
++					string_list_swap_remove(&object->functions, i);
++				} else {
++					i++;
++				}
++			}
+ 
+-	len += read(fd, (char *)attr + sizeof(head), s.st_size - sizeof(head));
++			// If there are no functions provided by this object,
++			// then also remove the matching entry in exceptions scope
++			if (object->functions.len == 0) {
++				struct rpc_session_acl_object *exceptions = rpc_session_acls_get_object(acls, "exceptions", object->name);
++				if (exceptions) {
++					exceptions->functions.len = 0;
++				}
++			}
++		}
++	}
+ 
+-	if (len != blob_pad_len(&head))
+-		goto fail;
++	struct rpc_session_acl_scope *exceptions_scope = rpc_session_find_acl_scope(acls, "exceptions");
++	if (exceptions_scope) {
++		struct rpc_session_acl_object *object_iter = exceptions_scope->objects_head;
++		while (object_iter != NULL) {
++			struct rpc_session_acl_object *object = object_iter;
++			object_iter = object_iter->next;
++
++			struct string_list *functions = &object->functions;
++
++			// If '*' is among the allowed options, then there is no need to store all other option
++			// names if everything is allowed.
++			if (string_list_contains(functions, "*") && functions->len > 1) {
++				functions->items[0] = "*";
++				functions->len = 1;
++			}
+ 
+-	close(fd);
++			// If the only allowed option that is defined is "*", then this entire object can be removed
++			// Because by default if an object isn't specified then all options are allowed
++			if (functions->len == 1 && !strcmp(functions->items[0], "*")) {
++				functions->len = 0;
++			}
++		}
++	}
+ 
+-	return attr;
++	arena_free(&group_permissions.arena);
++}
+ 
+-fail:
+-	if (fd >= 0)
+-		close(fd);
+ 
+-	if (attr)
+-		free(attr);
++static int
++rpc_handle_login(struct ubus_context *ctx, struct ubus_object *obj,
++                 struct ubus_request_data *req, const char *method,
++                 struct blob_attr *msg)
++{
++	struct uci_context *uci = NULL;
++	int rv = UBUS_STATUS_OK;
+ 
+-	return NULL;
+-}
++	struct blob_buf reply_buf = { 0 };
++	blob_buf_init(&reply_buf, 0);
+ 
+-static bool
+-rpc_session_from_blob(struct uci_context *uci, struct blob_attr *attr)
+-{
+-	int i, rem;
+-	const char *user = NULL;
+-	struct rpc_session *ses;
+-	struct uci_section *login;
+-	struct blob_attr *tb[__RPC_DUMP_MAX], *data;
++	struct blob_attr *tb[__RPC_L_MAX] = { 0 };
++	blobmsg_parse(login_policy, __RPC_L_MAX, tb, blob_data(msg), blob_len(msg));
++
++	if (!tb[RPC_L_USERNAME] || !tb[RPC_L_PASSWORD]) {
++		rv = UBUS_STATUS_INVALID_ARGUMENT;
++		goto out;
++	}
+ 
+-	blobmsg_parse(dump_policy, __RPC_DUMP_MAX, tb,
+-	              blob_data(attr), blob_len(attr));
++	uci = uci_alloc_context();
++	if (!uci) {
++		rv = UBUS_STATUS_UNKNOWN_ERROR;
++		goto out;
++	}
+ 
+-	for (i = 0; i < __RPC_DUMP_MAX; i++)
+-		if (!tb[i])
+-			return false;
++	const char *username = blobmsg_get_string(tb[RPC_L_USERNAME]);
++	struct uci_section *login = rpc_login_test_login(
++		uci,
++		username,
++		blobmsg_get_string(tb[RPC_L_PASSWORD]),
++		blobmsg_get_string(tb[RPC_L_RHOST])
++	);
++	if (!login) {
++		rv = UBUS_STATUS_PERMISSION_DENIED;
++		goto out;
++	}
+ 
+-	ses = rpc_session_new();
++	bool basic_auth = false;
++	if (tb[RPC_L_BASIC_AUTH]) {
++		basic_auth = blobmsg_get_bool(tb[RPC_L_BASIC_AUTH]);
++	}
++
++	if (basic_auth) {
++		struct rpc_session_acls basic_auth_acls = { 0 };
++		rpc_login_setup_acls(&basic_auth_acls, login);
++
++		void *acl_table = blobmsg_open_table(&reply_buf, "acls");
++		rpc_session_dump_acls(&basic_auth_acls, &reply_buf);
++		blobmsg_close_table(&reply_buf, acl_table);
++
++		void *data_table = blobmsg_open_table(&reply_buf, "data");
++		blobmsg_add_string(&reply_buf, "username", username);
++		if (login->e.name) {
++			blobmsg_add_string(&reply_buf, "group", login->e.name);
++		}
++		blobmsg_close_table(&reply_buf, data_table);
+ 
+-	if (!ses)
+-		return false;
++		arena_free(&basic_auth_acls.arena);
++	} else {
++		int timeout = RPC_DEFAULT_SESSION_TIMEOUT;
++		if (tb[RPC_L_TIMEOUT]) {
++			timeout = blobmsg_get_u32(tb[RPC_L_TIMEOUT]);
++		}
+ 
+-	memcpy(ses->id, blobmsg_data(tb[RPC_DUMP_SID]), RPC_SID_LEN);
++		struct rpc_session *ses = rpc_session_create(timeout);
++		if (!ses) {
++			rv = UBUS_STATUS_UNKNOWN_ERROR;
++			goto out;
++		}
+ 
+-	ses->timeout = blobmsg_get_u32(tb[RPC_DUMP_TIMEOUT]);
++		ses->username = strdup(username);
++		if (!ses->username) {
++			rv = UBUS_STATUS_UNKNOWN_ERROR;
++			goto out;
++		}
+ 
+-	blobmsg_for_each_attr(data, tb[RPC_DUMP_DATA], rem) {
+-		rpc_session_set(ses, data);
++		rpc_session_data_set_string(&ses->data, "username", ses->username);
++		if (login->e.name) {
++			rpc_session_data_set_string(&ses->data, "group", login->e.name);
++		}
+ 
+-		if (blobmsg_type(data) != BLOBMSG_TYPE_STRING)
+-			continue;
++		send_session_event(ctx, "session.created", ses->id);
++		if (rpc_session_2fa_status(ctx, ses->username)) {
++			rpc_session_2fa_mark_pending(ses);
++		} else {
++			rpc_session_setup_acls(ses, login);
++		}
+ 
+-		if (!strcmp(blobmsg_name(data), "username"))
+-			user = blobmsg_get_string(data);
++		rpc_session_to_blob(&reply_buf, ses, true);
+ 	}
+ 
+-	if (uci && user) {
+-		login = rpc_login_test_login(uci, user, NULL);
+-		if (login)
+-			rpc_login_setup_acls(ses, login);
++	ubus_send_reply(ctx, req, reply_buf.head);
++out:
++	if (uci) {
++		uci_free_context(uci);
+ 	}
+ 
+-	avl_insert(&sessions, &ses->avl);
+-
+-	uloop_timeout_set(&ses->t, blobmsg_get_u32(tb[RPC_DUMP_EXPIRES]) * 1000);
++	blob_buf_free(&reply_buf);
+ 
+-	return true;
++	return rv;
  }
  
 -int rpc_session_api_init(struct ubus_context *ctx)
-+void rpc_session_init(void)
++static int
++rpc_handle_reload_acls(struct ubus_context *ctx, struct ubus_object *obj,
++                 struct ubus_request_data *req, const char *method,
++                 struct blob_attr *msg)
  {
 -	struct rpc_session *ses;
--
++	vlog(L_DEBUG, "Reloading session ACLs\n");
++	int rv			  = 0;
++	struct rpc_session *ses	  = NULL;
++	struct uci_context *uci	  = uci_alloc_context();
+ 
 -	static const struct ubus_method session_methods[] = {
 -		UBUS_METHOD("create",  rpc_handle_create,  new_policy),
 -		UBUS_METHOD("list",    rpc_handle_list,    sid_policy),
@@ -7243,146 +8632,90 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 -		UBUS_METHOD("destroy", rpc_handle_destroy, sid_policy),
 -		UBUS_METHOD("login",   rpc_handle_login,   login_policy),
 -	};
--
++	if (!uci) {
++		return UBUS_STATUS_UNKNOWN_ERROR;
++	}
+ 
 -	static struct ubus_object_type session_type =
 -		UBUS_OBJECT_TYPE("luci-rpc-session", session_methods);
--
++	arena_free(&g_acl_groups_arena);
++	g_acl_groups_head = NULL;
+ 
 -	static struct ubus_object obj = {
 -		.name = "session",
 -		.type = &session_type,
 -		.methods = session_methods,
 -		.n_methods = ARRAY_SIZE(session_methods),
 -	};
--
- 	avl_init(&sessions, avl_strcmp, false, NULL);
++	avl_for_each_element(&g_sessions, ses, avl)
++	{
++		if (!strcmp(ses->id, RPC_DEFAULT_SESSION_ID)) {
++			continue;
++		}
  
- 	/* setup the default session */
+-	avl_init(&sessions, avl_strcmp, false, NULL);
++		if (!ses->username) {
++			continue;
++		}
+ 
+-	/* setup the default session */
 -	ses = rpc_session_new();
-+	struct rpc_session *ses = rpc_session_new();
++		struct uci_section *login = rpc_login_test_login(uci, ses->username, NULL, NULL);
++		if (!login) {
++			continue;
++		}
  
- 	if (ses) {
+-	if (ses) {
 -		strcpy(ses->id, RPC_DEFAULT_SESSION_ID);
-+		strncpy(ses->id, RPC_DEFAULT_SESSION_ID, RPC_SID_LEN + 1);
- 		rpc_login_setup_acls(ses, NULL);
- 		avl_insert(&sessions, &ses->avl);
+-		rpc_login_setup_acls(ses, NULL);
+-		avl_insert(&sessions, &ses->avl);
++		rpc_session_setup_acls(ses, login);
  	}
--
--	return ubus_add_object(ctx, &obj);
- }
  
+-	return ubus_add_object(ctx, &obj);
+-}
+-
 -bool rpc_session_access(const char *sid, const char *scope,
 -                        const char *object, const char *function)
-+struct blob_attr *rpc_session_data(const char *sid, const char *element)
- {
-+	struct rpc_session_data *data;
- 	struct rpc_session *ses = rpc_session_get(sid);
- 
- 	if (!ses)
--		return false;
-+		return NULL;
- 
--	return rpc_session_acl_allowed(ses, scope, object, function);
--}
-+	data = avl_find_element(&ses->data, element, data, avl);
-+	if (!data)
-+		return NULL;
- 
--void rpc_session_create_cb(struct rpc_session_cb *cb)
 -{
--	if (cb && cb->cb)
--		list_add(&cb->list, &create_callbacks);
-+	return data->attr;
- }
- 
--void rpc_session_destroy_cb(struct rpc_session_cb *cb)
-+struct rpc_session
-+*rpc_session_thaw_single(const char *sid)
- {
--	if (cb && cb->cb)
--		list_add(&cb->list, &destroy_callbacks);
-+	char path[PATH_MAX];
-+	struct blob_attr *attr = NULL;
-+	struct rpc_session *ses = NULL;
-+	struct uci_context *uci = NULL;
-+
-+	if (!rpc_validate_sid(sid))
-+		return NULL;
-+
-+	snprintf(path, sizeof(path), RPC_SESSION_DIRECTORY "/%s", sid);
-+	attr = rpc_blob_from_file(path);
-+	if (!attr)
-+		return NULL;
-+
-+	uci = uci_alloc_context();
-+	if (!uci)
-+		goto cleanup;
-+
-+	if (!rpc_session_from_blob(uci, attr))
-+		goto cleanup;
-+
-+	ses = avl_find_element(&sessions, sid, ses, avl);
-+
-+cleanup:
-+	if (uci)
+-	struct rpc_session *ses = rpc_session_get(sid);
+-
+-	if (!ses)
+-		return false;
++	if (uci) {
 +		uci_free_context(uci);
-+	if (attr)
-+		free(attr);
-+
-+	return ses;
- }
- 
- void rpc_session_freeze(void)
- {
-+	vlog(L_DEBUG, "Freezing sessions");
- 	struct stat s;
- 	struct rpc_session *ses;
- 	char path[PATH_MAX];
-@@ -1381,19 +2294,26 @@
- 	if (stat(RPC_SESSION_DIRECTORY, &s))
- 		mkdir(RPC_SESSION_DIRECTORY, 0700);
- 
--	avl_for_each_element(&sessions, ses, avl) {
-+	struct blob_buf buf = { 0 };
-+	blob_buf_init(&buf, 0);
-+
-+	avl_for_each_element(&sessions, ses, avl)
-+	{
- 		/* skip default session */
- 		if (!strcmp(ses->id, RPC_DEFAULT_SESSION_ID))
- 			continue;
- 
- 		snprintf(path, sizeof(path) - 1, RPC_SESSION_DIRECTORY "/%s", ses->id);
--		rpc_session_to_blob(ses, false);
-+		rpc_session_to_blob(&buf, ses, false, true);
- 		rpc_blob_to_file(path, buf.head);
- 	}
-+
-+	blob_buf_free(&buf);
- }
- 
- void rpc_session_thaw(void)
- {
-+	vlog(L_DEBUG, "Thawing sessions");
- 	DIR *d;
- 	char path[PATH_MAX];
- 	struct dirent *e;
-@@ -1407,8 +2327,10 @@
- 
- 	uci = uci_alloc_context();
- 
--	if (!uci)
-+	if (!uci) {
-+		closedir(d);
- 		return;
 +	}
  
- 	while ((e = readdir(d)) != NULL) {
- 		if (!rpc_validate_sid(e->d_name))
-@@ -1431,3 +2353,106 @@
- 
- 	uci_free_context(uci);
+-	return rpc_session_acl_allowed(ses, scope, object, function);
++	return rv;
  }
-+
+ 
+-void rpc_session_create_cb(struct rpc_session_cb *cb)
++void rpc_session_init(void)
+ {
+-	if (cb && cb->cb)
+-		list_add(&cb->list, &create_callbacks);
+-}
++	avl_init(&g_sessions, avl_strcmp, false, NULL);
+ 
+-void rpc_session_destroy_cb(struct rpc_session_cb *cb)
+-{
+-	if (cb && cb->cb)
+-		list_add(&cb->list, &destroy_callbacks);
++	/* setup the default session */
++	struct rpc_session *ses = rpc_session_new();
++	if (ses) {
++		strlcpy(ses->id, RPC_DEFAULT_SESSION_ID, sizeof(ses->id));
++		rpc_session_setup_acls(ses, NULL);
++		avl_insert(&g_sessions, &ses->avl);
++	}
+ }
+ 
+-void rpc_session_freeze(void)
+-{
+-	struct stat s;
+-	struct rpc_session *ses;
+-	char path[PATH_MAX];
 +static const struct ubus_method session_methods[] = {
 +	UBUS_METHOD("create",  rpc_handle_create,  new_policy),
 +	UBUS_METHOD("list",    rpc_handle_list,    sid_policy),
@@ -7399,17 +8732,26 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +#endif
 +	UBUS_METHOD_NOARG("reload_acls", rpc_handle_reload_acls),
 +};
-+
+ 
+-	if (stat(RPC_SESSION_DIRECTORY, &s))
+-		mkdir(RPC_SESSION_DIRECTORY, 0700);
 +static struct ubus_object_type session_type =
 +	UBUS_OBJECT_TYPE("luci-rpc-session", session_methods);
-+
+ 
+-	avl_for_each_element(&sessions, ses, avl) {
+-		/* skip default session */
+-		if (!strcmp(ses->id, RPC_DEFAULT_SESSION_ID))
+-			continue;
 +static struct ubus_object session_object = {
 +	.name = "session",
 +	.type = &session_type,
 +	.methods = session_methods,
 +	.n_methods = ARRAY_SIZE(session_methods),
 +};
-+
+ 
+-		snprintf(path, sizeof(path) - 1, RPC_SESSION_DIRECTORY "/%s", ses->id);
+-		rpc_session_to_blob(ses, false);
+-		rpc_blob_to_file(path, buf.head);
 +static void
 +ubus_connect_handler(struct ubus_context *ctx)
 +{
@@ -7418,54 +8760,74 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	if (ret) {
 +		vlog(L_ERROR, "Failed to add object: %s\n", ubus_strerror(ret));
 +		exit(1);
-+	}
+ 	}
 +	vlog(L_INFO, "UBUS session object added\n");
 +	load_session_plugins(ctx);
-+}
-+
+ }
+ 
+-void rpc_session_thaw(void)
 +static void session_die(struct ubus_context *ctx)
-+{
+ {
+-	DIR *d;
+-	char path[PATH_MAX];
+-	struct dirent *e;
+-	struct blob_attr *attr;
+-	struct uci_context *uci;
+-
+-	d = opendir(RPC_SESSION_DIRECTORY);
 +	(void)ctx;
-+
+ 
+-	if (!d)
+-		return;
+-
+-	uci = uci_alloc_context();
+-
+-	if (!uci)
+-		return;
 +	vlog(L_ERROR, "Session: ubus connection was lost\n");
 +	uloop_done();
 +	ubus_auto_shutdown(&conn);
-+
+ 
+-	while ((e = readdir(d)) != NULL) {
+-		if (!rpc_validate_sid(e->d_name))
+-			continue;
 +	exit(EXIT_FAILURE);
 +}
-+
+ 
+-		snprintf(path, sizeof(path) - 1,
+-		         RPC_SESSION_DIRECTORY "/%s", e->d_name);
 +static void signal_handler(int signo) {
 +	if (signo == SIGHUP) {
-+		respawn = true;
 +		plugins_reload = true;
 +	} else {
 +		uloop_end();
 +	}
 +}
-+
+ 
+-		attr = rpc_blob_from_file(path);
 +static void check_respawn(struct uloop_timeout *t) {
-+	if (respawn) {
-+		respawn = false;
-+		rpc_session_freeze();
-+		rpc_session_thaw();
-+		vlog(L_INFO, "Session respawn completed.\n");
-+	}
-+
 +	if (plugins_reload) {
 +		plugins_reload = false;
 +		unload_session_plugins(&conn.ctx);
 +		load_session_plugins(&conn.ctx);
 +		vlog(L_INFO, "Plugin reload scan completed.\n");
 +	}
-+
+ 
+-		if (attr) {
+-			rpc_session_from_blob(uci, attr);
+-			free(attr);
+-		}
 +	uloop_timeout_set(t, 1000);
 +}
-+
+ 
+-		unlink(path);
+-	}
 +int main(int argc, char **argv) {
 +	struct uloop_timeout respawn_timeout = {
 +		.cb = check_respawn,
 +	};
-+
+ 
+-	closedir(d);
 +	signal(SIGINT, signal_handler);
 +	signal(SIGTERM, signal_handler);
 +	signal(SIGHUP, signal_handler);
@@ -7482,12 +8844,115 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	uloop_run();
 +	uloop_done();
 +	ubus_auto_shutdown(&conn);
+ 
+-	uci_free_context(uci);
++	return 0;
+ }
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/string_list.c src/string_list.c
+--- upstream/string_list.c	1970-01-01 00:00:00.000000000 +0000
++++ src/string_list.c	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,98 @@
++#include <rpcd/string_list.h>
++#include <rpcd/utils.h>
++#include <sys/param.h>
++
++int string_list_ensure_unused_capacity(
++	struct string_list *list,
++	struct arena *arena,
++	size_t min_unused_capacity
++)
++{
++	size_t unused_capacity = list->capacity - list->len;
++	if (unused_capacity < min_unused_capacity) {
++		size_t larger_capacity = MAX(list->len + min_unused_capacity, list->capacity * 2);
++		const char **larger_items = ARENA_ALLOC_STRUCT_ARRAY(arena, larger_capacity, const char*);
++		if (!larger_items) {
++			return -1;
++		}
++		memcpy(larger_items, list->items, sizeof(char *) * list->len);
++
++		list->capacity = larger_capacity;
++		list->items = larger_items;
++	}
 +
 +	return 0;
 +}
++
++void string_list_append_assume_capacity(struct string_list *list, const char *str)
++{
++	ASSERT(list->len < list->capacity);
++
++	list->items[list->len] = str;
++	list->len++;
++}
++
++int string_list_append_from_blob(struct string_list *result, struct arena *arena, struct blob_attr *blob)
++{
++	if (string_list_ensure_unused_capacity(result, arena, blob_count_attributes(blob))) {
++		return -1;
++	}
++
++	struct blob_attr *attr = NULL;
++	int rem = 0;
++	blobmsg_for_each_attr(attr, blob, rem) {
++		if (blobmsg_type(attr) != BLOBMSG_TYPE_STRING) {
++			continue;
++		}
++
++		char *str_copy = arena_strdup(arena, blobmsg_get_string(attr));
++		if (!str_copy) {
++			return -1;
++		}
++
++		string_list_append_assume_capacity(result, str_copy);
++	}
++
++	return 0;
++}
++
++int string_list_append(struct string_list *result, struct arena *arena, const char *str)
++{
++	if (string_list_ensure_unused_capacity(result, arena, 1)) {
++		return -1;
++	}
++
++	string_list_append_assume_capacity(result, str);
++
++	return 0;
++}
++
++int string_list_index_of(struct string_list *haystack, const char *needle)
++{
++	if (!needle) {
++		return -1;
++	}
++
++	for (int i = 0; i < haystack->len; i++) {
++		if (!strcmp(haystack->items[i], needle)) {
++			return i;
++		}
++	}
++
++	return -1;
++}
++
++void string_list_swap_remove(struct string_list *haystack, size_t index)
++{
++	if (index >= haystack->len) {
++		return;
++	}
++
++	haystack->items[index] = haystack->items[haystack->len-1];
++	haystack->len--;
++}
++
++bool string_list_contains(struct string_list *haystack, const char *needle)
++{
++	return string_list_index_of(haystack, needle) != -1;
++}
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/sys.c src/sys.c
 --- upstream/sys.c	2021-03-11 00:17:58.000000000 +0000
-+++ src/sys.c	2026-04-13 09:41:33.000000000 +0000
++++ src/sys.c	2026-05-18 09:19:58.000000000 +0000
 @@ -16,24 +16,28 @@
   * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   */
@@ -8040,7 +9505,7 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
  };
 diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/uci.c src/uci.c
 --- upstream/uci.c	2021-03-11 00:17:58.000000000 +0000
-+++ src/uci.c	2026-04-13 09:41:33.000000000 +0000
++++ src/uci.c	2026-05-18 09:19:58.000000000 +0000
 @@ -18,18 +18,20 @@
  
  #include <libgen.h>
@@ -8470,3 +9935,21 @@ diff --recursive --unified --new-file --no-dereference --exclude .gitver upstrea
 +	.init = rpc_uci_api_init,
 +	.user = "uci"
 +};
+diff --recursive --unified --new-file --no-dereference --exclude .gitver upstream/utils.c src/utils.c
+--- upstream/utils.c	1970-01-01 00:00:00.000000000 +0000
++++ src/utils.c	2026-05-18 09:19:58.000000000 +0000
+@@ -0,0 +1,14 @@
++#include <rpcd/utils.h>
++
++size_t blob_count_attributes(struct blob_attr *blob)
++{
++	size_t count = 0;
++
++	struct blob_attr *current = NULL;
++	int rem = 0;
++	blobmsg_for_each_attr(current, blob, rem) {
++		count++;
++	}
++
++	return count;
++}

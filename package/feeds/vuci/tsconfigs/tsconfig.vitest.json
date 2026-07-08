@@ -2,11 +2,11 @@
   "extends": "./tsconfig.app.json",
   "exclude": [],
   "include": [
-    "../applications/**/tests/*",
-    "../applications/**/__tests__/*",
-    "../vuci-ui-core/**/tests/*",
-    "../vuci-ui-core/**/__tests__/*",
-    "../docs/content/**/__tests__/*"
+    "../applications/**/tests/**/*",
+    "../applications/**/__tests__/**/*",
+    "../vuci-ui-core/**/tests/**/*",
+    "../vuci-ui-core/**/__tests__/**/*",
+    "../docs/content/**/__tests__/**/*"
   ],
   "compilerOptions": {
     "composite": true,

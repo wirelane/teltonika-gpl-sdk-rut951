@@ -1,0 +1,1 @@
+[{"endpoint":"/date_time/ntpd/{service_group}/{?sid}","lua_service":"services/ntpd","backup_order":269}]

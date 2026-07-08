@@ -981,7 +981,10 @@ configure_interface() {
 	# Manual APN if bootstrap profile
 	[ $is_bootstrap_profile -eq 1 ]  && {
 		uci_set network "${interface}" auto_apn "0"
-		uci_set network "${interface}" apn "360connect"
+		case "$bootstrap_iccid" in
+			894446*) uci_set network "${interface}" apn "eapn1.net" ;;
+			*)       uci_set network "${interface}" apn "360connect" ;;
+		esac
 		uci_set network "${interface}" bootstrap "1"
 	} || uci_set network "${interface}" auto_apn "1"
 

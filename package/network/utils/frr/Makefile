@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 PKG_NAME:=frr
 PKG_VERSION:=10.2.1
-PKG_RELEASE:=6
+PKG_RELEASE:=8
 PKG_SOURCE_DATE:=2025-01-29
 
 PKG_SOURCE_VERSION:=10.2.1
@@ -320,7 +320,7 @@ CONFIGURE_ARGS+= \
 define Package/frr/install
 	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/frr $(1)/etc/permtab.d $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/frr.init $(1)/etc/init.d/frr
-	$(INSTALL_DIR) $(1)/etc/uci-defaults/7.5 $(1)/etc/uci-defaults/7.7
+	$(INSTALL_DIR) $(1)/etc/uci-defaults/7.5 $(1)/etc/uci-defaults/7.7 $(1)/etc/uci-defaults/7.24
 	$(INSTALL_DATA) ./files/defaults/97_frr_indexing $(1)/etc/uci-defaults/7.5/97_frr_indexing
 	$(INSTALL_DATA) ./files/defaults/98_modify-frr.sh $(1)/etc/uci-defaults/7.5/98_modify-frr.sh
 	$(INSTALL_DATA) ./files/defaults/99_migrate-frr.sh $(1)/etc/uci-defaults/7.5/99_migrate-frr.sh
@@ -331,6 +331,8 @@ define Package/frr/install
 	$(INSTALL_DATA) ./files/defaults/7.7/99-migrate-main_instance.sh $(1)/etc/uci-defaults/7.18/99-migrate-main_instance.sh
 	$(INSTALL_DATA) ./files/defaults/7.22/99-migrate-bgp-name-option.sh $(1)/etc/uci-defaults/7.22/99-migrate-bgp-name-option.sh
 	$(INSTALL_DATA) ./files/defaults/7.22/99-migrate-rip-name-option.sh $(1)/etc/uci-defaults/7.22/99-migrate-rip-name-option.sh
+	$(INSTALL_DATA) ./files/defaults/7.24/99-migrate-ospf-name-option.sh $(1)/etc/uci-defaults/7.24/99-migrate-ospf-name-option.sh
+	$(INSTALL_DATA) ./files/defaults/7.24/99-migrate-unbridged-interfaces.sh $(1)/etc/uci-defaults/7.24/99-migrate-unbridged-interfaces.sh
 
 endef
 

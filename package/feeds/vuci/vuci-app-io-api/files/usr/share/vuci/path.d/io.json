@@ -1,0 +1,1 @@
+[{"/io/{sid}/status":"services/io_status"},{"endpoint":"/io/{service_group}/{?sid}","lua_service":"services/io_status","backup_order":190},{"endpoint":"/io/{custom_sid}/{service_group}/{sid}","lua_service":"services/io_status","exclude_from_backup":true}]

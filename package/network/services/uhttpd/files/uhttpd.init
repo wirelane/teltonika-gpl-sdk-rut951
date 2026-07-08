@@ -144,6 +144,13 @@ start_instance()
 			generate_cert=1
 		fi
 
+		if [ "$cfg" != "hotspot" ] && [ -s "$cert_key" ] && \
+		   grep -q "The key is securely stored in the TPM2" "$cert_key" && \
+		   ! /bin/tpm2_importer "$cert_key" get_handle > /dev/null 2>&1; then
+			rm -f "$cert" "$cert_key"
+			generate_cert=1
+		fi
+
 		if [ "$default_cert" -eq 1 ] && { [ ! -s "$DEFAULT_UHTTPD_CA_CERT" ] || [ ! -s "$DEFAULT_UHTTPD_CA_KEY" ]; }; then
 			rm -f "$DEFAULT_UHTTPD_KEY" "$DEFAULT_UHTTPD_CERT" "$DEFAULT_UHTTPD_CA_CERT" "$DEFAULT_UHTTPD_CA_KEY"
 			generate_cert=1

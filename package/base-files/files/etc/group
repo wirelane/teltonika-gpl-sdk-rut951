@@ -87,7 +87,7 @@ sim_idle_protection:x:574:gsm,mobutils,uci,uhttpd
 uhttpd:x:575:ip_blockd,mobutils,uci,session
 gps:x:576:itxpt,mobutils,uci,uhttpd
 modbus_client:x:577:uci,uhttpd
-tss:x:578:ipsec,openconnect,openvpn,uhttpd,mosquitto,ds,juggler,aws,azure,mqtt_pub,smppd,easycwmp
+tss:x:578:ipsec,openconnect,openvpn,uhttpd,mosquitto,ds,juggler,aws,azure,mqtt_pub,smppd,easycwmp,ulogd,mqtt_modbus_gateway,sodog
 rut_fota:x:579:mobutils,uci,uhttpd
 openvpn:x:580:mobutils,uci,uhttpd
 ip_blockd:x:581:mobutils,uci,uhttpd
@@ -97,7 +97,7 @@ ntrip:x:584:mobutils,uci,uhttpd
 p910nd:x:585:mobutils,uci,uhttpd
 dlms_client:x:586:mobutils,uci,uhttpd
 xl2tpd:x:587:mobutils,uci,uhttpd
-certificates:x:588:chilli,ds,ipsec,juggler,mosquitto,mqtt_pub,network,openconnect,openvpn,smppd,sodog,sstpc,tinc,uci,easycwmp,aws,azure,uhttpd,can_gw
+certificates:x:588:chilli,ds,ipsec,juggler,mosquitto,mqtt_pub,mqtt_modbus_gateway,network,openconnect,openvpn,smppd,sodog,sstpc,tinc,uci,easycwmp,aws,azure,uhttpd,can_gw,ulogd
 modbusgwd:x:589:mobutils,uci,uhttpd
 pppd:x:590:pptpd,sstpc,xl2tpd
 password_policy:x:591:uci,uhttpd
@@ -164,4 +164,6 @@ siteman:x:654:uci,uhttpd
 sitemanc:x:655:uci,uhttpd
 smcroute:x:656:uci,uhttpd
 totp:x:657:uci,uhttpd
+power_manager:x:658:uci,rpcd,uhttpd
+canopen_client:x:659:uci,uhttpd
 nogroup:x:65534:

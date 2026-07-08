@@ -6,10 +6,10 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=reboot_utils
-PKG_VERSION:=2026-04-08
+PKG_VERSION:=2026-06-04
 PKG_RELEASE:=1
 
-PKG_SOURCE_VERSION:=3.13.1
+PKG_SOURCE_VERSION:=3.14
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_SOURCE_VERSION)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_SOURCE_SUBDIR).tar.gz
 
@@ -97,22 +97,6 @@ define Package/reboot_utils-wireless/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/wireless_reboot.sh $(1)/usr/libexec/rpcd/wireless_reboot
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/rpcd_wireless_reboot.json $(1)/usr/share/acl.d/
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/reboot_utils_wireless.permtab $(1)/etc/permtab.d/reboot_utils_wireless
-endef
-
-define Package/reboot_utils-wireless/postinst
-#!/bin/sh
-if [ -z "$${IPKG_INSTROOT}" ] && [ -x /etc/init.d/rpcd ]; then
-	/etc/init.d/rpcd reload
-fi
-exit 0
-endef
-
-define Package/reboot_utils-wireless/postrm
-#!/bin/sh
-if [ -z "$${IPKG_INSTROOT}" ] && [ -x /etc/init.d/rpcd ]; then
-	/etc/init.d/rpcd reload
-fi
-exit 0
 endef
 
 $(eval $(call BuildPackage,reboot_utils))

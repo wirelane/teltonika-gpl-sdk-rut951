@@ -1,0 +1,35 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+UCI_CONFIG_DIR="${UCI_CONFIG_DIR:-/etc/config}"
+[ -f "$UCI_CONFIG_DIR/ipsec" ] || exit 0
+
+migrate_remote_identifier() {
+	local section="$1"
+	local gateway auth_method remote_identifier
+
+	config_get auth_method "$section" "authentication_method" "psk"
+	# Pre-fix init.d only inserted gateway as remote IKE id for PSK;
+	# other auth methods already used remote_identifier without a fallback.
+	[ "$auth_method" = "psk" ] || return
+
+	config_get gateway "$section" "gateway"
+	case "$gateway" in
+		""|"%any"|"any") return ;;
+	esac
+
+	config_get remote_identifier "$section" "remote_identifier"
+	case "$remote_identifier" in
+		""|"%any") ;;
+		*) return ;;
+	esac
+
+	uci_set "ipsec" "$section" "remote_identifier" "$gateway"
+}
+
+config_load ipsec
+config_foreach migrate_remote_identifier "remote"
+uci_commit "ipsec"
+
+exit 0

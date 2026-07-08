@@ -1,0 +1,1 @@
+[{"endpoint":"/dnp3/tcp/{service_group}/{?sid}","lua_service":"services/dnp3_tcp","backup_order":136},{"endpoint":"/dnp3/tcp/{binding}/requests/{service_group}/{?sid}","lua_service":"services/dnp3_tcp_request","backup_order":137}]

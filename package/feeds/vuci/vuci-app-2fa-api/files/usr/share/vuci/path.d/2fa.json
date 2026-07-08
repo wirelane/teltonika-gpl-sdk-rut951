@@ -1,0 +1,1 @@
+[{"endpoint":"/2fa_login","lua_service":"core/2fa_login","allow_with_incomplete_2fa":true},{"endpoint":"/2fa/{service_group}/{?sid}","lua_service":"system/2fa","backup_order":5}]

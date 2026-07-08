@@ -1,0 +1,20 @@
+commit 56cd42a159c9bd9a92613ac671dfeffa75eaadee
+Author: dmitrmax <dmitrmax+github@gmail.com>
+Date:   Sun Feb 15 12:04:56 2026 +0400
+
+    mt7603: make PCI options
+
+diff --git a/mt7603/Makefile b/mt7603/Makefile
+index 57d28591..746eb602 100644
+--- a/mt7603/Makefile
++++ b/mt7603/Makefile
+@@ -3,6 +3,8 @@ EXTRA_CFLAGS += -Werror -DCONFIG_MT76_LEDS
+ obj-m += mt7603e.o
+ 
+ mt7603e-y := \
+-	pci.o soc.o main.o init.o mcu.o \
++	soc.o main.o init.o mcu.o \
+ 	core.o dma.o mac.o eeprom.o \
+ 	beacon.o debugfs.o
++
++mt7603e-$(CONFIG_PCI) += pci.o

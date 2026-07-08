@@ -1,0 +1,15 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+change_snmp_sysname_to_hostname() {
+	local conf_file="/etc/config/snmpd"
+	[ -f "$conf_file" ] || return
+
+	config_load "system"
+	config_get "hostname" "system" "hostname"
+
+	sed -i "s/option sysName '%%NAME%%'/option sysName '$hostname'/" "$conf_file"
+}
+
+conf_register_hook change_snmp_sysname_to_hostname

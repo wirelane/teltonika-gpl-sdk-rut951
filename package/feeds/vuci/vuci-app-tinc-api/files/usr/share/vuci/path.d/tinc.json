@@ -1,0 +1,1 @@
+[{"endpoint":"/tinc/{service_group}/{?sid}","lua_service":"services/tinc","backup_order":249},{"endpoint":"/tinc/{binding}/hosts/{service_group}/{?sid}","lua_service":"services/tinc_host","backup_order":250}]

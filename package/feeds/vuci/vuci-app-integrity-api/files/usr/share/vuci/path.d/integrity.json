@@ -1,0 +1,1 @@
+[{"endpoint":"/integrity/{service_group}/{?sid}","lua_service":"system/integrity","backup_order":381}]

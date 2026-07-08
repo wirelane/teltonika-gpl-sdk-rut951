@@ -165,6 +165,15 @@
  	if (!r->set_helper.set && r->target == FW3_FLAG_HELPER)
  	{
  		warn_section("rule", r, e, "is set to target HELPER but specifies "
+@@ -324,7 +324,7 @@ append_chain(struct fw3_ipt_rule *r, str
+ 	{
+ 		snprintf(chain, sizeof(chain), "zone_%s_helper", rule->src.name);
+ 	}
+-	else if (rule->target == FW3_FLAG_MARK || rule->target == FW3_FLAG_DSCP || rule->target == FW3_FLAG_TTL)
++	else if (rule->target == FW3_FLAG_MARK || rule->target == FW3_FLAG_DSCP || rule->target == FW3_FLAG_TCPMSS || rule->target == FW3_FLAG_TTL)
+ 	{
+ 		if ((rule->_dest && rule->_src) ||
+ 		    (rule->dest.any && rule->src.any))
 @@ -388,6 +398,13 @@ static void set_target(struct fw3_ipt_ru
  		fw3_ipt_rule_addarg(r, false, "--set-dscp", buf);
  		return;

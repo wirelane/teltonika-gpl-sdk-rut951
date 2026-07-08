@@ -1,6 +1,8 @@
---- a/configure.ac
-+++ b/configure.ac
-@@ -270,6 +270,24 @@ AC_ARG_ENABLE(ubus-pam,
+Index: dropbear-2025.89/configure.ac
+===================================================================
+--- dropbear-2025.89.orig/configure.ac
++++ dropbear-2025.89/configure.ac
+@@ -264,6 +264,24 @@ AC_ARG_ENABLE(ubus-pam,
  	]
  )
  
@@ -25,9 +27,19 @@
  AC_ARG_ENABLE(openpty,
  	[AS_HELP_STRING([--disable-openpty], [Don't use openpty, use alternative method])],
  	[
---- a/src/auth.h
-+++ b/src/auth.h
-@@ -64,6 +64,12 @@ static inline void svr_pubkey_set_forced
+Index: dropbear-2025.89/src/auth.h
+===================================================================
+--- dropbear-2025.89.orig/src/auth.h
++++ dropbear-2025.89/src/auth.h
+@@ -44,6 +44,7 @@ void svr_auth_ubus_pam(int valid_user, i
+ void svr_switch_user(void);
+ void svr_raise_gid_utmp(void);
+ void svr_restore_gid(void);
++void log_event(char *text, char *a, char *b);
+ 
+ #if DROPBEAR_SVR_PUBKEY_OPTIONS_BUILT
+ int svr_pubkey_allows_agentfwd(void);
+@@ -69,6 +70,12 @@ static inline void svr_pubkey_set_forced
  static inline void svr_pubkey_options_cleanup(void) { }
  #define svr_add_pubkey_options(x,y,z) DROPBEAR_SUCCESS
  #endif
@@ -40,7 +52,7 @@
  
  /* Client functions */
  void recv_msg_userauth_failure(void);
-@@ -89,6 +95,9 @@ void cli_auth_pubkey_cleanup(void);
+@@ -94,6 +101,9 @@ void cli_auth_pubkey_cleanup(void);
  #define AUTH_TYPE_PUBKEY    (1 << 1)
  #define AUTH_TYPE_PASSWORD  (1 << 2)
  #define AUTH_TYPE_INTERACT  (1 << 3)
@@ -50,9 +62,11 @@
  
  #define AUTH_METHOD_NONE "none"
  #define AUTH_METHOD_NONE_LEN 4
+Index: dropbear-2025.89/src/svr-auth2fa.c
+===================================================================
 --- /dev/null
-+++ b/src/svr-auth2fa.c
-@@ -0,0 +1,190 @@
++++ dropbear-2025.89/src/svr-auth2fa.c
+@@ -0,0 +1,208 @@
 +#include "includes.h"
 +#include "session.h"
 +#include "buffer.h"
@@ -72,12 +86,20 @@
 +
 +enum {
 +	_2FA_RES,
++	_2FA_RECOVERY,
 +	_2FA_ACTIVE,
 +	__2FA_MAX
 +};
 +
++struct _2fa_check_req {
++	bool res;
++	bool recovery;
++	bool active;
++};
++
 +static const struct blobmsg_policy _2fa_policy[__2FA_MAX] = {
-+	[_2FA_RES]    = { .name = "res", .type = BLOBMSG_TYPE_BOOL },
++	[_2FA_RES] = { .name = "res", .type = BLOBMSG_TYPE_BOOL },
++	[_2FA_RECOVERY] = { .name = "recovery", .type = BLOBMSG_TYPE_BOOL },
 +	[_2FA_ACTIVE] = { .name = "active", .type = BLOBMSG_TYPE_BOOL },
 +};
 +
@@ -85,48 +107,52 @@
 +{
 +	(void)type;
 +
-+	bool *res = (bool *)req->priv;
++	struct _2fa_check_req *req_data = (struct _2fa_check_req *)req->priv;
 +	struct blob_attr *tb[__2FA_MAX];
 +
 +	blobmsg_parse(_2fa_policy, __2FA_MAX, tb, blob_data(msg), blob_len(msg));
 +
 +	if (tb[_2FA_RES]) {
-+		*res = blobmsg_get_bool(tb[_2FA_RES]);
-+	} else if (tb[_2FA_ACTIVE]) {
-+		*res = blobmsg_get_bool(tb[_2FA_ACTIVE]);
++		req_data->res = blobmsg_get_bool(tb[_2FA_RES]);
++	}
++	if (tb[_2FA_RECOVERY]) {
++		req_data->recovery = blobmsg_get_bool(tb[_2FA_RECOVERY]);
++	}
++	if (tb[_2FA_ACTIVE]) {
++		req_data->active = blobmsg_get_bool(tb[_2FA_ACTIVE]);
 +	}
 +}
 +
 +static bool status_2fa(struct ubus_context *ctx, char const *username)
 +{
 +	static struct blob_buf b = { 0 };
-+	uint32_t id              = 0;
-+	bool active              = false;
++	uint32_t id = 0;
++	struct _2fa_check_req res = { 0 };
 +
 +	if (!username || !ctx || ubus_lookup_id(ctx, "totp", &id)) {
-+		return active;
++		return false;
 +	}
 +
 +	blob_buf_init(&b, 0);
-+	blobmsg_add_string(&b, "username", username);
-+	ubus_invoke(ctx, id, "status", b.head, check_2fa_cb, &active, UBUS_TIMEOUT);
++ 	blobmsg_add_string(&b, "username", username);
++	ubus_invoke(ctx, id, "status", b.head, check_2fa_cb, &res, UBUS_TIMEOUT);
 +	blob_buf_free(&b);
 +
-+	return active;
++	return res.active;
 +}
 +
-+static bool check_2fa(struct ubus_context *ctx, char const *username, const char *otp)
++static struct _2fa_check_req check_2fa(struct ubus_context *ctx, char const *username, const char *otp)
 +{
 +	static struct blob_buf b = { 0 };
-+	uint32_t id              = 0;
-+	bool res                 = false;
++	uint32_t id = 0;
++	struct _2fa_check_req res = { 0 };
 +
 +	if (!username || !ctx || ubus_lookup_id(ctx, "totp", &id)) {
 +		return res;
 +	}
 +
 +	blob_buf_init(&b, 0);
-+	blobmsg_add_string(&b, "username", username);
++ 	blobmsg_add_string(&b, "username", username);
 +	blobmsg_add_string(&b, "totp", otp);
 +	ubus_invoke(ctx, id, "check", b.head, check_2fa_cb, &res, UBUS_TIMEOUT);
 +	blob_buf_free(&b);
@@ -191,8 +217,8 @@
 +{
 +	char *response;
 +	unsigned int num_responses;
-+	struct ubus_context *ctx = NULL;
-+	bool totp_valid          = false;
++	struct ubus_context *ctx       = NULL;
++	struct _2fa_check_req totp_res = { 0 };
 +
 +	TRACE(("enter svr_auth_2fa_response"))
 +
@@ -213,14 +239,14 @@
 +
 +	ctx = ubus_connect(NULL);
 +	if (ctx) {
-+		totp_valid = check_2fa(ctx, ses.authstate.pw_name, response);
++		totp_res = check_2fa(ctx, ses.authstate.pw_name, response);
 +		ubus_free(ctx);
 +	}
 +
 +	m_burn(response, strlen(response));
 +	m_free(response);
 +
-+	if (totp_valid) {
++	if (totp_res.res) {
 +		dropbear_log(LOG_NOTICE, "2FA auth succeeded for '%s' from %s", ses.authstate.pw_name,
 +		             svr_ses.addrstring);
 +
@@ -232,19 +258,27 @@
 +		} else {
 +			/* All auth complete */
 +			send_msg_userauth_success();
++			if (totp_res.recovery) {
++				log_event("2FA auth succeeded (recovery code)", ses.authstate.pw_name, svr_ses.addrstring);
++			} else {
++				log_event("2FA auth succeeded", ses.authstate.pw_name, svr_ses.addrstring);
++			}
 +		}
 +	} else {
 +		dropbear_log(LOG_WARNING, "2FA auth failed for '%s' from %s", ses.authstate.pw_name,
 +		             svr_ses.addrstring);
 +		send_msg_userauth_failure(0, 1);
++		log_event("2FA auth failed", ses.authstate.pw_name, svr_ses.addrstring);
 +	}
 +
 +	TRACE(("leave svr_auth_2fa_response"))
 +}
 +
 +#endif /* DROPBEAR_SVR_2FA_SUPPORT */
---- a/src/svr-auth.c
-+++ b/src/svr-auth.c
+Index: dropbear-2025.89/src/svr-auth.c
+===================================================================
+--- dropbear-2025.89.orig/src/svr-auth.c
++++ dropbear-2025.89/src/svr-auth.c
 @@ -70,6 +70,12 @@ void send_msg_userauth_banner(const buff
  	TRACE(("leave send_msg_userauth_banner"))
  }
@@ -294,9 +328,11 @@
  	buf_putbufstring(ses.writepayload, typebuf);
  
  	TRACE(("auth fail: methods %d, '%.*s'", ses.authstate.authtypes,
---- a/src/svr-authpasswd.c
-+++ b/src/svr-authpasswd.c
-@@ -117,6 +117,17 @@ void svr_auth_password(int valid_user) {
+Index: dropbear-2025.89/src/svr-authpasswd.c
+===================================================================
+--- dropbear-2025.89.orig/src/svr-authpasswd.c
++++ dropbear-2025.89/src/svr-authpasswd.c
+@@ -117,6 +117,18 @@ void svr_auth_password(int valid_user) {
  	}
  
  	if (constant_time_strcmp(testcrypt, passwdcrypt) == 0) {
@@ -308,14 +344,17 @@
 +					svr_ses.addrstring);
 +			ses.authstate.authtypes = AUTH_TYPE_2FA;
 +			send_msg_userauth_failure(1, 0); /* Send partial success */
++			log_event("Password auth succeeded, 2FA required", ses.authstate.pw_name, svr_ses.addrstring);
 +			return;
 +		}
 +#endif
  		if (svr_opts.multiauthmethod && (ses.authstate.authtypes & ~AUTH_TYPE_PASSWORD)) {
  			/* successful password authentication, but extra auth required */
  			dropbear_log(LOG_NOTICE,
---- a/Makefile.in
-+++ b/Makefile.in
+Index: dropbear-2025.89/Makefile.in
+===================================================================
+--- dropbear-2025.89.orig/Makefile.in
++++ dropbear-2025.89/Makefile.in
 @@ -51,7 +51,7 @@ COMMONOBJS = $(patsubst %,$(OBJ_DIR)/%,$
  _SVROBJS=lock_manager.o ip_block.o svr-kex.o svr-auth.o sshpty.o \
  		svr-authpasswd.o svr-authpubkey.o svr-authpubkeyoptions.o svr-session.o svr-service.o \
@@ -325,8 +364,10 @@
  SVROBJS = $(patsubst %,$(OBJ_DIR)/%,$(_SVROBJS))
  
  _CLIOBJS=cli-main.o cli-auth.o cli-authpasswd.o cli-kex.o \
---- a/src/svr-session.c
-+++ b/src/svr-session.c
+Index: dropbear-2025.89/src/svr-session.c
+===================================================================
+--- dropbear-2025.89.orig/src/svr-session.c
++++ dropbear-2025.89/src/svr-session.c
 @@ -68,6 +68,9 @@ static const packettype svr_packettypes[
  	{SSH_MSG_CHANNEL_OPEN_CONFIRMATION, recv_msg_channel_open_confirmation},
  	{SSH_MSG_CHANNEL_OPEN_FAILURE, recv_msg_channel_open_failure},
@@ -337,8 +378,10 @@
  	{0, NULL} /* End */
  };
  
---- a/src/process-packet.c
-+++ b/src/process-packet.c
+Index: dropbear-2025.89/src/process-packet.c
+===================================================================
+--- dropbear-2025.89.orig/src/process-packet.c
++++ dropbear-2025.89/src/process-packet.c
 @@ -35,7 +35,7 @@
  #include "auth.h"
  #include "channel.h"

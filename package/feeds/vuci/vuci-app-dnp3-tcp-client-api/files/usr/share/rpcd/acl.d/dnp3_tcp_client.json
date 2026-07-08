@@ -1,0 +1,1 @@
+{"services/dnp3/tcp_client":{"description":"dnp3 tcp client","read":{"api":{"/dnp3/tcp/*":["*"],"/dnp3/global/*":["*"],"/dnp3/database/*":["*"],"/dnp3/outstation/objects/config/*":["*"],"/universal_gateway/status/*":["*"]}},"write":{"api":["/dnp3/tcp/*","/dnp3/global/*"]}}}

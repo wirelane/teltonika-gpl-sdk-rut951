@@ -1,0 +1,1 @@
+[{"endpoint":"/vrf/global","lua_service":"network/vrf_global","backup_order":317},{"endpoint":"/vrf/{service_group}/{?sid}","lua_service":"network/vrf","backup_order":318}]

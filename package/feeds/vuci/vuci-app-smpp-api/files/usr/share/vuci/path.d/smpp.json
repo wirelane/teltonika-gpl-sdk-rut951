@@ -1,0 +1,1 @@
+[{"endpoint":"/smpp/{service_group}/{?sid}","lua_service":"services/smpp","backup_order":109}]

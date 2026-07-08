@@ -1,0 +1,72 @@
+diff --git a/lib60870-C/src/iec60870/apl/cpXXtime2a.c b/lib60870-C/src/iec60870/apl/cpXXtime2a.c
+index 68cac9d..4a3f169 100644
+--- a/lib60870-C/src/iec60870/apl/cpXXtime2a.c
++++ b/lib60870-C/src/iec60870/apl/cpXXtime2a.c
+@@ -75,43 +75,53 @@ CP16Time2a_getEncodedValue(CP16Time2a self)
+  *  CP24Time2a and CP26Time2a common
+  ************************************/
+ 
++static int
++getMillisecondsOfMinute(const uint8_t* encodedValue)
++{
++    return ((int) encodedValue[0]) + (((int) encodedValue[1]) << 8);
++}
++
++static void
++setMillisecondsOfMinute(uint8_t* encodedValue, int value)
++{
++    encodedValue[0] = (uint8_t) (value & 0xff);
++    encodedValue[1] = (uint8_t) ((value >> 8) & 0xff);
++}
++
+ static int
+ getMillisecond(const uint8_t* encodedValue)
+ {
+-    return (encodedValue[0] + (encodedValue[1] * 0x100)) % 1000;
++    return getMillisecondsOfMinute(encodedValue) % 1000;
+ }
+ 
+ static void
+ setMillisecond(uint8_t* encodedValue, int value)
+ {
+-    int millies = encodedValue[0] + (encodedValue[1] * 0x100);
+-
+-    /* erase sub-second part */
+-    millies = millies - (millies % 1000);
++    value = value % 60000;
+ 
+-    millies = millies + value;
++    if (value < 0)
++        value += 60000;
+ 
+-    encodedValue[0] = (uint8_t) (millies & 0xff);
+-    encodedValue[1] = (uint8_t) ((millies / 0x100) & 0xff);
++    setMillisecondsOfMinute(encodedValue, value);
+ }
+ 
+ static int
+ getSecond(const uint8_t* encodedValue)
+ {
+-    return  (encodedValue[0] + (encodedValue[1] * 0x100)) / 1000;
++    return (getMillisecondsOfMinute(encodedValue) / 1000) % 60;
+ }
+ 
+ static void
+ setSecond(uint8_t* encodedValue, int value)
+ {
+-    int millies = encodedValue[0] + (encodedValue[1] * 0x100);
++    int msPart = getMillisecondsOfMinute(encodedValue) % 1000;
+ 
+-    int msPart = millies % 1000;
++    value = value % 60;
+ 
+-    millies = (value * 1000) + msPart;
++    if (value < 0)
++        value += 60;
+ 
+-    encodedValue[0] = (uint8_t) (millies & 0xff);
+-    encodedValue[1] = (uint8_t) ((millies / 0x100) & 0xff);
++    setMillisecondsOfMinute(encodedValue, (value * 1000) + msPart);
+ }
+ 
+ static int

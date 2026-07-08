@@ -804,4 +804,16 @@
 		clocks = <&sysc MT7621_CLK_XTAL>;
 		#phy-cells = <1>;
 	};
+
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		coherent_dma_pool: coherent_dma_pool@01000000 {
+			compatible = "mt7621,coherent_dma_region";
+			reg = <0x01000000 0x01000000>; 
+			no-map;
+		};
+	};
 };

@@ -135,6 +135,12 @@ setup_instance() {
 		rm "$sf"
 
 		uci_commit zerotier
+	elif [ "$node_id" != "${secret:0:10}" ]; then
+		# secret was provided (e.g. via backup restore) without a matching
+		# node_id — derive it from the secret so the config path is stable.
+		node_id=${secret:0:10}
+		uci_set zerotier "$1" "node_id" "$node_id"
+		uci_commit zerotier
 	fi
 
 	config_foreach setup_network "network_${1}" "$secret" "$node_id"

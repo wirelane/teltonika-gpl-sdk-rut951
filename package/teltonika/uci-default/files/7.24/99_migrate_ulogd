@@ -1,0 +1,20 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+[ ! -f /etc/config/ulogd ] && exit 0
+
+[ "$(uci_get ulogd ftp key_auth)" = "1" ] && [ -z "$(uci_get ulogd ftp privkey)" ] && {
+	uci_set ulogd ftp privkey /usr/local/home/ulogd/.ssh/id_rsa
+	c=1
+}
+
+[ "$(uci_get ulogd global enabled)" = "1" ] && \
+[ "$(uci_get ulogd ftp protocol)" = "ftps" ] && \
+[ -z "$(uci_get ulogd ftp cafile)" ] && {
+	uci_set ulogd ftp insecure 1
+	c=1
+}
+
+[ "$c" = "1" ] && uci_commit ulogd
+exit 0

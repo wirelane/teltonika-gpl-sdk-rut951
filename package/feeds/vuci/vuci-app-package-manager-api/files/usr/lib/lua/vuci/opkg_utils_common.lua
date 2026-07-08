@@ -128,15 +128,17 @@ local ACTION_TO_PKG_TYPE = {
 local PKG_QUEUE_FILE = "/tmp/pkgman/package_queue"
 local PKG_TAR_PATH = "/tmp/package.tar.gz"
 local PKG_CUSTOM_FOLDER_PATH = "/tmp/run/opkg/custom_package"
-local PKG_CACHE_FILE = "/tmp/pkgman/packages_cache.json"
+local PKG_CACHE_FILE = "/tmp/pkgman/packages_cache_%s.json"
 local PKG_RESTORE_PATH = "/etc/package_restore.txt"
 local FAILED_PKG_PATH = "/etc/package_restore/failed_packages"
 local PKG_MULTI_LOCK_PATH = "/var/lock/pkg_man_multi.lock"
 local PKG_OPKG_LOCK_PATH = "/var/lock/pkg_man_opkg.lock"
-local OPKG_TLT_URL = "opkg.teltonika-networks.com"
 local OPKG_CONF_FILE = "/etc/opkg.conf"
-local TLT_PACKAGES_NAME = "tlt_packages"
-local TLT_PACKAGES_FILE_PATH = "/var/opkg-lists/" .. TLT_PACKAGES_NAME
+local FEED_SIDS = {
+	tlt_packages = "/etc/opkg/teltonikafeeds.conf",
+	["3rd_party_packages"] = not board:is_switch() and "/etc/opkg/3rd_party_packages.conf" or nil,
+}
+local PACKAGES_FILE_PATH = "/var/opkg-lists/%s"
 local DEST_ROOT = (fs.readfile(OPKG_CONF_FILE):match("dest%s+root%s+(%S+)") or ""):gsub("/$", "") -- remove trailing slash
 
 local o_utils = {
@@ -146,7 +148,7 @@ local o_utils = {
 	MSG_STR = MSG_STR,
 	PKG_TYPES = PKG_TYPES,
 	_pkg_list_text = nil,
-	_pkg_list = nil,
+	_pkg_list = {},
 	PKG_QUEUE_FILE = PKG_QUEUE_FILE,
 	PKG_TAR_PATH = PKG_TAR_PATH,
 	PKG_CUSTOM_FOLDER_PATH = PKG_CUSTOM_FOLDER_PATH,
@@ -154,7 +156,7 @@ local o_utils = {
 	PKG_RESTORE_PATH = PKG_RESTORE_PATH,
 	FAILED_PKG_PATH = FAILED_PKG_PATH,
 	PKG_MULTI_LOCK_PATH = PKG_MULTI_LOCK_PATH,
-	OPKG_TLT_URL = OPKG_TLT_URL,
+	FEED_SIDS = FEED_SIDS,
 	MULTI_ACTIONS = MULTI_ACTIONS,
 	ACTION_TO_PKG_TYPE = ACTION_TO_PKG_TYPE,
 	DEST_ROOT = DEST_ROOT,
@@ -190,24 +192,24 @@ end
 
 ---Returns available package list (keys are package pkg_name, values are tables with pkg info keys = values)
 ---@param refresh boolean? if true, pkg list is refreshed, otherwise cache is used
+---@param sid string?
 ---@return { [string]: pkg_keys }
-function o_utils.get_pkg_list(refresh)
+function o_utils.get_pkg_list(refresh, sid)
 	local code, data
-	if not refresh and o_utils._pkg_list and next(o_utils._pkg_list) then
-		return o_utils._pkg_list
+	local key = sid or "all"
+	if not refresh and o_utils._pkg_list[key] and next(o_utils._pkg_list[key]) then
+		return o_utils._pkg_list[key]
 	end
-	code, data = o_utils.opkg_call("list_feeds", nil, o_utils.OPKG_DATA)
-	o_utils._pkg_list = data.packages or {}
-
-
-	return o_utils._pkg_list
+	code, data = o_utils.opkg_call("list_feeds", sid, o_utils.OPKG_DATA)
+	o_utils._pkg_list[key] = data.packages or {}
+	return o_utils._pkg_list[key]
 end
 
 ---Returns available package list (keys are package app_name, values are pkg text formatted as .control file)
 ---@param refresh boolean? if true, pkg list is refreshed, otherwise cache is used
 ---@return { [string]: pkg_keys }
-function o_utils.get_pkg_list_by_app_name(refresh)
-	local pkg_list = o_utils.get_pkg_list(refresh)
+function o_utils.get_pkg_list_by_app_name(refresh, sid)
+	local pkg_list = o_utils.get_pkg_list(refresh, sid)
 
 	local pkg_list_by_app_names = {}
 	for pkg_name, pkg_text in pairs(pkg_list) do
@@ -313,7 +315,8 @@ function o_utils._remove_pkg_from_pkg_restore(app_name)
 					table.insert(new_file, line)
 				end
 			end
-			fs.writefile(f, table.concat(new_file, "\n"))
+			local res = table.concat(new_file, "\n")
+			fs.writefile(f, res ~= "" and res .. "\n" or "")
 		end
 	end
 end
@@ -331,11 +334,14 @@ function o_utils.get_pkg_url(list_file)
 	local menu_file_path = (fs.readfile(list_file) or ""):match(o_utils.DEST_ROOT.."/usr/share/vuci/menu%.d/.-%.json") or ""
 	local menu_json = json.parse((fs.readfile(menu_file_path) or "{}")) or {}
 	local fallback_url
+	local fallback_index = math.huge
 	for url, menu_entry in pairs(menu_json) do
 		if menu_entry.main_page then  -- use url from entry which has main_page=true
 			return "/" .. url
-		elseif menu_entry.view then -- fallback to random entry which has .view key
+		elseif menu_entry.view and
+			((menu_entry.index and fallback_index > menu_entry.index) or (not menu_entry.index and not fallback_url)) then -- fallback to random entry which has .view key
 			fallback_url = "/" .. url
+			fallback_index = menu_entry.index or fallback_index
 		end
 	end
 	return fallback_url
@@ -405,33 +411,34 @@ function o_utils._trigger_backup()
 end
 
 ---Cleans package list fetched from the server
-function o_utils.clean_feeds(...)
+function o_utils.clean_feeds(sid, ...)
 	local ok, fd = o_utils._lock(PKG_OPKG_LOCK_PATH, "lock")
 	assert(ok, "lock error")
-	o_utils.opkg_call("cleanup_feeds", nil, o_utils.OPKG_DATA, ...)
-	fs.remove(PKG_CACHE_FILE)
+	o_utils.opkg_call("cleanup_feeds", sid, o_utils.OPKG_DATA, ...)
+	for file_name in fs.glob("/tmp/pkgman/packages_cache_*.json") do
+		fs.remove(file_name)
+	end
 	fd:lock("ulock")
 	fd:close()
 end
 
-function o_utils.opkg_server_reachable()
-	local tlt_feeds = fs.readfile("/etc/opkg/teltonikafeeds.conf")
-	local server_address = tlt_feeds and util.trim(util.split(tlt_feeds, "%s+", nil, true)[3]) or OPKG_TLT_URL
-	return (util.file_exec("/usr/bin/curl", {server_address, "-m", "10"}) or {}).code == 0
+function o_utils.opkg_server_reachable(feed)
+	local feed_data = fs.readfile(feed)
+	local server_address = feed_data and util.trim(util.split(feed_data, "%s+", nil, true)[3]) .. "/Packages.gz"
+	return server_address and
+		(util.file_exec("/usr/bin/curl", { server_address, "-m", "10", "-I", "-f" }) or {}).code == 0 or false
 end
 
 
 ---Checks if there is package list already fetched from server, if it is not - fetches package list from server
-function o_utils.fetch_pkg_list(force_refresh)
-	if not force_refresh and fs.access(TLT_PACKAGES_FILE_PATH) then return end
-
-	local code
-	if o_utils.opkg_server_reachable() then
-		o_utils.clean_feeds()
-		code = o_utils.opkg_call("update", nil, OPKG_DATA)
-	end
-	if code ~= 0 then
-		o_utils.clean_feeds()
+function o_utils.fetch_pkg_list(force_refresh, sid)
+	for feed, feed_conf in pairs(FEED_SIDS) do
+		if (not sid or feed == sid) and (not fs.access(PACKAGES_FILE_PATH % feed) or force_refresh) and o_utils.opkg_server_reachable(feed_conf) then
+			if force_refresh then
+				o_utils.clean_feeds(feed)
+			end
+			o_utils.opkg_call("update", nil, o_utils.OPKG_DATA, "--force_feeds", FEED_SIDS[feed])
+		end
 	end
 end
 

@@ -1,0 +1,1 @@
+[{"endpoint":"/opcua/destination_server/nodes/{service_group}/{?sid}","lua_service":"services/opcua_server/nodes","backup_order":73},{"endpoint":"/opcua/destination_server/{service_group}/{?sid}","lua_service":"services/opcua_server/general","backup_order":74}]

@@ -1,0 +1,28 @@
+{
+  "services/modbus": {
+    "title": "Modbus",
+    "index": 120
+  },
+  "services/modbus/modbus_server": {
+    "title": "Modbus TCP Server",
+    "index": 10
+  },
+  "services/modbus/modbus_server/general": {
+    "title": "General",
+    "index": 1,
+    "view": "services/ModbusServer",
+    "acls": ["services/modbus/modbus_server/general"],
+    "main_page": true
+  },
+  "services/modbus/modbus_server/data_source": {
+    "title": "Data Sources",
+    "index": 2,
+    "view": "services/ModbusServerDataSource",
+    "acls": ["services/modbus/modbus_server/data_source"],
+    "depends": {
+      "board": {
+        "notAllOf": ["is_switch"]
+      }
+    }
+  }
+}

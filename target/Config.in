@@ -130,6 +130,9 @@ config USB_SUPPORT_EXTERNAL
 config HAS_SINGLE_ETH_PORT
 	bool
 
+config ETHERNET_SUPPORT
+	bool
+
 config HAS_IO
 	bool
 

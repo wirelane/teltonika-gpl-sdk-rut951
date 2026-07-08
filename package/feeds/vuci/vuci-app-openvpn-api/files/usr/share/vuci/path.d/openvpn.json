@@ -1,0 +1,1 @@
+[{"endpoint":"/openvpn/{service_group}/{?sid}","lua_service":"services/openvpn","backup_order":180},{"endpoint":"/openvpn/{binding}/clients/{service_group}/{?sid}","lua_service":"services/openvpn_tls","backup_order":181},{"endpoint":"/openvpn/{type}/{service_group}/{sid}","lua_service":"services/openvpn_export","exclude_from_backup":true}]

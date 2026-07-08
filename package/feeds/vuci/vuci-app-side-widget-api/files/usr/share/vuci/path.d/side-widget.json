@@ -1,0 +1,1 @@
+[{"endpoint":"/widget/{service_group}/{?sid}","lua_service":"status/widget","backup_order":368}]

@@ -1,0 +1,1 @@
+[{"endpoint":"/users/{service_group}/{?sid}","lua_service":"system/users","backup_order":2,"allow_with_expired_password":[["GET","/users/acls/options/"]]},{"endpoint":"/users/groups/{service_group}/{?sid}","lua_service":"system/groups","backup_order":1}]

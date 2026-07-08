@@ -1,0 +1,1 @@
+[{"endpoint":"/email_relay/{service_group}/{?sid}","lua_service":"services/email_relay","backup_order":61}]

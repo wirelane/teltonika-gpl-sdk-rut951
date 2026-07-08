@@ -106,6 +106,7 @@ n	[A-Za-z0-9_-]
 "help"			return T_HELP;
 "detail"		return T_DETAIL;
 "tooltip"		return T_TOOLTIP;
+"visible_in_feature_list"		return T_VISIBLE_IN_FEATURE_LIST;
 "hex"			return T_HEX;
 "if"			return T_IF;
 "imply"			return T_IMPLY;

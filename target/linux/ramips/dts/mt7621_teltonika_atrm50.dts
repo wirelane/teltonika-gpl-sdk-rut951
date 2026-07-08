@@ -251,14 +251,14 @@
 				label = "bat";
 				block_type = BLOCK_M12_4;
 				default_direction = "in";
-				block_pin = "4";
+				block_pin = "3";
 				gpio_in = "GPIO_IN_1";
 			};
 			io@1 {
 				label = "ign";
 				block_type = BLOCK_M12_4;
 				default_direction = "in";
-				block_pin = "3";
+				block_pin = "4";
 				gpio_in = "GPIO_IN_2";
 			};
 			io@2 { // index must be before "bat_ign_mode" to work properly

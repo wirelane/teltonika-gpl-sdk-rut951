@@ -1,0 +1,1 @@
+[{"endpoint":"/wifi_scanner/{service_group}/{?sid}","lua_service":"network/wifi_scanner","backup_order":31}]

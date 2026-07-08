@@ -2,18 +2,45 @@
 
 . /lib/functions.sh
 
+idx=0
+existing=""
+
+collect() {
+	local user
+	local n="${1#login}"
+
+	existing="$existing|$1|"
+
+	config_get user "$1" username
+	[ -n "$user" ] && existing="$existing|$user|"
+
+	case "$n" in
+		*[!0-9]*|'') ;;
+		*) [ "$n" -gt "$idx" ] && idx="$n" ;;
+	esac
+}
+
 add_user() {
 	local username
-	local section="$1"
-	config_get username "$section" username
+	config_get username "$1" username
+	[ -n "$username" ] || return
 
-	[ -z "$(uci_get "totp" "$username")" ] || return
+	case "$existing" in
+		*"|$username|"*) return ;;
+	esac
 
-	uci_add "totp" "user" "$username"
-	uci_set "totp" "$username" "enabled" "0"
-	uci_set "totp" "$username" "verified" "0"
+	idx=$((idx + 1))
+	uci_add totp user "login$idx"
+	uci_set totp "login$idx" username "$username"
+	uci_set totp "login$idx" enabled "0"
+	uci_set totp "login$idx" verified "0"
+	existing="$existing|$username|"
 }
+
+config_load totp
+config_foreach collect user
 
 config_load rpcd
 config_foreach add_user login
+
 uci_commit totp

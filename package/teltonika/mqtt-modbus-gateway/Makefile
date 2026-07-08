@@ -2,8 +2,8 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=mqtt-modbus-gateway
-PKG_VERSION:=2026-04-09
-PKG_SOURCE_VERSION:=7.23
+PKG_VERSION:=2026-06-04
+PKG_SOURCE_VERSION:=7.24
 PKG_LICENSE:=Teltonika-closed
 
 include $(INCLUDE_DIR)/package.mk
@@ -12,7 +12,7 @@ define Package/mqtt-modbus-gateway
 	SECTION:=net
 	CATEGORY:=Network
 	TITLE:=MQTT Modbus Gateway
-	DEPENDS:=+libmosquitto +libmodbus +libmnfinfo +libtlt_uci +libtlt_termios +libuci +libubox +libubus +libblobmsg-json +libjson-c
+	DEPENDS:=+libmosquitto-ssl +libmodbus +libmnfinfo +libtlt_uci +libtlt_termios +libuci +libubox +libubus +libblobmsg-json +libjson-c +TPM_SUPPORT:libtpm2_importer
 	USERID:=mqtt_modbus_gateway=515:mqtt_modbus_gateway=515
 endef
 
@@ -23,6 +23,8 @@ endef
 define Package/mqtt-modbus-gateway/conffiles
 /etc/config/modbusgateway
 endef
+
+TARGET_CFLAGS += $(if $(CONFIG_TPM_SUPPORT),-DMMG_TPM_SUPPORT)
 
 
 define Build/Test

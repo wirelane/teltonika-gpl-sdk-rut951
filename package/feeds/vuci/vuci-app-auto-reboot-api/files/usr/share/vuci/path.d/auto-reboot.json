@@ -1,0 +1,1 @@
+[{"endpoint":"/auto_reboot/scheduler/{service_group}/{?sid}","lua_service":"services/periodic_reboot","backup_order":123},{"endpoint":"/auto_reboot/ping_wget/{service_group}/{?sid}","lua_service":"services/ping_reboot","backup_order":124}]

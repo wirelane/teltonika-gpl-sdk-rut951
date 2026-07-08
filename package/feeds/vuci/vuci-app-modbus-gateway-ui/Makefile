@@ -11,7 +11,7 @@ endif
 include ../app.mk
 
 define Package/vuci-app-modbus-gateway-ui/description
-	MQTT-Modbus Gateway is a service meant to read/write MODBUS TCP/RTU servers via MQTT messages.
+	MQTT-Modbus Gateway is a service meant to read/write Modbus TCP/RTU servers via MQTT messages.
 endef
 
 # call BuildPackage - OpenWrt buildroot signature

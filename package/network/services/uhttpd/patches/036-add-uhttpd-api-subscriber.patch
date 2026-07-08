@@ -1,0 +1,15 @@
+diff --git a/main.c b/main.c
+index 487ded1..d60f7ff 100644
+--- a/main.c
++++ b/main.c
+@@ -563,6 +563,10 @@ int main(int argc, char **argv)
+ 	}
+ #endif
+ 
++	if (access("/usr/lib/uhttpd_api_subscriber.so", X_OK) == 0 && uh_plugin_init("uhttpd_api_subscriber.so")) {
++		return 1;
++	}
++
+ #ifdef HAVE_LUA
+ 	if (lua_handler || lua_prefix) {
+ 		h_log(L_WARNING, "Need handler and prefix to enable Lua support\n");

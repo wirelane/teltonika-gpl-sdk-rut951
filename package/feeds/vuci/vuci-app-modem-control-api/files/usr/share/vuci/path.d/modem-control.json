@@ -1,0 +1,1 @@
+[{"endpoint":"/modem_control/{service_group}/{?sid}","lua_service":"services/modem_control","backup_order":240}]

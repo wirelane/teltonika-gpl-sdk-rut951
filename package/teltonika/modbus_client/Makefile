@@ -6,8 +6,8 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=modbus_client
-PKG_VERSION:=2026-04-09
-PKG_SOURCE_VERSION:=7.23
+PKG_VERSION:=2026-06-04
+PKG_SOURCE_VERSION:=7.24
 PKG_LICENSE:=Teltonika-closed
 TARGET_CFLAGS += "-DCACHE_HASH=\\\"$(PKG_SOURCE_VERSION)\\\""
 PKG_RELEASE:=1
@@ -28,7 +28,7 @@ define Package/lib$(PKG_NAME)
 	CATEGORY:=Libraries
 	TITLE:=Library for Modbus client and its rpcd plug-in
 	DEPENDS:=+libmodbus +libtag +libtlt_termios +libtlt_uci +libuci +libubus +libtlt_smtp \
-			 +libticket_mutex +libatomic +libtlt-logger
+			 +libticket_mutex +libatomic +libtlt-logger +libmnfinfo
 endef
 
 define Package/$(PKG_NAME)/description
@@ -58,8 +58,6 @@ endef
 
 define Package/$(PKG_NAME)/postinst
 	#!/bin/sh
-
-	/etc/init.d/rpcd reload
 
 	[ -e /lib/data_sender/libdata_sender.sh ] || exit 0
 	. /lib/data_sender/libdata_sender.sh
@@ -93,11 +91,6 @@ define Package/$(PKG_NAME)/prerm
 	fi
 
 	exit 0
-endef
-
-define Package/$(PKG_NAME)/postrm
-	#!/bin/sh
-	/etc/init.d/rpcd reload
 endef
 
 $(eval $(call BuildPackage,lib$(PKG_NAME)))

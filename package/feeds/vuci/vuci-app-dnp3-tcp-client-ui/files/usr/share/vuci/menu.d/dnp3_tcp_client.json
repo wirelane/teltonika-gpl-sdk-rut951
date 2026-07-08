@@ -1,0 +1,13 @@
+{
+	"services/dnp3": {
+		"title": "DNP3",
+		"index": 130
+	},
+		"services/dnp3/tcp_client": {
+			"title": "DNP3 TCP Client",
+			"index": 10,
+			"view": "services/DNP3TcpClient",
+			"acls": [ "services/dnp3/tcp_client", "services/dnp3/global" ],
+			"main_page": true
+		}
+}

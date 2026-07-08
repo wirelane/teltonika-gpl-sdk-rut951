@@ -1,0 +1,36 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+idx=0
+todo=""
+
+scan() {
+	local section="$1"
+	local user
+	local n="${section#login}"
+
+	case "$n" in
+		*[!0-9]*|'') ;;
+		*)
+			[ "$n" -gt "$idx" ] && idx="$n"
+			config_get user "$section" username
+			[ -n "$user" ] && return
+		;;
+	esac
+
+	todo="$todo $section"
+}
+
+config_load totp
+config_foreach scan user
+
+for section in $todo; do
+	user=$(uci_get totp "$section" username "$section")
+
+	idx=$((idx + 1))
+	uci_set totp "$section" username "$user"
+	uci_rename totp "$section" "login$idx"
+done
+
+uci_commit totp

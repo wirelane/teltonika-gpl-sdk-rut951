@@ -8,8 +8,8 @@ include $(INCLUDE_DIR)/download.mk
 PKG_NAME:=iec60870_client
 PKG_LICENSE:=Teltonika-closed
 PKG_RELEASE:=1
-
-PKG_SOURCE_VERSION:=7.23
+PKG_VERSION:=2026-06-04
+PKG_SOURCE_VERSION:=7.24
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -50,8 +50,6 @@ endef
 
 define Package/iec60870_client/postinst
 	#!/bin/sh
-	/etc/init.d/rpcd reload
-
 	[ -z "$${IPKG_INSTROOT}" ] || exit 0
 	[ -e /lib/data_sender/libdata_sender.sh ] || exit 0
 
@@ -64,7 +62,6 @@ endef
 
 define Package/iec60870_client/postrm
 	#!/bin/sh
-	/etc/init.d/rpcd reload
 	rm -f /var/run/iec60870_client/iec60870_client.db
 endef
 

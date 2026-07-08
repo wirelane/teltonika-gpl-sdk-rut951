@@ -269,10 +269,20 @@ define Package/snmpd/conffiles
 /etc/config/snmpd
 endef
 
+ifeq ($(CONFIG_PACKAGE_snmpd),m)
+define Package/snmpd/postinst
+	#!/bin/sh
+	[ -z "$${IPKG_INSTROOT}" ] || exit 0
+	config_generate
+	exit 0
+endef
+endif
+
 define Package/snmpd/install
-	$(INSTALL_DIR) $(1)/etc/config $(1)/usr/share/acl.d
+	$(INSTALL_DIR) $(1)/etc/config $(1)/usr/share/acl.d $(1)/lib/config.d
 	$(INSTALL_CONF_USR) ./files/snmpd.conf $(1)/etc/config/snmpd
 	$(INSTALL_DATA) ./files/snmpd.json $(1)/usr/share/acl.d/snmpd.json
+	$(INSTALL_DATA) ./files/config.d/* $(1)/lib/config.d/
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN_USR) ./files/snmpd.init $(1)/etc/init.d/snmpd
 	$(INSTALL_DIR) $(1)/usr/sbin

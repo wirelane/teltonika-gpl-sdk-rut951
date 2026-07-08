@@ -1,0 +1,66 @@
+From: Benas Bagvilas <benas.bagvilas@teltonika.lt>
+Date: Thu Apr 2 10:36:47 2026 +0300
+Subject: net: netfilter: flowtables: trim sk_buff len to one specified in IP header in fast-path
+
+Fixes short packets being dropped on some peer IPSec gateways when using route-based XFRM with
+flowtables. 
+
+Flowtables fast-path does not trim IP frames to match IP total len field, unlike in ip[6]_rcv_core.
+This can cause packets destined for route-based XFRM interfaces to be encapsulated in the ESP payload
+with superfluous padding bytes, separate from ESP protocol-defined padding. While this does not
+necessarily seem to break ESP spec (superfluous padding not counted in ESP's padding length, so
+receiver should know not to expect a specific padding pattern), some IPsec gateways seem to not
+accept it, and drop any encapsulated packets with mismatched IP and frame lengths.
+
+Also noted to cause issues with certain mobile operators.
+
+Fix it by adding analogous trim logic to flowtable ip and ipv6 hooks.
+
+Signed-off-by: Benas Bagvilas <benas.bagvilas@teltonika.lt>
+---
+ net/netfilter/nf_flow_table_ip.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -391,6 +391,7 @@ nf_flow_offload_ip_hook_route(struct nf_
+ 	struct flow_offload_tuple_rhash *tuplehash = &flow->tuplehash[dir];
+ 	unsigned int thoff, mtu;
+ 	struct iphdr *iph;
++	u32 totlen;
+ 
+ 	mtu = flow->tuplehash[dir].tuple.route.mtu + offset;
+ 	if (unlikely(nf_flow_exceeds_mtu(skb, mtu)))
+@@ -415,6 +416,11 @@ nf_flow_offload_ip_hook_route(struct nf_
+ 	thoff -= offset;
+ 
+ 	iph = ip_hdr(skb);
++
++	totlen = ntohs(iph->tot_len) + skb_network_offset(skb);
++	if (pskb_trim_rcsum(skb, totlen))
++		return -1;
++
+ 	nf_flow_nat_ip(flow, skb, thoff, dir, iph);
+ 
+ 	ip_decrease_ttl(iph);
+@@ -768,6 +774,7 @@ nf_flow_offload_ipv6_hook_route(struct n
+ 	struct flow_offload_tuple_rhash *tuplehash = &flow->tuplehash[dir];
+ 	unsigned int thoff, mtu;
+ 	struct ipv6hdr *ip6h;
++	u32 pkt_len;
+ 
+ 	mtu = flow->tuplehash[dir].tuple.route.mtu + offset;
+ 	if (unlikely(nf_flow_exceeds_mtu(skb, mtu)))
+@@ -791,6 +798,12 @@ nf_flow_offload_ipv6_hook_route(struct n
+ 	nf_flow_encap_pop(skb, tuplehash);
+ 
+ 	ip6h = ipv6_hdr(skb);
++
++	pkt_len = ntohs(ip6h->payload_len);
++	if (pkt_len &&
++		pskb_trim_rcsum(skb, pkt_len + sizeof(struct ipv6hdr) + skb_network_offset(skb)))
++		return -1;
++
+ 	nf_flow_nat_ipv6(flow, skb, dir, ip6h);
+ 
+ 	ip6h->hop_limit--;

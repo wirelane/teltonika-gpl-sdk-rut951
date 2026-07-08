@@ -10,8 +10,6 @@
       "api": [
         "/recipients/email_users/*"
       ]
-    },
-	"source": ["/recipients/email_users/*"],
-	"exception": ["/recipients/email_users/config/*"]
+    }
   }
 }

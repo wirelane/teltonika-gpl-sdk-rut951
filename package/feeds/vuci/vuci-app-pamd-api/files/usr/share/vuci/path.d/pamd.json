@@ -1,0 +1,1 @@
+[{"endpoint":"/access_control/pam/{service_group}/{?sid}","lua_service":"system/access_control_pam","backup_order":260}]

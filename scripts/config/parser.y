@@ -60,6 +60,7 @@ struct menu *current_menu, *current_entry;
 %token T_ENDIF
 %token T_ENDMENU
 %token T_HELP
+%token T_VISIBLE_IN_FEATURE_LIST
 %token T_DETAIL
 %token T_TOOLTIP
 %token T_HEX
@@ -179,6 +180,7 @@ config_option_list:
 	| config_option_list help
 	| config_option_list detail
 	| config_option_list tooltip
+	| config_option_list visible_in_feature_list
 ;
 
 config_option: type prompt_stmt_opt T_EOL
@@ -276,6 +278,7 @@ choice_option_list:
 	| choice_option_list help
 	| choice_option_list detail
 	| choice_option_list tooltip
+	| choice_option_list visible_in_feature_list
 ;
 
 choice_option: T_PROMPT T_WORD_QUOTE if_expr T_EOL
@@ -464,6 +467,17 @@ tooltip: tooltip_start T_HELPTEXT
 {
 	printd(DEBUG_PARSE, "%s:%d:tooltip(%s)\n", zconf_curname(), zconf_lineno(), $2);
 };
+
+visible_in_feature_list:
+    T_VISIBLE_IN_FEATURE_LIST T_EOL
+    {
+        printd(DEBUG_PARSE, "%s:%d:visible_in_feature_list\n",
+               zconf_curname(), zconf_lineno());
+
+        if (current_entry && current_entry->sym)
+            current_entry->sym->flags |= SYMBOL_VISIBLE_IN_FEATURE_LIST;
+    }
+;
 
 /* depends option */
 

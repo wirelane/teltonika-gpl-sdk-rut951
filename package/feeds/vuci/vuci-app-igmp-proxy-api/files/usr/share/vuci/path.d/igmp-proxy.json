@@ -1,0 +1,1 @@
+[{"endpoint":"/igmp_proxy/routes/{service_group}/{?sid}","lua_service":"services/igmp_routes","backup_order":126},{"endpoint":"/igmp_proxy/global","lua_service":"services/igmp_proxy","backup_order":127}]

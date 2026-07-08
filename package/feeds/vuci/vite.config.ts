@@ -15,8 +15,11 @@ export default defineConfig(configEnv =>
 
       const env = loadEnv(mode, process.cwd(), '')
 
-      const plugins = env?.VUCI_PLUGINS?.split(' ')
-      const coreApps = env?.VUCI_APPS?.split(' ')
+      const pluginsVar = env?.VUCI_PLUGINS?.trim()
+      const plugins = pluginsVar?.length > 0 ? pluginsVar?.split(' ') : []
+
+      const coreAppsVar = env?.VUCI_APPS?.trim()
+      const coreApps = coreAppsVar?.length > 0 ? coreAppsVar?.split(' ') : []
 
       const proxy: Record<string, ProxyOptions> = {
         '^/(api|cgi-bin|views|i18n)': {
@@ -47,33 +50,38 @@ export default defineConfig(configEnv =>
         plugins: [
           vuci({
             minify: command === 'build',
-            ...(mode === 'development' || env.IS_PREVIEW === 'true'
+            ...(coreApps.length === 0 && plugins.length === 0
               ? {
-                  target: env.TARGET_DEVICE as DeviceApp
-                }
+                target: env.TARGET_DEVICE as DeviceApp
+              }
               : { coreApps, plugins })
           }),
           compression({ include: new RegExp('\\.(' + productionGzipExtensions.join('|') + ')$') }),
           sentryConfig.enabled &&
-            sentryVitePlugin({
-              ...sentryConfig,
-              telemetry: false,
-              release: {
-                name: sentryConfig.releaseName
-              },
-              errorHandler: error => {
-                console.error(error)
-                try {
-                  const fd = fs.openSync('/tmp/sentry_upload_error.txt', 'w')
-                  fs.writeSync(fd, error.stack || error.message)
-                  fs.closeSync(fd)
-                } catch (err) {
-                  console.error(err)
-                }
+          sentryVitePlugin({
+            ...sentryConfig,
+            telemetry: false,
+            release: {
+              name: sentryConfig.releaseName
+            },
+            errorHandler: error => {
+              console.error(error)
+              try {
+                const fd = fs.openSync('/tmp/sentry_upload_error.txt', 'w')
+                fs.writeSync(fd, error.stack || error.message)
+                fs.closeSync(fd)
+              } catch (err) {
+                console.error(err)
               }
-            })
+            }
+          })
         ],
-        server: { proxy },
+        server: {
+          proxy,
+          watch: {
+            ignored: mode === 'test' ? undefined : ['**/tests/**/*', '**/__tests__/**/*']
+          }
+        },
         preview: { proxy }
       }
     })(configEnv)

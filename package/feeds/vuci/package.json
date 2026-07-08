@@ -19,7 +19,7 @@
     "cy:run:dev": "cypress run --browser chrome --env ENV=development",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "coverage": "vitest run --coverage",
+    "coverage": "vitest run --coverage --testTimeout=10000",
     "lint": "eslint --cache --config ./.eslintrc.cjs --ignore-path .gitignore --ext .js,.vue,.ts vuci-ui-core/src applications",
     "lint:fix": "npm run lint -- --fix",
     "docs:gen": "tsx ./docs/scripts/autogen.ts",
