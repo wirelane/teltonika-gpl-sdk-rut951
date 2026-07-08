@@ -1,1 +1,1 @@
-[{"endpoint":"/relayd/{service_group}/{?sid}","lua_service":"network/relayd","backup_order":73}]
+[{"endpoint":"/relayd/{service_group}/{?sid}","lua_service":"network/relayd","backup_order":72}]

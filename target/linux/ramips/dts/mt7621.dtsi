@@ -10,8 +10,6 @@
 #define BLOCK_10PIN "2"
 #define BLOCK_16PIN "3"
 #define BLOCK_M12_4 "4"
-#define BLOCK_2PIN "5"
-#define BLOCK_6PIN "7"
 
 / {
 	#address-cells = <1>;
@@ -394,28 +392,6 @@
 
 			status = "disabled";
 		};
-
-		pcm: pcm@2000 {
-			compatible = "mediatek,mt7621-pcm";
-			reg = <0x2000 0x800>;
-
-			clocks = <&sysc MT7621_CLK_I2S>;
-
-			resets = <&sysc MT7621_RST_I2S>;
-			reset-names = "pcm";
-
-			interrupt-parent = <&gic>;
-			interrupts = <GIC_SHARED 10 IRQ_TYPE_LEVEL_HIGH>;
-
-			txdma-req = <6>;
-			rxdma-req = <5>;
-
-			dmas = <&gdma 4>,
-				<&gdma 6>;
-			dma-names = "tx", "rx";
-
-			status = "disabled";
-		};
 	};
 
 	pinctrl: pinctrl {
@@ -505,13 +481,6 @@
 			sdhci {
 				groups = "sdhci";
 				function = "sdhci";
-			};
-		};
-
-		pcm_pins: pcm {
-			pcm {
-				groups = "uart2";
-				function = "pcm";
 			};
 		};
 	};

@@ -1,9 +1,4 @@
 {
-  "asterisk": {
-    "base_dep": "asterisk-app-disa asterisk-app-originate asterisk-app-playtones asterisk-app-record asterisk-bridge-simple asterisk-chan-quectel asterisk-codec-alaw asterisk-config asterisk-format-pcm asterisk-format-wav asterisk-func-devstate asterisk-func-jitterbuffer asterisk-pbx-spool asterisk-pjsip asterisk-res-clioriginate asterisk-res-pjproject asterisk-res-rtp-asterisk asterisk-res-sorcery asterisk-res-srtp libedit libxml2 jansson4 libpj libpjlib-util libpjmedia libpjnath libpjsip libpjsip-simple libpjsip-ua libpjsua libpjsua2 libsrtp2",
-    "kmod_dep": "kmod-asterisk-snd-split libstdcpp6",
-    "name": "asterisk"
-  },
   "jamvm": {
     "base_dep": "classpath libbz2-1.0 libgmp10",
     "packages_dep": "liblzma libmagic",
@@ -305,13 +300,6 @@
     "vuci_dep": "vuci-app-dynamic-routes-ospf-api vuci-app-dynamic-routes-ospf-ui",
     "name": "ospf_daemon"
   },
-  "frr-ospf6d-meta": {
-    "base_dep": "frr frr-zebra frr-libfrr frr-ospf6d libcap libjson-c5 libyang libpcre2 libprotobuf-c ospf6d-frr",
-    "kmod_dep": "libc libatomic1 libpthread",
-    "packages_dep": "librt",
-    "vuci_dep": "vuci-app-dynamic-routes-ospfv3-api vuci-app-dynamic-routes-ospfv3-ui",
-    "name": "ospf6_daemon"
-  },
   "frr-ripd-meta": {
     "base_dep": "frr frr-zebra frr-libfrr frr-vtysh frr-mgmtd frr-ripd libcap libjson-c5 libyang libpcre2 libprotobuf-c libreadline8 libncurses6 terminfo more",
     "kmod_dep": "libc libatomic1 libpthread",
@@ -395,12 +383,6 @@
     "base_dep": "qos-scripts tc-tiny tc-mod-iptables",
     "kmod_dep": "kmod-ifb kmod-sched-cake iptables kmod-sched-core kmod-sched-connmark iptables-mod-ipopt iptables-mod-conntrack-extra kmod-ipt-conntrack-extra kmod-ipt-ipopt",
     "name": "qos"
-  },
-  "vuci-app-wfq-ui": {
-    "vuci_dep": "vuci-app-wfq-api",
-    "base_dep": "qos-wfq tc-tiny tc-mod-iptables",
-    "kmod_dep": "kmod-ifb kmod-sched-cake iptables kmod-sched-core kmod-sched-connmark iptables-mod-ipopt iptables-mod-conntrack-extra kmod-ipt-conntrack-extra kmod-ipt-ipopt",
-    "name": "wfq"
   },
   "iptables-mod-filter": {
     "kmod_dep": "kmod-ipt-filter",
@@ -574,7 +556,7 @@
     "name": "igmp_proxy"
   },
   "vuci-app-pamd-ui": {
-    "base_dep": "libpam libpam-mod-deny libpam-mod-permit libpam-mod-umask libpam-mod-unix libpam-mod-faillock pam-radius pam-tacacs libtacacs pam",
+    "base_dep": "libpam libpam-mod-deny libpam-mod-permit libpam-mod-umask libpam-mod-unix pam-radius pam-tacacs libtacacs pam",
     "vuci_dep": "vuci-app-pamd-api",
     "name": "pam"
   },
@@ -650,10 +632,6 @@
   },
   "scep": {
     "base_dep": "strongswan strongswan-libtls strongswan-mod-pkcs7 strongswan-mod-curl strongswan-pki strongswan-mod-kdf",
-    "name": "scep"
-  },
-  "scep5": {
-    "base_dep": "strongswan5 strongswan5-libtls strongswan5-mod-pkcs7 strongswan5-mod-curl strongswan5-pki strongswan5-mod-kdf",
     "name": "scep"
   },
   "bfdd-frr-meta": {

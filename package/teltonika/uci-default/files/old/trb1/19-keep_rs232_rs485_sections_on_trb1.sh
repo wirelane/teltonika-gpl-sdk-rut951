@@ -16,8 +16,7 @@ case "$(mnf_info --name)" in
 	TRB145*)
 		uci_remove "rs" "rs232"
 	;;
-	TRB14* |\
-	EBG14*)
+	TRB14*)
 		rm /etc/hotplug.d/tty/01-serial-symlink.sh
 		uci_remove "rs" "rs232"
 		uci_remove "rs" "rs485"

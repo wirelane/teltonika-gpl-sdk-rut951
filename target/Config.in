@@ -358,8 +358,3 @@ config RESET_BUTTON_SUPPORT
 config NETWORKS_EXTERNAL
 	bool
 
-config HAS_ASTERISK
-	bool
-
-config SIP_GATEWAY
-	bool

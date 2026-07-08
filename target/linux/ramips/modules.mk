@@ -57,7 +57,7 @@ $(eval $(call KernelPackage,i2c-mt7628))
 define KernelPackage/dma-ralink
   SUBMENU:=Other modules
   TITLE:=Ralink GDMA Engine
-  DEPENDS:=@!TARGET_ramips_rt288x
+  DEPENDS:=@TARGET_ramips @!TARGET_ramips_rt288x
   KCONFIG:= \
 	CONFIG_DMADEVICES=y \
 	CONFIG_RALINK_GDMA
@@ -72,27 +72,3 @@ define KernelPackage/dma-ralink/description
 endef
 
 $(eval $(call KernelPackage,dma-ralink))
-
-define KernelPackage/sound-mt7620
-  TITLE:=MT7620 PCM/I2S Alsa Driver
-  DEPENDS:=@!TARGET_ramips_rt288x +kmod-dma-ralink +kmod-sound-soc-core
-  KCONFIG:= \
-    CONFIG_SOUND=y \
-    CONFIG_SND \
-    CONFIG_SND_SOC \
-    CONFIG_SND_RALINK_SOC_PCM \
-    CONFIG_SND_SIMPLE_CARD \
-    CONFIG_SND_SIMPLE_CARD_UTILS
-  FILES:= \
-    $(LINUX_DIR)/sound/soc/ralink/snd-soc-ralink-pcm.ko \
-    $(LINUX_DIR)/sound/soc/generic/snd-soc-simple-card.ko \
-    $(LINUX_DIR)/sound/soc/generic/snd-soc-simple-card-utils.ko
-  AUTOLOAD:=$(call AutoLoad,90,snd-soc-ralink-pcm snd-soc-simple-card)
-  $(call AddDepends/sound)
-endef
-
-define KernelPackage/sound-mt7620/description
- Alsa modules for ralink i2s/pcm controller.
-endef
-
-$(eval $(call KernelPackage,sound-mt7620))

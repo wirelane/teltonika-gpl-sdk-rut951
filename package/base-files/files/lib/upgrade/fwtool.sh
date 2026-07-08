@@ -20,7 +20,6 @@
 # 16 - Downgrade is not allowed
 # 17 - Only authorized firmware is allowed
 # 18 - Upgrade terminated due to low battery level
-# 19 - Verified Boot firmware mismatch
 
 fwtool_msg() {
 	local file="/tmp/fwtool_last_error"
@@ -211,17 +210,6 @@ fwtool_check_image() {
 	json_get_var imagecompat compat_version
 	json_get_var compatmessage compat_message
 	[ -n "$imagecompat" ] || imagecompat="1.0"
-
-	local verif=$(mnf_info --secure)
-	[ -z "$verif" ] || [ "$verif" = "N/A" ] && verif=0
-
-	[ $verif -gt 0 ] && {
-		json_get_var verifiedboot verified_boot
-		[ -z "$verifiedboot" ] || [ $verifiedboot -eq 0 ] && {
-			fwtool_msg "Firmware incompatible with Verified Boot enabled device." "19"
-			return 1
-		}
-	}
 
 	# select correct supported list based on compat_version
 	# (using this ensures that compatibility check works for devices

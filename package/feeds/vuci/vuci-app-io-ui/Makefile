@@ -14,7 +14,7 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(call Package/$(PKG_NAME)/install/Default,$(1))
-	if [ -z "$(TLT_PLATFORM_TSW2)" ] && [ -z "$(TLT_PLATFORM_TEG100)" ]; then \
+	if [ -z "$(TLT_PLATFORM_TSW2)" ]; then \
 		$(call SelectPinoutIcon,$(1),power_4pin.svg) \
 	fi; \
 	if [ $(TLT_PLATFORM_TRB1) ]; then \
@@ -28,9 +28,6 @@ define Package/$(PKG_NAME)/install
 	elif [ $(TLT_PLATFORM_TSW2) ]; then \
 		$(call SelectPinoutIcon,$(1),relay_2pin.svg) \
 		$(call SelectPinoutIcon,$(1),power_5pin.svg) \
-	elif [ $(TLT_PLATFORM_TEG100) ]; then \
-		$(call SelectPinoutIcon,$(1),battery_2pin.svg) \
-		$(call SelectPinoutIcon,$(1),io_6pin.svg) \
 	fi;
 endef
 

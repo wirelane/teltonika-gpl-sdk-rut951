@@ -8,16 +8,8 @@
     "devices": ["DAP140", "DAP142", "DAP145"]
   },
   {
-    "name": "AFRC",
-    "devices": ["AFRC50"]
-  },
-  {
     "name": "ATRM",
     "devices": ["ATRM50"]
-  },
-  {
-    "name": "TEG",
-    "devices": ["TEG100"]
   },
   {
     "name": "RUTX",
@@ -61,7 +53,7 @@
   },
   {
     "name": "RUTC",
-    "devices": ["RUTC16", "RUTC40", "RUTC41", "RUTC42", "RUTC50", "RUTC51", "RUTC54", "RUTC70", "RUTC72"]
+    "devices": ["RUTC16", "RUTC40", "RUTC41", "RUTC42", "RUTC50", "RUTC51", "RUTC54"]
   },
   {
     "name": "RUT14X",
@@ -82,10 +74,6 @@
   {
     "name": "RUTP",
     "devices": ["RUTP50", "RUTP52", "RUTP54"]
-  },
-  {
-    "name": "EBG1",
-    "devices": ["EBG140"]
   },
   {
     "name": "TRB1",
