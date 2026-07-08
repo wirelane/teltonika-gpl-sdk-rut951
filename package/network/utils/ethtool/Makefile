@@ -67,8 +67,7 @@ define Package/ethtool/config
 	config ETHTOOL_PRETTY_DUMP
 		depends on PACKAGE_ethtool
 		bool "Enable pretty printing"
-		default n if SMALL_FLASH
-		default y
+		default n
 endef
 
 define Package/ethtool-tiny/config

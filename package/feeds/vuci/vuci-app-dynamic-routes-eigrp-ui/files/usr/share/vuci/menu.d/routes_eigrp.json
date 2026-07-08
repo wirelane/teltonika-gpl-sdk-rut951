@@ -9,7 +9,7 @@
   },
   "network/routes/dynamic_routes/proto_eigrp": {
     "title": "EIGRP",
-    "index": 50,
+    "index": 40,
     "view": "network/ProtoEigrp",
     "acls": ["network/routes/dynamic_routes/proto_eigrp"],
     "depends": {

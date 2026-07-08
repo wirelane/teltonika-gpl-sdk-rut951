@@ -4,8 +4,8 @@ define Device/tlt-mt7621-hw-common
 	HARDWARE/System_Characteristics/CPU := MediaTek, Dual-Core, 880 MHz, MIPS1004Kc
 	HARDWARE/System_Characteristics/RAM := $(HW_RAM_SIZE_256M), $(HW_RAM_TYPE_DDR3)
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M) $(HW_FLASH_TYPE_NOR_SERIAL), $(HW_FLASH_SIZE_256M) $(HW_FLASH_TYPE_NAND_SERIAL)
-	HARDWARE/WiFi/Wireless_Mode := 802.11b/g/n/ac Wave 2 (Wi-Fi 5)
-	HARDWARE/WiFi/Wi\-Fi_Users := $(HW_WIFI_150_USERS)
+	HARDWARE/Wireless/Wireless_Mode := 802.11b/g/n/ac Wave 2 (Wi-Fi 5)
+	HARDWARE/Wireless/Wi\-Fi_Users := $(HW_WIFI_150_USERS)
 	TECHNICAL/Power/Connector := $(HW_POWER_CONNECTOR_4PIN)
 	TECHNICAL/Power/Input_Voltage_Range := $(HW_POWER_VOLTAGE_4PIN_50V)
 	TECHNICAL/Power/PoE_Standards  := $(HW_POWER_POE_PASSIVE_50V)

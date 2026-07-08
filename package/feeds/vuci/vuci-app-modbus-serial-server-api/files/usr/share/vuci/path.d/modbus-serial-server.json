@@ -1,1 +1,1 @@
-[{"endpoint":"/modbus/server/serial/{service_group}/{?sid}","lua_service":"services/modbus_serial_server","backup_order":239},{"endpoint":"/modbus/server/serial/registers/{service_group}/{?sid}","lua_service":"services/modbus_serial_server_tag","backup_order":240}]
+[{"endpoint":"/modbus/server/serial/{service_group}/{?sid}","lua_service":"services/modbus_serial_server","backup_order":236},{"endpoint":"/modbus/server/serial/registers/{service_group}/{?sid}","lua_service":"services/modbus_serial_server_tag","backup_order":237}]

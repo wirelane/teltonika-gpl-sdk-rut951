@@ -9,9 +9,6 @@ while [[ $# -gt 0 ]]; do
 	case $1 in
 	-c | --cache-dir) CACHE_DIR=${2%%/} && shift ;;
 	-d | --docs-dir) DOCS_DIR=$2 && shift ;;
-	-p | --public-docs-dir) PUBLIC_DOCS_DIR=$2 && shift ;;
-	--descriptions-dir) DESC_DOCS_DIR=$2 && shift ;;
-	--descriptions-public-dir) DESC_PUBLIC_DOCS_DIR=$2 && shift ;;
 	-D | --diff-dir) DIFF_DIR=$2 && shift ;;
 	-r | --ref) REF=$2 && shift ;;
 	-f | --family) type_arg=family ;;
@@ -21,9 +18,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -z $DOCS_DIR || -z $TARGET_LIST ]] && {
-	echo "Usage: $0 -c <cache-dir> -d <docs-dir> [-p <public-docs-dir>]" \
-		"[--descriptions-dir <dir>] [--descriptions-public-dir <dir>]" \
-		"[-D <diff-dir>] [-r <ref>] [--family] <target> [<target>...]" >&2
+	echo "Usage: $0 -c <cache-dir> -d <docs-dir> [-D <diff-dir>] [-r <ref>] [--family] <target> [<target>...]" >&2
 	exit 1
 }
 
@@ -55,30 +50,6 @@ echo "Using cache subdir: $CACHE_SUBDIR"
 $VERSION_SCRIPT >/dev/null # dummy run to avoid version weirdness
 VERSION_CURRENT=$($VERSION_SCRIPT | cut -d'_' -f2-)
 VERSION_PREVIOUS_RELEASE=$($VERSION_SCRIPT --previous | cut -d'_' -f2-)
-
-build_and_copy_variant() {
-	local out_dir=$1 suffix=$2
-	shift 2
-	[[ -z $out_dir ]] && return 0
-	mkdir -p "$out_dir"
-
-	local to_build=() t
-	for t in $TARGET_LIST; do
-		[[ -f ${CACHE_SUBDIR}/${t}${suffix}.json ]] || to_build+=( "$t" )
-	done
-
-	if [[ ${#to_build[@]} -gt 0 ]]; then
-		#shellcheck disable=SC2086 # intended splitting of gen-desc flags
-		$DOCS_SCRIPT "$@" --$type_arg "${to_build[@]}"
-		for t in "${to_build[@]}"; do
-			mv "out/${t}.json" "${CACHE_SUBDIR}/${t}${suffix}.json"
-		done
-	fi
-
-	for t in $TARGET_LIST; do
-		cp "${CACHE_SUBDIR}/${t}${suffix}.json" "${out_dir}/${t^^}_${VERSION_CURRENT}.json"
-	done
-}
 
 TARGET_LIST_TO_BUILD=()
 for TARGET in $TARGET_LIST; do
@@ -115,10 +86,6 @@ for TARGET in $TARGET_LIST; do
 	json-diff --sort "${CACHE_DIR}/${PREVIOUS_F}" "${DOCS_DIR}/${FILE_LINK}" >"$DIFF_FILE" || true
 	sed -i -E -e '/^\s+\.\.\.$/d' "$DIFF_FILE"
 done
-
-build_and_copy_variant "$PUBLIC_DOCS_DIR" ".public" --public
-build_and_copy_variant "$DESC_DOCS_DIR" ".desc" --descriptions-only
-build_and_copy_variant "$DESC_PUBLIC_DOCS_DIR" ".desc.public" --descriptions-only --public
 
 [[ -z $REF ]] || {
 	git checkout -

@@ -13,12 +13,6 @@ ucidef_target_defaults() {
 		ucidef_set_interface_default_macaddr "lan" "$(mtd_get_mac_binary config 0x0)"
 		ucidef_set_interface_default_macaddr "wan" "$(macaddr_add "$(mtd_get_mac_binary config 0x0)" 1)"
 
-		# check if telit branch and apply protection
-		[ "${model:4:2}" = "76" ] && [ "$branch" = "T" ] && ucidef_set_release_version "7.24.2"
-
-		# protection for LE910C4-NFXD modem
-		[ "${model::6}" = "RUT986" ] && [ "${model:6:1}" = "A" ] && ucidef_set_release_version "7.24.2"
-
 		# set up io
 		[ "${model:7:1}" = "6" ] || [ "$branch" = "A" ] && ucidef_unset_hwinfo ios
 
@@ -52,14 +46,6 @@ ucidef_target_defaults() {
 		ucidef_set_interface_default_macaddr "wan" "$(macaddr_add "$(mtd_get_mac_binary config 0x0)" 1)"
 		;;
 	RUT2*)
-		# set fibocom modem downgrade protection
-		[ "${model:4:2}" = "41" ] && [ "${model:7:1}" = "A" ] && ucidef_set_release_version "7.24.2"
-		# check if telit branch and apply protection
-		[ "${model:4:2}" = "71" ] && [ "$branch" = "T" ] && ucidef_set_release_version "7.24.2"
-
-		# protection for LE910C4-NFXD modem
-		[ "${model::6}" = "RUT281" ] && [ "${model:7:1}" = "A" ] && ucidef_set_release_version "7.24.2"
-
 		# set up MAC addresses
 		ucidef_set_interface_default_macaddr "lan" "$(mtd_get_mac_binary config 0x0)"
 		ucidef_set_interface_default_macaddr "wan" "$(macaddr_add "$(mtd_get_mac_binary config 0x0)" 1)"

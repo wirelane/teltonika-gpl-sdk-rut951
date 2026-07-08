@@ -1,1 +1,0 @@
-[{"endpoint":"/wfq/interfaces/{service_group}/{?sid}","lua_service":"services/wfq_interfaces","backup_order":149},{"endpoint":"/wfq/rules/{service_group}/{?sid}","lua_service":"services/wfq_classification","backup_order":150}]
