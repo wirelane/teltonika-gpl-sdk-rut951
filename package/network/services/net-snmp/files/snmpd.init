@@ -30,33 +30,13 @@ boot() {
 
 service_triggers()
 {
-	procd_add_reload_trigger "snmpd"
-}
-
-snmpd_mod_hwinfo_keys() {
-	strings "$1" 2>/dev/null | sed -n 's/^SNMP_HWINFO=//p' | head -n1
-}
-
-snmpd_mod_support() {
-	[ "$(jsonfilter -i /etc/board.json -e "@.hwinfo.$1" 2>/dev/null)" = "true" ]
+        procd_add_reload_trigger "snmpd"
 }
 
 snmpd_load_modules() {
-	local module name keys key load
-	for module in $(ls "$MODULESPATH" 2>/dev/null); do
-		name="${module%.*}"
-		keys="$(snmpd_mod_hwinfo_keys "$MODULESPATH/$module")"
-
-		if [ -n "$keys" ]; then
-			load=0
-			for key in $keys; do
-				snmpd_mod_support "$key" && { load=1; break; }
-			done
-			[ "$load" -eq 1 ] || continue
-		fi
-
-		_config_write "dlmod $name $MODULESPATH/$module"
-	done
+    for module in $(ls $MODULESPATH 2>/dev/null); do
+        _config_write "dlmod ${module%.*} $MODULESPATH/$module"
+    done
 }
 
 snmpd_agentaddress_add() {
@@ -82,14 +62,14 @@ snmpd_agent_add() {
 
     config_get ENABLED "$cfg" enabled 0
     [ $ENABLED -ne 1 ] && return 0
-
+    
 	config_get proto "$cfg" proto "UDP"
 	config_get ipfamily "$cfg" ipfamily "ipv4"
 	config_get port "$cfg" port "161"
 	config_get V1 "$cfg" v1mode 0
 	config_get V2C "$cfg" v2cmode 0
 	config_get V3 "$cfg" v3mode 0
-
+	
 	snmpd_agentaddress_add "$ipfamily" "$proto" "$port"
 }
 
@@ -331,7 +311,7 @@ start_service() {
 	[ -f "$CONFIGFILE" ] && rm -f "$CONFIGFILE"
 	[ -f "$OUTCONFIG" ] && rm -f "$OUTCONFIG"
     config_load snmpd
-
+    
     config_foreach snmpd_agent_add agent
 
     [ "$ENABLED" -ne "1" ] && return 0

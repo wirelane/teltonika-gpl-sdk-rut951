@@ -9,7 +9,7 @@
   },
   "network/routes/dynamic_routes/proto_nhrp": {
     "title": "NHRP",
-    "index": 60,
+    "index": 50,
     "view": "network/ProtoNhrp",
     "acls": ["network/routes/dynamic_routes/proto_nhrp"],
     "main_page": true,

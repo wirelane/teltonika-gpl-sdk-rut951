@@ -267,14 +267,14 @@ static int set_line_name(struct gpio_chip *gc, int gpio_offset, const char *devi
 	char active_low = 0;
 	char ret	= 0;
 	int i		= 0;
+	enum gpiod_flags dflags;
 	const char **names;
 
 	names = kcalloc(gc->ngpio, sizeof(char*), GFP_KERNEL);
 
 	for (i = gpio_offset; i < (gc->ngpio + gpio_offset); i++) {
-		const char *str		= NULL;
-		char *token		= NULL;
-		enum gpiod_flags dflags = GPIOD_ASIS;
+		const char *str = NULL;
+		char *token	= NULL;
 
 		token = kmalloc(TOKEN_STR_SIZE, GFP_KERNEL);
 		snprintf(token, TOKEN_STR_SIZE, "GPIO_%d", i);

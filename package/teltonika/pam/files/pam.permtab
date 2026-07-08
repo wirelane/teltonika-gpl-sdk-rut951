@@ -1,3 +1,2 @@
 /etc/config/pam             pamd:pamd       660       -
 /var/run/pamd/raddb         pamd:pamd       -         cd
-/var/run/pamd/faillock      pamd:pamd       -         cd

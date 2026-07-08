@@ -102,7 +102,6 @@ typedef enum {
 	CUSD_RESP_VALUE,
 	CUSD_STATE_VALUE,
 	CUSD_SCHEME_VALUE,
-	CUSD_TEXT_VALUE,
 	CUSD_T_MAX,
 } urc_cusd_t;
 
@@ -190,7 +189,6 @@ struct cusd_t {
 	const char *response;
 	uint32_t state;
 	uint32_t coding_scheme;
-	const char *text; /* response decoded to UTF-8 by gsmd (DCS applied) */
 };
 
 struct snd_sms_t {
