@@ -148,6 +148,11 @@ boardjson:x:642:
 tltserial:x:643:
 socat:x:644:uci
 itxpt:x:645:uci,uhttpd
+led:x:900:admin,ledman,mobutils
+gpio:x:901:admin,bac_router,dlms_client,dnp3_outstation,gps,icounter,ioman,mctl,mobutils,modbus_client,modbus_server,modbusgwd,modem_control,mqtt_modbus_gateway,ntrip,poeman,sodog,dnp3_client,can_gw,iec60870_server,iec60870_client,avl
+mnf_sec:x:902:admin,gsm,iot,network,rpcd
+i2c:x:903:admin,ioman,mobutils,poeman
+serial:x:904:dnp3_client,dnp3_outstation,mbus_client,mobutils
 wireguard:x:646:
 rclocal:x:647:uhttpd
 can_gw:x:648:mobutils,uci,uhttpd
@@ -161,13 +166,4 @@ smcroute:x:656:uci,uhttpd
 totp:x:657:uci,uhttpd
 power_manager:x:658:uci,rpcd,uhttpd
 canopen_client:x:659:uci,uhttpd
-asterisk:x:660:uci,uhttpd
-wfq:x:661:uci,uhttpd
-conn_limits:x:662:uci,uhttpd
-led:x:900:admin,ledman,mobutils
-gpio:x:901:admin,bac_router,dlms_client,dnp3_outstation,gps,icounter,ioman,mctl,mobutils,modbus_client,modbus_server,modbusgwd,modem_control,mqtt_modbus_gateway,ntrip,poeman,rpcd,sodog,dnp3_client,can_gw,iec60870_server,iec60870_client,avl
-mnf_sec:x:902:admin,gsm,iot,network,rpcd
-i2c:x:903:admin,ioman,mobutils,poeman
-serial:x:904:dnp3_client,dnp3_outstation,mbus_client,mobutils
-usb_port:x:905:rpcd
 nogroup:x:65534:

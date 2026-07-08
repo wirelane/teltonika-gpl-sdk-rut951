@@ -93,8 +93,8 @@ define Device/TEMPLATE_teltonika_rut200
 	DEVICE_FEATURES += ios small_flash esim-p
 	DEVICE_INITIAL_FIRMWARE_SUPPORT :=
 
-	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps || 4G LTE Cat 4 up to 75 DL/50 UL Mbps; 3G up to 42 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
-	HARDWARE/Mobile/Modem := Quectel EC200-EU, Quectel EC200-AU, Quectel EC200A-CN || Teltonika ALA440
+	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/Modem := Quectel EC200-EU, Quectel EC200-AU, Quectel EC200A-CN, Teltonika ALA440
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, RCM, EAC, Anatel, ANRT, Kenya, ICASA, NCC, \
 	ETA-WPC, SIRIM, IMDA, NTC, NBTC, MTC NOM, E-mark, CB, RoHS, REACH, R118
@@ -120,12 +120,9 @@ define Device/TEMPLATE_teltonika_rut202
 	DEVICE_FEATURES += ios esim-p tpm modbus
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.19
 
-	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 75 DL/50 UL Mbps; 3G up to 42 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
+	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
 	HARDWARE/Mobile/Modem := Teltonika ALA440
 	HARDWARE/Mobile/3GPP_Release := Release 9
-	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
-	TECHNICAL/Physical_Specification/Casing_Material := $(HW_PHYSICAL_HOUSING_AND_PANELS_AL)
-	TECHNICAL/Physical_Specification/Weight := 130 g
 	TECHNICAL/Physical_Interfaces/SIM := 2 $(HW_INTERFACE_SIM_HOLDERS)
 	TECHNICAL/Physical_Interfaces/Status_Leds := 3 x Connection type status LEDs, 3 x Connection strength LEDs, 2 x LAN status LEDs, 1 x Power LED
 endef
@@ -137,8 +134,8 @@ define Device/TEMPLATE_teltonika_rut204
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.19
 	DEVICE_FEATURES += esim-p sd_card modbus stm_can
 
-	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps || 4G LTE up to 150 DL/50 UL Mbps; 3G up to 42 DL/5.76 UL Mbps; 2G up to 296 DL/236.8 UL Kbps
-	HARDWARE/Mobile/Modem := Quectel EC200A-EU, Meiglink SLM770A-CE || Quectel EC25-AUX
+	HARDWARE/Mobile/Module := 4G LTE up to 150 DL/50 UL Mbps; 3G up to 21 DL/ 5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
+	HARDWARE/Mobile/Modem := Quectel EC200A-EU, Meiglink SLM770A-CE
 	HARDWARE/Mobile/3GPP_Release := Release 10/11
 	HARDWARE/Mobile/3GPP_Release/Tooltip := $(HW_MOBILE_3GPP_TOOLTIP)
 	TECHNICAL/Input_Output/Input :=
@@ -167,7 +164,7 @@ define Device/TEMPLATE_teltonika_rut241
 	DEVICE_FEATURES += esim-p ios small_flash
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL Kbps
-	HARDWARE/Mobile/Modem := Quectel EC25-EC, Quectel EC25-E, Quectel EC25-EC, Quectel EC25-G, Quectel EC25-J, Quectel EC25-AF, Quectel EC25-AUX, Meiglink SLM750, Fibocom NL668-AM
+	HARDWARE/Mobile/Modem := Quectel EC25-EC, Quectel EC25-E, Quectel EC25-EC, Quectel EC25-G, Quectel EC25-J, Quectel EC25-AF, Quectel EC25-AUX, Meiglink SLM750
 	HARDWARE/Mobile/3GPP_Release := Release 10/11
 	HARDWARE/Mobile/3GPP_Release/Tooltip := $(HW_MOBILE_3GPP_TOOLTIP)
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, ANRT, Kenya, ICASA, FCC, IC, PTCRB, NOM, RCM, KC, Giteki, \
@@ -217,13 +214,11 @@ define Device/TEMPLATE_teltonika_rut261
 
 	HARDWARE/Mobile/Module := 4G LTE Cat 6 up to 300 DL/ 50 UL Mbps; 3G up to 42 DL/ 5.76 UL Mbps
 	HARDWARE/Mobile/Modem := Quectel EG060W-EA
-	HARDWARE/Mobile/3GPP_Release := Release 12
+	HARDWARE/Mobile/3GPP_Release := Release 10
 	HARDWARE/LAN/Standard := $(HW_ETH_LAN_2_STANDARD)
-	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
-	TECHNICAL/Power/Power_Consumption := Idle: < 2 W, Max: < 3.5 W
+	TECHNICAL/Power/Power_Consumption := Idle:< 2 W, Max:< 6.5 W
 	TECHNICAL/Physical_Interfaces/Status_Leds := 2 x Connection type status, 5 x Mobile connection strength, 1 x LAN status, 1 x WAN status, 1 x Power
-	TECHNICAL/Physical_Specification/Mounting_Options:= $(HW_PHYSICAL_MOUNTING_KIT)
-	TECHNICAL/Physical_Specification/Weight := 132 g
+	TECHNICAL/Physical_Specification/Mounting_Options:= $(HW_PHYSICAL_MOUNTING)
 endef
 
 define Device/TEMPLATE_teltonika_rut271
@@ -235,10 +230,9 @@ define Device/TEMPLATE_teltonika_rut271
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.12.1
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
-	HARDWARE/Mobile/Modem := Quectel RG255C-GL, Telit FE910C04-WWD
+	HARDWARE/Mobile/Modem := Quectel RG255C-GL
 	HARDWARE/Mobile/3GPP_Release := Release 17
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M), $(HW_FLASH_TYPE_NOR)
-	TECHNICAL/Physical_Specification/Weight := 130 g
 	REGULATORY/Regulatory_&_Type_Approvals/Regulatory := CE, UKCA, ANRT, Kenya, ICASA, FCC, IC, PTCRB, NOM, RCM, KC, Giteki, \
 	IMDA, E-mark, CB, UL/CSA Safety, RoHS, REACH, R118
 	REGULATORY/Regulatory_&_Type_Approvals/Operator := AT&T, Verizon, T-Mobile, Uscellula
@@ -277,7 +271,6 @@ define Device/TEMPLATE_teltonika_rut206
 	TECHNICAL/Physical_Interfaces/IO :=
 	TECHNICAL/Physical_Interfaces/RS232 := 1 $(HW_INTERFACE_RS232_6PIN)
 	TECHNICAL/Physical_Interfaces/RS485 := 1 $(HW_INTERFACE_RS485_6PIN)
-
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485_HALF)
 	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
@@ -306,8 +299,6 @@ define Device/TEMPLATE_teltonika_rut276
 	TECHNICAL/Physical_Interfaces/IO :=
 	TECHNICAL/Physical_Interfaces/RS232 := 1 $(HW_INTERFACE_RS232_6PIN)
 	TECHNICAL/Physical_Interfaces/RS485 := 1 $(HW_INTERFACE_RS485_6PIN)
-	TECHNICAL/Physical_Specification/Casing_Material := $(HW_PHYSICAL_HOUSING_AND_PANELS_AL)
-	TECHNICAL/Physical_Specification/Weight := 132 g
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485_HALF)
 	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)
@@ -352,8 +343,6 @@ define Device/TEMPLATE_teltonika_rut286
 	TECHNICAL/Physical_Interfaces/IO :=
 	TECHNICAL/Physical_Interfaces/RS232 := 1 $(HW_INTERFACE_RS232_6PIN)
 	TECHNICAL/Physical_Interfaces/RS485 := 1 $(HW_INTERFACE_RS485_6PIN)
-	TECHNICAL/Physical_Specification/Casing_Material := $(HW_PHYSICAL_HOUSING_AND_PANELS_AL)
-	TECHNICAL/Physical_Specification/Weight := 132 g
 	HARDWARE/Serial/RS232 := $(HW_SERIAL_RS232_FLOW)
 	HARDWARE/Serial/RS485 := $(HW_SERIAL_RS485_HALF)
 	TECHNICAL/Physical_Interfaces/SD_card := $(HW_SD_PHYSICAL_SIZE)

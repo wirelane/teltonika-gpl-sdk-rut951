@@ -120,11 +120,6 @@ config OPENSSL_WITH_EC2M
 		This option enables the more efficient, yet less common, binary
 		field elliptic curves.
 
-config OPENSSL_WITH_ECX
-	bool
-	default n if SMALL_FLASH
-	prompt "Enable ecx support"
-
 config OPENSSL_WITH_CHACHA_POLY1305
 	bool
 	default y
@@ -309,10 +304,5 @@ config OPENSSL_WITH_ASYNC
 		Enables async-aware applications to be able to use OpenSSL to
 		initiate crypto operations asynchronously. In order to work
 		this will require the presence of an async capable engine.
-
-config OPENSSL_WITH_POST_QUANTUM
-	bool
-	prompt "Enable ml-dsa, ml-kem features"
-	default n if SMALL_FLASH
 
 endif

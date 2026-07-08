@@ -6,24 +6,15 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=gsm
-PKG_RELEASE:=2
 
-PKG_SOURCE_VERSION:=7.24.2
+PKG_SOURCE_VERSION:=7.24.0.2
 PKG_LICENSE:=Teltonika-closed
 
 PKG_CONFIG_DEPENDS += \
 	CONFIG_USE_PROCD \
-	CONFIG_USE_OPENRC \
-	CONFIG_PACKAGE_asterisk
+	CONFIG_USE_OPENRC
 
 include $(INCLUDE_DIR)/package.mk
-
-# chan_quectel-specific gsmd/libgsm endpoints (set_voice_pcm, set_dtmf_detect,
-# set_call_state_urc, set_call_waiting, set_speaker_volume, call_action,
-# set_clir).
-ifneq ($(CONFIG_PACKAGE_asterisk),)
-  TARGET_CFLAGS += -DCONFIG_ASTERISK_CHAN_QUECTEL_SUPPORT
-endif
 
 define Package/gsmd
 	SECTION:=net

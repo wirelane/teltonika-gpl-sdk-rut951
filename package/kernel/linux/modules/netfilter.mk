@@ -1089,25 +1089,6 @@ endef
 $(eval $(call KernelPackage,nft-core))
 
 
-define KernelPackage/nft-connlimit
-  SUBMENU:=$(NF_MENU)
-  TITLE:=Netfilter nf_tables connlimit (ct count) support
-  # nft_connlimit.ko depends on nf_conncount.ko, which is shipped by
-  # kmod-ipt-conntrack-extra (enabling NFT_CONNLIMIT pulls CONNCOUNT=m).
-  DEPENDS:=+kmod-nft-core +kmod-ipt-conntrack-extra
-  FILES:=$(LINUX_DIR)/net/netfilter/nft_connlimit.ko
-  AUTOLOAD:=$(call AutoProbe,nft_connlimit)
-  KCONFIG:=CONFIG_NFT_CONNLIMIT
-endef
-
-define KernelPackage/nft-connlimit/description
- Kernel module for nftables per-source concurrent connection limiting
- (the "ct count" expression), used by the conn-limits package.
-endef
-
-$(eval $(call KernelPackage,nft-connlimit))
-
-
 define KernelPackage/nft-arp
   SUBMENU:=$(NF_MENU)
   TITLE:=Netfilter nf_tables ARP table support

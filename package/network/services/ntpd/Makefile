@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ntpd
 PKG_VERSION:=4.2.8p15
-PKG_RELEASE:=4
+PKG_RELEASE:=3
 
 PKG_SOURCE_VERSION:=4.2.8p15
 PKG_SOURCE:=ntp-$(PKG_SOURCE_VERSION).tar.gz
@@ -130,8 +130,6 @@ define Package/ntpd/install
 	$(INSTALL_BIN) ./files/ntpd.config $(1)/etc/config/ntpd
 	$(INSTALL_DIR) $(1)/etc/permtab.d
 	$(INSTALL_DATA) ./files/ntpd.permtab $(1)/etc/permtab.d/ntpd
-	$(INSTALL_DIR) $(1)/etc/uci-defaults/7.24
-	$(INSTALL_DATA) ./files/99_migrate_ntp_servers $(1)/etc/uci-defaults/7.24/
 endef
 
 define Package/ntpdate/install

@@ -210,8 +210,7 @@ module_exit(mnfinfo_remove);
 	ACT(mob_vidpid_1, ##__VA_ARGS__)																	 \
 	ACT(mob_vidpid_2, ##__VA_ARGS__)																	 \
 	ACT(mob_vidpid_3, ##__VA_ARGS__)																	 \
-	ACT(mob_vidpid_4, ##__VA_ARGS__)																	 \
-	ACT(secure, ##__VA_ARGS__)
+	ACT(mob_vidpid_4, ##__VA_ARGS__)
 
 struct mnfinfo_entry {
 	bool is_set;

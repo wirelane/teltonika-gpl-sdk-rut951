@@ -189,9 +189,9 @@ define Package/frr-ospfd/conffiles
 /etc/config/ospf
 endef
 
-define Package/frr-ospf6d/conffiles
-/etc/config/ospf6
-endef
+# define Package/frr-ospf6d/conffiles
+# /etc/frr/ospf6d.conf
+# endef
 
 # define Package/frr-pbrd/conffiles
 # /etc/frr/pbrd.conf
@@ -240,10 +240,6 @@ define BuildDaemon
 	ifeq ($(1),ospfd)
 		FATTRS:=/usr/sbin/ospfd::::cap_net_bind_service,cap_net_raw,cap_sys_admin+p
 		USERID:=ospf:frr
-	endif
-	ifeq ($(1),ospf6d)
-		FATTRS:=/usr/sbin/ospf6d::::cap_net_bind_service,cap_net_raw,cap_sys_admin+p
-		USERID:=ospf6:frr
 	endif
 	ifeq ($(1),eigrpd)
 		FATTRS:=/usr/sbin/eigrpd::::cap_net_bind_service,cap_net_admin,cap_net_raw+p

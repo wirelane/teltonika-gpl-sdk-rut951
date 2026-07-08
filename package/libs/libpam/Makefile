@@ -78,18 +78,6 @@ define Package/libpam-mod-umask
   DEPENDS:=libpam
   TITLE:=PAM module to set the file mode creation mask
 endef
-
-define Package/libpam-mod-faillock
-  $(call Package/libpam/Default)
-  DEPENDS:=libpam
-  TITLE:=PAM module to lock accounts after failed login attempts
-endef
-
-define Package/libpam-mod-faillock/description
-	pam_faillock maintains a tally of authentication failures per user \
-	and can deny access once a configurable threshold is reached.
-endef
-
 define Package/libpam-mod-extra
   $(call Package/libpam/Default)
   DEPENDS:=libpam
@@ -154,9 +142,9 @@ define BuildPlugin
 endef
 
 PAM_EXTRA_MODULES:= \
-	access debug deny echo env exec faildelay filter ftp group issue keyinit \
+	access debug deny echo env exec faildelay fil filter ftp group issue keyinit \
 	limits listfile localuser loginuid mail mkhomedir motd namespace nologin permit \
-	pwhistory rootok securetty shells stress succeed_if time timestamp \
+	pwhistory rootok securetty shells stress succeed_if tally2 tally time timestamp \
 	umask unix warn wheel xauth \
 
 $(eval $(call BuildPackage,libpam))
@@ -164,5 +152,4 @@ $(eval $(call BuildPlugin,unix,unix))
 $(eval $(call BuildPlugin,deny,deny))
 $(eval $(call BuildPlugin,permit,permit))
 $(eval $(call BuildPlugin,umask,umask))
-$(eval $(call BuildPlugin,faillock,faillock))
 $(eval $(call BuildPlugin,extra,$(PAM_EXTRA_MODULES)))
