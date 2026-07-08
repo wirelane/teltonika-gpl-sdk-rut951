@@ -15,9 +15,10 @@ end
 
 nixio.umask(002) -- make libspeedtest write all files with 664 permissions
 local libspeedtest = require ("libspeedtest")
-local socket_url = require("socket_url")
-local vuci = require("vuci")
+local socket =  require("socket")
+local socket_url = require("socket.url")
 local jsc = require("luci.jsonc")
+local util = require("vuci.util")
 
 local SERVER, WARNING, ERROR, isError, res
 local STATE = "START"
@@ -213,15 +214,58 @@ local function fetchServerList(search)
 end
 
 local function check_internet_connection(host, port, timeout)
+	local nixio = require("nixio")
+	local socket = require("socket")
+	local r, w = nixio.pipe()
+
 	timeout = timeout or 1
 
-	local success, _ = vuci.tcp_ping({
-		host = host,
-		port = tonumber(port),
-		timeout_per_connection = timeout,
-		timeout_dns = timeout
-	})
-	return success
+	local sleep_pid = nixio.fork()
+	if sleep_pid == 0 then
+		nixio.exec("/bin/sleep", tostring(timeout))
+	end
+
+	local dns_pid = nixio.fork()
+	if dns_pid == 0 then
+		r:close()
+		local addrinfo = socket.dns.getaddrinfo(host)
+		if addrinfo then
+			w:write(jsc.stringify(addrinfo))
+		end
+		w:close()
+		os.exit()
+	end
+	w:close()
+
+	while true do
+		local finished_pid  = nixio.waitpid()
+		if finished_pid == sleep_pid then
+			nixio.kill(dns_pid, 9)
+			break
+		end
+
+		if finished_pid == dns_pid then
+			break
+		end
+	end
+
+	local addrinfo = jsc.parse(r:read(1024) or "")
+	r:close()
+
+	if not addrinfo or type(addrinfo) ~= "table" then
+		return false
+	end
+
+	for i, addr in ipairs(addrinfo) do
+		if addr.family == "inet" or addr.family == "inet6" then
+			local con = socket.tcp()
+			con:settimeout(timeout)
+			if con:connect(addr.addr, tonumber(port)) then
+				con:close()
+				return true
+			end
+		end
+	end
 end
 
 local function getConfig()
@@ -266,17 +310,6 @@ local function getServerList()
 	return body
 end
 
-local function checkConnection(url, port)
-	local timeout = 1
-	local success, _ = vuci.tcp_ping({
-		host = url,
-		port = port and port or 8080,
-		timeout_per_connection = timeout,
-		timeout_dns = timeout
-	})
-	return success
-end
-
 --Acts by the given flag from avg
 local function flagCheck(num,flag)
 	local tmp = 0;
@@ -300,7 +333,7 @@ local function flagCheck(num,flag)
 
 		SERVER = trimLink(SERVER)
 
-		if not checkConnection(SERVER, 8080) then
+		if socket.connect(SERVER, 8080) == nil then
 			ERROR = "There was no connection to the given server"
 			writeData()
 		end
@@ -336,6 +369,20 @@ local function getClosestServer()
 	if t and t.data then t = t.data end -- parse web serverlist
 	-- Closest server is the first element in json file
 	return trimLink(t[1]["url"]);
+end
+
+local function checkConnection(url, port)
+	local connection, result
+
+	connection = socket.tcp()
+	connection:settimeout(1000)
+	result = connection:connect(url, port and port or 8080)
+	connection:close()
+
+	if result then
+		return true
+	end
+	return false
 end
 
 writeToJSON()
@@ -407,8 +454,7 @@ end
 
 STATE = "COOLDOWN"
 writeToJSON(DSPEED, DBYTES, USPEED, UBYTES)
-local ns_per_s = 1e9
-nixio.nanosleep(3, 0.75 * ns_per_s)
+socket.sleep(3.75)
 
 STATE = "TESTING_UPLOAD"
 isError, res = libspeedtest.testspeed(SERVER..":8080/speedtest/upload.php", TIME, true, 4, test_iface)

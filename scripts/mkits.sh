@@ -17,7 +17,6 @@
 usage() {
 	printf "Usage: %s -A arch -C comp -a addr -e entry" "$(basename "$0")"
 	printf " -v version -k kernel [-D name -n address -d dtb] -o its_file"
-	printf " -M mdtb_name [-S key_name_hint] [-b key_alg] [-r rootfs blob] [-R ar_ver]"
 
 	printf "\n\t-A ==> set architecture to 'arch'"
 	printf "\n\t-C ==> set compression type 'comp'"
@@ -38,9 +37,6 @@ usage() {
 	printf "\n\t-O ==> create config with dt overlay 'name:dtb'"
 	printf "\n\t-s ==> set FDT load address to 'addr' (hex)"
 	printf "\n\t-M ==> set MDTB name to 'name'"
-	printf "\n\t-S ==> add signature at configurations and assign its key_name_hint by 'key_name_hint'"
-	printf "\n\t-b ==> set key algorithm"
-	printf "\n\t-R ==> set anti-rollback version to 'fw_ar_ver' (dec)"
 	printf "\n\t\t(can be specified more than once)\n"
 	exit 1
 }
@@ -55,7 +51,7 @@ DTOVERLAY=
 DTADDR=
 MDTBNAME=conf_mdtb
 
-while getopts ":A:a:b:c:C:D:d:e:f:i:k:l:n:o:O:v:r:R:S:s:H:M:" OPTION
+while getopts ":A:a:c:C:D:d:e:f:i:k:l:n:o:O:v:r:s:H:M:" OPTION
 do
 	case $OPTION in
 		A ) ARCH=$OPTARG;;
@@ -77,9 +73,6 @@ do
 		H ) HASH=$OPTARG;;
 		v ) VERSION=$OPTARG;;
 		M ) MDTBNAME=$OPTARG;;
-		S ) KEY_NAME_HINT=$OPTARG;;
-		b ) KEY_ALG=$OPTARG;;
-		R ) AR_VER=$OPTARG;;
 		* ) echo "Invalid option passed to '$0' (options:$*)"
 		usage;;
 	esac
@@ -102,54 +95,6 @@ fi
 	DTADDR="$FDTADDR"
 }
 
-# Conditionally create signature information
-if [ -n "${KEY_NAME_HINT}" ]; then
-	if [[ "${KEY_NAME_HINT}" == "offline,"* ]]; then
-		KEY_NAME_HINT=$(echo -n "${KEY_NAME_HINT}" | sed "s/^.*[,]//g")
-		SIGN_OFFLINE="sign-offline = <1>;"
-	fi
-
-	if [ -z "${KEY_ALG}" ]; then
-		KEY_ALG="sha384,rsa4096"
-	fi
-
-	if echo "${KEY_ALG}" | grep -q "offline"; then
-		KEY_ALG=$(echo "${KEY_ALG}" | sed "s/\(.*\),.*/\1/g")
-	fi
-
-	SIGN_IMAGES="sign-images = \"fdt\", \"kernel\""
-	if [ -n "${INITRD}" ]; then
-		SIGN_IMAGES="${SIGN_IMAGES}, \"ramdisk\""
-	fi
-
-	if [ -n "${ROOTFS}" ]; then
-		SIGN_IMAGES="${SIGN_IMAGES}, \"loadables\""
-	fi
-	SIGN_IMAGES="${SIGN_IMAGES};"
-
-	SIGNATURE="
-			signature {
-				algo = \"${KEY_ALG}\";
-				key-name-hint = \"${KEY_NAME_HINT}\";
-				${SIGN_OFFLINE}
-				${SIGN_IMAGES}
-			};
-"
-
-	if [ -n "${DTOVERLAY}" ]; then
-		OVSIGN_IMAGES="sign-images = \"fdt\";"
-
-		OVSIGNATURE="
-			signature {
-				algo = \"${KEY_ALG}\";
-				key-name-hint = \"${KEY_NAME_HINT}\";
-				${SIGN_OFFLINE}
-				${OVSIGN_IMAGES}
-			};
-"
-	fi
-fi
-
 if [ -n "${ROOTFS}" ]; then
 	dd if="${ROOTFS}" of="${ROOTFS}.pagesync" bs=4096 conv=sync
 	ROOTFS_NODE="
@@ -171,13 +116,6 @@ if [ -n "${ROOTFS}" ]; then
 	LOADABLES="${LOADABLES:+$LOADABLES, }\"rootfs${REFERENCE_CHAR}${ROOTFSNUM}\""
 fi
 
-# Conditionally create anti-rollback version information
-if [ -n "${AR_VER}" ]; then
-	FW_AR_VER="\
-			fw_ar_ver = <${AR_VER}>;\
-"
-fi
-
 # Conditionally create fdt information
 if [ -n "${DTB}" ]; then
 	if [ -f "$DTB" ]; then
@@ -194,7 +132,7 @@ if [ -n "${DTB}" ]; then
 					algo = \"crc32\";
 				};
 				hash${REFERENCE_CHAR}2 {
-					algo = \"${HASH}\";
+					algo = \"sha1\";
 				};
 			};
 "
@@ -207,8 +145,6 @@ if [ -n "${DTB}" ]; then
 			${LOADABLES:+loadables = ${LOADABLES};}
 			${COMPATIBLE_PROP}
 			${INITRD_PROP}
-			${FW_AR_VER}
-			${SIGNATURE}
 		};
 "
 	else
@@ -243,7 +179,7 @@ if [ -n "${DTB}" ]; then
 						algo = \"crc32\";
 					};
 					hash${REFERENCE_CHAR}2 {
-						algo = \"${HASH}\";
+						algo = \"sha1\";
 					};
 				};
 "
@@ -251,8 +187,6 @@ if [ -n "${DTB}" ]; then
 			rootfs=
 			if grep -q "root=/dev/fit0" "$ff"; then
 				rootfs="${LOADABLES:+loadables = ${LOADABLES};}"
-				#add signature nodes to such targets as well, since we care about kernel AND rootfs auth
-
 			else
 				# extract XYZ from image-qcom-ipq4018-rutx-XYZ.dtb
 				f=${f##*-}
@@ -264,14 +198,13 @@ if [ -n "${DTB}" ]; then
 			fi
 
 			CONFIG_NODE="${CONFIG_NODE}
-				${MDTBNAME}@${FDTNUM} {
+
+				${MDTBNAME}${REFERENCE_CHAR}${FDTNUM} {
 				description = \"${f}\";
 				${HWVER}
 				kernel = \"kernel${REFERENCE_CHAR}1\";
 				fdt = \"fdt${REFERENCE_CHAR}$FDTNUM\";
 				${rootfs}
-				${SIGNATURE}
-				${FW_AR_VER}
 			};
 "
 		done
@@ -330,7 +263,6 @@ OVCONFIGS=""
 			description = \"OpenWrt ${DEVICE} overlay $ovname\";
 			fdt = \"$ovnode\";
 			${COMPATIBLE_PROP}
-			${OVSIGNATURE}
 		};
 	"
 done

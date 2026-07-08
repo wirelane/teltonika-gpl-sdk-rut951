@@ -31,16 +31,8 @@
 		};
 
 		gpio_sim_select {
-			tlt-mnf,incompatible_branch = "T";
 			gpio-export,name = "sim_sel";
 			gpio-export,output = <0>;
-			gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
-		};
-
-		gpio_tpm_reset {
-			tlt-mnf,branch = "T";
-			gpio-export,name = "tpm_reset";
-			gpio-export,output = <1>;
 			gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
 		};
 	};
@@ -130,31 +122,20 @@
 		ioman {
 			GPIO_4 {
 				compatible_versions = <0 4>;
-				compatible_branch = "!T";
 				line_name = "GPIO_IN_1";
 			};
 			GPIO_0 {
-				compatible_versions_0 = <5 99>;
-				compatible_branch_0 = "!T";
-				line_name_0 = "GPIO_IN_1";
-
-				compatible_branch_1 = "T";
-				line_name_1 = "GPIO_IN_1";
+				compatible_versions = <5 99>;
+				line_name = "GPIO_IN_1";
 			};
 			GPIO_5 {
 				compatible_versions = <0 4>;
-				compatible_branch = "!T";
 				line_name = "GPIO_OUT_1";
 			};
 			GPIO_37 {
-				compatible_versions_0 = <5 99>;
-				compatible_branch_0 = "!T";
-				line_name_0 = "GPIO_OUT_1";
-
-				compatible_branch_1 = "T";
-				line_name_1 = "GPIO_OUT_1";
+				compatible_versions = <5 99>;
+				line_name = "GPIO_OUT_1";
 			};
-
 		};
 
 		misc {
@@ -165,12 +146,7 @@
 				line_name = "GPIO_MODEM_POWER_1";
 			};
 			GPIO_6 {
-				compatible_branch = "!T";
 				line_name = "GPIO_SIM_SELECT_1";
-			};
-			GPIO_6@1 {
-				compatible_branch = "T";
-				line_name = "GPIO_TPM_REST";
 			};
 		};
 	};
@@ -207,22 +183,11 @@
 	};
 
 	sim_count {
-		tlt-mnf,incompatible_branch = "T";
 		default =  "1";
-	};
-	sim_count@1 {
-		tlt-mnf,branch = "T";
-		default = "2";
 	};
 
 	sim_cfg {
-		tlt-mnf,incompatible_branch = "T";
 		default = "2111000";
-	};
-	sim_cfg@1 {
-		tlt-mnf,branch = "T";
-		default = "1111010_1122010";
-		keep-sim-presence;
 	};
 
 	blver {

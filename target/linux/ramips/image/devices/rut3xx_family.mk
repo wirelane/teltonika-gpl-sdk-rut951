@@ -98,7 +98,7 @@ define Device/TEMPLATE_teltonika_rut361
 	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi
 	TECHNICAL/Input_Output/Input := 2 $(HW_INPUT_DI_30V)
 	TECHNICAL/Input_Output/Output := 2 $(HW_OUTPUT_DO_30V)
-	TECHNICAL/Physical_Specification/Casing_Material := $(HW_PHYSICAL_HOUSING_AND_PANELS_AL)
+	TECHNICAL/Physical_Specification/Casing_Material := $(HW_PHYSICAL_HOUSING_AL)
 	TECHNICAL/Physical_Specification/Dimensions := 100 x 30 x 85 mm
 	TECHNICAL/Physical_Specification/Weight := 243 g
 	TECHNICAL/Physical_Specification/Mounting_Options := $(HW_PHYSICAL_MOUNTING)

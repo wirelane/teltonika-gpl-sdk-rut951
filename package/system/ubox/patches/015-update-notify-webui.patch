@@ -1,7 +1,7 @@
-Index: ubox-2020-10-25-9ef88681/log/logdb.c
-===================================================================
---- ubox-2020-10-25-9ef88681.orig/log/logdb.c
-+++ ubox-2020-10-25-9ef88681/log/logdb.c
+diff --git a/log/logdb.c b/log/logdb.c
+index ce0b516..aaed39c 100644
+--- a/log/logdb.c
++++ b/log/logdb.c
 @@ -15,9 +15,6 @@
  #define DB_BUFF_128 128
  #define ROW_THRESHOLD 100
@@ -52,7 +52,7 @@ Index: ubox-2020-10-25-9ef88681/log/logdb.c
  		}
  		return;
  	}
-@@ -363,7 +362,7 @@ static void open_bk_db(struct uloop_proc
+@@ -363,7 +362,7 @@ static void open_bk_db(struct uloop_process *proc, int ret)
  		sqlite3_close(conn);
  		unlink(DB_BAK);
  		unlink(DB);
@@ -78,10 +78,10 @@ Index: ubox-2020-10-25-9ef88681/log/logdb.c
 +
  	return SQLITE_SUCCESS;
  }
-Index: ubox-2020-10-25-9ef88681/log/logdb.h
-===================================================================
---- ubox-2020-10-25-9ef88681.orig/log/logdb.h
-+++ ubox-2020-10-25-9ef88681/log/logdb.h
+diff --git a/log/logdb.h b/log/logdb.h
+index 171aec0..0860641 100644
+--- a/log/logdb.h
++++ b/log/logdb.h
 @@ -2,6 +2,7 @@
  #define LOGDB_H
  
@@ -99,11 +99,11 @@ Index: ubox-2020-10-25-9ef88681/log/logdb.h
  int db_action(int action, sqlite3_stmt **stmt);
  sqlite3_stmt *db_prepare(char *query);
  
-Index: ubox-2020-10-25-9ef88681/log/logread.c
-===================================================================
---- ubox-2020-10-25-9ef88681.orig/log/logread.c
-+++ ubox-2020-10-25-9ef88681/log/logread.c
-@@ -572,7 +572,7 @@ int main(int argc, char **argv)
+diff --git a/log/logread.c b/log/logread.c
+index 76cd2f4..1901e8e 100644
+--- a/log/logread.c
++++ b/log/logread.c
+@@ -564,7 +564,7 @@ int main(int argc, char **argv)
  	}
  	ubus_add_uloop(ctx);
  

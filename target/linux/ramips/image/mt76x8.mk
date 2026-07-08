@@ -217,8 +217,8 @@ define Device/teltonika_rut2m
 		TEMPLATE_teltonika_rut241 \
 		TEMPLATE_teltonika_rut260
 
-	DEVICE_MODEM_VENDORS := Quectel Meiglink Teltonika Fibocom
-	DEVICE_MODEM_LIST := SLM750 EC200A EC25 EG25 SLM828 RG255C ALA440 EG060K NL668
+	DEVICE_MODEM_VENDORS := Quectel Meiglink Teltonika
+	DEVICE_MODEM_LIST := SLM750 EC200A EC25 EG25 SLM828 RG255C ALA440 EG060K
 endef
 
 define Device/teltonika_rut301
@@ -283,7 +283,7 @@ define Device/teltonika_rut9m
 	                xfrm-offload poe ethtool-tiny
 
 	DEVICE_DTS := mt7628an_teltonika_rut9m
-	IMAGE_SIZE := 12999k
+	IMAGE_SIZE := 12480k
 	GPL_PREFIX := GPL
 	# Default common packages for RUT9M series
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -387,6 +387,6 @@ define Device/teltonika_rute
 						 teltonika,rut981 teltonika,rut986 teltonika,otd144
 
 	DEVICE_MODEM_VENDORS := Quectel Telit Teltonika
-	DEVICE_MODEM_LIST := EC200A EC25 EG060W RG255C LE910C4 ALA440 FE910C04
+	DEVICE_MODEM_LIST := EC200A EC25 EG060W RG255C LE910C4 ALA440 FE910C4
 endef
 

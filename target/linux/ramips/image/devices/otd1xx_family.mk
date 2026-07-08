@@ -75,8 +75,8 @@ define Device/TEMPLATE_teltonika_otd140
 	HARDWARE/Mobile/Modem := Quectel EC200A-EU
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M) $(HW_FLASH_TYPE_NOR_SERIAL)
-	HARDWARE/WiFi/Wireless_Mode :=
-	HARDWARE/WiFi/Wi\-Fi_Users :=
+	HARDWARE/Wireless/Wireless_Mode :=
+	HARDWARE/Wireless/Wi\-Fi_Users :=
 	HARDWARE/Ethernet/Port := 2 $(HW_ETH_ETH_PORTS)
 	HARDWARE/Ethernet/Speed := $(HW_ETH_SPEED_100)
 	HARDWARE/Ethernet/Standard := (can be configured as WAN), $(HW_ETH_LAN_2_STANDARD)
@@ -115,7 +115,6 @@ define Device/TEMPLATE_teltonika_otd144
 	DEVICE_FEATURES += large_flash wifi dual_sim mobile ethernet nat_offloading poe \
 		port_link xfrm-offload 128mb_ram modbus dot1x-client dot1x-server tpm
 
-	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 75 DL/50 UL Mbps; 3G up to 42 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
 	HARDWARE/Mobile/Modem := Teltonika ALA440
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_32M) $(HW_FLASH_TYPE_NOR_SERIAL)
