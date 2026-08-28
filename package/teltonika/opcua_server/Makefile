@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=opcua_server
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 PKG_LICENSE:=Teltonika-closed
 PKG_SOURCE_VERSION:=7.24
 

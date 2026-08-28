@@ -14,6 +14,23 @@ list_profiles = list()
 list_features = list()
 list_packages = list()
 dump_list = False
+generate_public = False
+
+PRIVATE_DETAILS = {
+    "hardware": {"Mobile/Modem"},
+}
+
+def finalize_doc(obj, public):
+    if isinstance(obj, dict):
+        return {k: finalize_doc(v, public) for k, v in obj.items() if k != "private"}
+    if isinstance(obj, list):
+        out = []
+        for item in obj:
+            if public and isinstance(item, dict) and item.get("private"):
+                continue
+            out.append(finalize_doc(item, public))
+        return out
+    return obj
 
 def empty_none_value(value):
     if value is None:
@@ -115,12 +132,18 @@ class Profile:
                 dct[kname] = {}
             self.recursive_insert(dct[kname], keys[1:], value)
 
-    def convert_to_array_format(self, dct, tooltip_dct={}):
+    def mark_private(self, section, title, entry):
+        key = entry.get("key")
+        if key is not None and f"{title}/{key}" in PRIVATE_DETAILS.get(section, ()):
+            entry["private"] = True
+        return entry
+
+    def convert_to_array_format(self, dct, tooltip_dct={}, section=None):
         result = []
         for key, value in dct.items():
             entry = {"title": key}
             if isinstance(value, dict):
-                entry["detail"] = [{"key": subkey, "value": subvalue} for subkey, subvalue in value.items()]
+                entry["detail"] = [self.mark_private(section, key, {"key": subkey, "value": subvalue}) for subkey, subvalue in value.items()]
             else:
                 entry["detail"] = [value]
             entry["tooltip"] = []
@@ -133,9 +156,9 @@ class Profile:
             if isinstance(value, dict):
                 for subkey, subvalue in value.items():
                     if isinstance(subvalue, dict):
-                        entry["tooltip"].append({"key": subkey, "value": subvalue['value'], "type": subvalue['type']})
+                        entry["tooltip"].append(self.mark_private(section, key, {"key": subkey, "value": subvalue['value'], "type": subvalue['type']}))
                     else:
-                        entry["tooltip"].append({"key": subkey, "value": subvalue})
+                        entry["tooltip"].append(self.mark_private(section, key, {"key": subkey, "value": subvalue}))
             else:
                 entry["tooltip"] = [value]
         return result
@@ -202,9 +225,9 @@ class Profile:
                     continue
                 self.recursive_insert(self.technical, key_parts, data[1])
 
-        self.hw = self.convert_to_array_format(self.hw, self.hw_tooltip)
-        self.regulatory = self.convert_to_array_format(self.regulatory, self.regulatory_tooltip)
-        self.technical = self.convert_to_array_format(self.technical, self.technical_tooltip)
+        self.hw = self.convert_to_array_format(self.hw, self.hw_tooltip, section="hardware")
+        self.regulatory = self.convert_to_array_format(self.regulatory, self.regulatory_tooltip, section="regulatory")
+        self.technical = self.convert_to_array_format(self.technical, self.technical_tooltip, section="technical")
 
     def parse_expr(self, expr):
         pattern = re.compile(r'if\s+(.*)', re.DOTALL)
@@ -689,9 +712,6 @@ def dump_features(data, descriptions_only=False, dump_list=False):
     features_list = []
 
     for f in data:
-        if descriptions_only and not f.title:
-            continue
-
         if f.label not in features_dict:
             entry = {
                 "title": f.label,
@@ -934,6 +954,8 @@ def save_json_ouput(name, json_data, indent_default=2):
     if not os.path.exists(default_dir):
         os.makedirs(default_dir)
 
+    json_data = finalize_doc(json_data, generate_public)
+
     default_path = os.path.join(default_dir, name)
     with open(default_path, 'w') as file:
         json.dump(json_data, file, indent=indent_default, ensure_ascii=False)
@@ -1060,6 +1082,7 @@ def main_device_features():
 def main():
     parser = argparse.ArgumentParser(description='Generate device features.')
     parser.add_argument("--descriptions-only", action="store_true", help="Generate only descriptions of features")
+    parser.add_argument("--public", action="store_true", help="Generate public documentation, redacting private-only details")
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--dump', action='store_true', help='Generate all possible device features')
@@ -1070,6 +1093,9 @@ def main():
     group.add_argument('--device-features', action='store_true', help='Show the DEVICE_FEATURES of all devices')
 
     args = parser.parse_args()
+
+    global generate_public
+    generate_public = args.public
 
     if args.dump:
         main_dump(args.descriptions_only)

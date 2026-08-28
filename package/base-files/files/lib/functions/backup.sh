@@ -376,12 +376,18 @@ remove_option() {
 	local option="$3"
 	local value
 
-	remove_prepare "$config"
 	config_get value "$section" "$option" ""
-	[ -n "$value" ] && {
-		uci_remove "$config" "$section" "$option"
-		uci_commit "$config"
-	}
+	[ -n "$value" ] && uci_remove "$config" "$section" "$option"
+}
+
+remove_rms_options() {
+	remove_prepare "rms_mqtt"
+	remove_option "rms_mqtt" "rms_connect_mqtt" "auth_code"
+	for opt in key_file kid ca_file cert_file; do
+		remove_option "rms_mqtt" "rms_mqtt" "$opt"
+	done
+
+	uci_commit "rms_mqtt"
 }
 
 restore_configs() {
@@ -434,18 +440,30 @@ restore_sme_fstab() {
 	fi
 }
 
-restore_rms_auth_code() {
+restore_option() {
+	local config=$1
+	local section=$2
+	local option=$3
+	local dir=$4
+
+	config_get value "$section" "$option"
+	uci -c "$dir/etc/config" set $config.$section.$option="$value"
+}
+
+restore_rms_options() {
 	local dir="$1"
 	local config="rms_mqtt"
 
 	[ -s "/etc/config/$config" ] || return
 	[ -s "$dir/etc/config/$config" ] || return
 
-	local auth_code="$(uci -q get $config.rms_connect_mqtt.auth_code)"
-	uci -c "$dir/etc/config" batch <<-EOF
-		set $config.rms_connect_mqtt.auth_code="$auth_code"
-		commit $config
-	EOF
+	config_load "$config"
+	restore_option "$config" rms_connect_mqtt auth_code "$dir"
+	for opt in key_file kid ca_file cert_file; do
+		restore_option "$config" rms_mqtt "$opt" "$dir"
+	done
+
+	uci -c "$dir/etc/config" commit "$config"
 }
 
 restore_rms_ids() {
@@ -526,7 +544,7 @@ apply_backup() {
 	local extraction_dir="$1"
 	restore_rms_ids "$extraction_dir"
 	restore_sme_fstab "$extraction_dir"
-	restore_rms_auth_code "$extraction_dir"
+	restore_rms_options "$extraction_dir"
 	restore_users_and_groups "$extraction_dir"
 	/etc/init.d/mdcollectd stop
 	/etc/init.d/simcard reload >/dev/null 2>/dev/null

@@ -1,1 +1,1 @@
-[{"endpoint":"/date_time/ntpd/{service_group}/{?sid}","lua_service":"services/ntpd","backup_order":269}]
+[{"endpoint":"/date_time/ntpd/{service_group}/{?sid}","lua_service":"services/ntpd","backup_order":272},{"endpoint":"/date_time/ntpd/servers/{service_group}/{?sid}","lua_service":"services/ntpd_servers","backup_order":274},{"endpoint":"/date_time/ntpd/keys/{service_group}/{?sid}","lua_service":"services/ntpd_keys","backup_order":273}]
