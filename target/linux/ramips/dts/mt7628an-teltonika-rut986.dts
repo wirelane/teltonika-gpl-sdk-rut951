@@ -259,7 +259,9 @@
 				io_param = "g1";
 
 				adc_cof@0 {
-					divider = "79.69814099"; // 866/10866 * 1000.0
+					divider = "128.160418482999"; //147.0 / 1147.0 * 1000.0
+					// Uses old divider value because new chip 
+					// Vref is lower then the older one and the difference balances out (3.3/2.048)=(128.16/79.69)
 				};
 			};
 			acl@0 {
@@ -271,7 +273,7 @@
 				io_param = "g0";
 
 				adc_cof@0 {
-					divider = "95637.769188294"; // 866/10866 * 1000.0 * 1200.0
+					divider = "153792.502179599"; //147.0 / 1147.0 * 1000.0 * 1200.0
 				};
 			};
 		};

@@ -65,6 +65,10 @@
 						[ "makedev", "/dev/%DEVNAME%", "0660", "callman" ]
 					],
 					[ "if",
+						[ "regex", "DEVNAME", "^proslic[0-9]$" ],
+						[ "makedev", "/dev/%DEVNAME%", "0660", "dialout" ]
+					],
+					[ "if",
 						[ "has", "DEVNAME" ],
 						[ "makedev", "/dev/%DEVNAME%", "0600" ]
 					]

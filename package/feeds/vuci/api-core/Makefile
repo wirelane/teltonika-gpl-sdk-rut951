@@ -21,8 +21,9 @@ define Package/api-core
 		+luajit2 +libc +libubox-lua +libubus-lua \
 		+libuci-lua +luci-lib-jsonc +luci-lib-nixio \
 		+luci-lib-ip +rpcd-mod-rrdns +uhttpd-mod-lua \
-		+libubus +luasocket +lsqlite3 +rpcd-mod-mnfinfo +luasec +rpcd-mod-uci \
-		+rpcd-mod-rc +session +openssl-util +libopenssl +libpcre2 +libtlt-logger
+		+libubus +lsqlite3 +rpcd-mod-mnfinfo +rpcd-mod-uci \
+		+rpcd-mod-rc +session +openssl-util +libopenssl +libpcre2 +libtlt-logger \
+		+libcares +libcurl
 endef
 
 define Package/api-core/config

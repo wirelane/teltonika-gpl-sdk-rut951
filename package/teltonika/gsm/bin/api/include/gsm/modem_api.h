@@ -1,5 +1,6 @@
 #ifndef GSM_MODEM_API
 #define GSM_MODEM_API
+#include <stdbool.h>
 
 /** @file modem_api.h */
 
@@ -75,6 +76,8 @@ typedef enum {
 	EVT_GNSS_STATE_CHANGE, /*!< GPS change event */
 
 	EVT_CALL_STATE_CHANGE, /*!< Call state change event */
+
+	EVT_DTMF_DETECT, /*!< Modem-side DTMF tone detected (AT+QTONEDET) */
 
 	__EVT_MAX,
 } evt_type_t;
@@ -843,6 +846,32 @@ enum call_type_id {
 };
 
 /**
+ * Enumeration of call action values
+ */
+enum call_action_id {
+	CALL_ACTION_UNKNOWN, /*<! Unknown / unsupported call action*/
+	CALL_ACTION_HANGUP_ALL, /*<! Release all calls (AT+CHUP)*/
+	CALL_ACTION_RELEASE_IDX, /*<! Release the call at index (AT+CHLD=1x)*/
+	CALL_ACTION_HOLD_SWAP, /*<! Swap active/held (AT+CHLD=2)*/
+	CALL_ACTION_HOLD_SWAP_IDX, /*<! Hold all except call at index (AT+CHLD=2x)*/
+	CALL_ACTION_CONFERENCE, /*<! Join held+active into conference (AT+CHLD=3)*/
+
+	__CALL_ACTION_MAX,
+};
+
+/**
+ * Enumeration of CLIR (calling line ID restriction) modes.
+ * Values match the 3GPP TS 27.007 AT+CLIR <n> parameter.
+ */
+enum clir_mode_id {
+	CLIR_MODE_SUBSCRIPTION, /*<! 0: presentation per network subscription*/
+	CLIR_MODE_INVOCATION, /*<! 1: invoke CLIR (restrict own number)*/
+	CLIR_MODE_SUPPRESSION, /*<! 2: suppress CLIR (present own number)*/
+
+	__CLIR_MODE_MAX,
+};
+
+/**
  * Enumeration of ring type values
  */
 enum ring_type_id {
@@ -1425,6 +1454,16 @@ enum ext_antenna_mode {
     EXT_ANTENNA_MISMATCH
 };
 
+/**
+ * Enumeration of band group
+ */
+struct band_group {
+	bool gsm;
+	bool wcdma;
+	bool lte;
+	bool sa5g;
+	bool nsa5g;
+};
 /**
  * Convert modem action status value to string.
  * @param[in]	status	Action status value.
@@ -2176,6 +2215,13 @@ enum call_type_id call_type_id_enum(const char *arg);
  * @return const char *. String of call type value.
  */
 const char *call_type_id_str(enum call_type_id value);
+
+/**
+ * Convert call action value string to call action value enum.
+ * @param[in]	*arg	Call action value string argument value.
+ * @return enum call_action_id. Enumeration of call action value.
+ */
+enum call_action_id call_action_id_enum(const char *arg);
 
 /**
  * Convert ring type value string to ring type value enum.

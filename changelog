@@ -1,3 +1,75 @@
+# 2026-08-28 00.07.24.3
+
+### Improvements
+
+* API Core: improved bulk endpoint validations (ID: 1163)
+
+# 2026-08-06 00.07.24.2
+
+### New
+
+* DHCP server: added "Relay uplink" option for DHCPv6 server (ID: 38099)
+* DHCP server: added automatic DHCPv6 server creation for WAN interfaces (ID: 38099)
+* Firewall: added port connection limit support (ID: 38100)
+* NTP: added authentication support for ntpd (ID: 37965)
+* OSPFv3: added OSPFv3 (ID: 38123)
+* PAM: added account lockout for local authentication (ID: 38552)
+* Password Policy: added password history (ID: 38065)
+
+### Improvements
+
+* IPsec: added ML-KEM post-quantum key exchange (ID: 38129)
+
+### Fix
+
+* Backup: fixed RMS config transfer (ID: 38772)
+* Data to Server: fixed memory leak in Lua format plugin (ID: 38806)
+* FreeRADIUS: fixed issue with keep settings (ID: 38947)
+* Mobile: fixed temperature value for TRB236 (ID: 28258)
+* Profiles: fixed RMS config transfer (ID: 38772)
+* RutOS: fixed SDK docker build (ID: 39126)
+* SMS Utilities: fixed an issue where incoming SMS messages were not detected and no actions were executed for RUT281, RUT286, RUT981, RUT986, RUTC40 (ID: 36968)
+* SNMP: fixed SysObjectID OID to return Teltonika enterprise OID (ID: 37815)
+* SSH: fixed server not listening on IPv6 address (ID: 35822)
+
+### CVE Patches
+
+* CVE-2026-16455 - 6.9 (MEDIUM) (ID: 38663)
+* CVE-2026-18368 - 5 (MEDIUM) (ID: 38864)
+
+### Updates
+
+* freeradius3: updated version to  3.2.8 (ID: 37364)
+* open62541: updated version to  1.4.18 (ID: 38860)
+* openssl: updated version to  3.5.7 (ID: 37364)
+* strongSwan: updated version to  6.0.7 for Router family (ID: 38129)
+* wireless-regdb: updated version to  2026.05.30 (ID: 38555)
+
+# 2026-07-16 00.07.24.1
+
+### New
+
+* Iperf: added iperf to Package Manager (ID: 38371)
+* Mobile: added "comgate.m2m" APN for operator "KPN" into APN databse (ID: 37007)
+* Mobile: added "internet.telenor.se" APN for operator "Telenor" into APN database (ID: 34827)
+* Mobile: added "services.telenor.se" APN for operator "Telenor" into APN database (ID: 34827)
+* Stress-ng: added stress-ng to Package Manager (ID: 38371)
+
+### Improvements
+
+* Integrity: improved the time it takes to generate integrity database on first boot (ID: 36463)
+* Mobile: added bridge hardware offload capabilities in passthrough mode for TRB5 family (ID: 18978)
+* Mobile: increased "iot.t-mobile.com" APN priority for T-Mobile operator with 311-882 MCC-MNC (ID: 37809)
+
+### Fix
+
+* Bondix: fixed invalid package for ATRM50 (ID: 38103)
+* Event juggler: fixed SMS sending failures when messages are sent in rapid succession (ID: 36698)
+* Mobile: fixed 'Status -> Mobile' page to correctly display connected bands in NSA mode for CAP700 (ID: 37771)
+* Mobile: fixed incorrect display of signal values under some carrier aggregation configurations for OTD501, RUTC50, RUTM30, RUTM50, RUTM52, RUTM59, RUTX50, RUTP50, RUTP52, TRB501 (ID: 34878)
+* Troubleshoot: fixed logs from flash inclusion (ID: 37923)
+* Wireless: fixed received ieee80211 action frame forwarding in station mode for RUTM family, RUTP family, RUTX family, RUTE family, RUTC family, RUT9M family, RUT2M family, RUT36X family, RUT14X family, OTD144, OTD164, DAP family (ID: 37028)
+
 # 2026-07-01 00.07.24
 
 ### New

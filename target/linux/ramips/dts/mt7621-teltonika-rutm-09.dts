@@ -40,7 +40,7 @@
 		led_wan_eth {
 			gpios = <&gpio 42 GPIO_ACTIVE_HIGH>;
 		};
-		
+
 		led_gen_2 {
 			tlt-mnf,hwver = <0 399>;
 		};

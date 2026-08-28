@@ -37,6 +37,11 @@
     "title": "SNMP Data sources",
     "acls": [ "services/snmp/data_source" ],
     "view": "services/SnmpDataSource",
-    "index": 5
+    "index": 5,
+    "depends": {
+      "packages": {
+        "anyOf": ["vuci-app-universal-gateway-api"]
+      }
+    }
   }
 }

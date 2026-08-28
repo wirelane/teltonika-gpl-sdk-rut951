@@ -67,6 +67,31 @@ add_uci_conffiles() {
 	return 0
 }
 
+restore_option() {
+	local config=$1
+	local section=$2
+	local option=$3
+	local dir=$4
+
+	config_get value "$section" "$option"
+	uci -c "$dir/etc/config" set $config.$section.$option="$value"
+}
+
+restore_rms_options() {
+	local dir="$1"
+	local config="rms_mqtt"
+
+	[ -s "/etc/config/$config" ] || return
+	[ -s "$dir/etc/config/$config" ] || return
+
+	config_load "$config"
+	for opt in key_file kid ca_file cert_file; do
+		restore_option "$config" rms_mqtt "$opt" "$dir"
+	done
+
+	uci -c "$dir/etc/config" commit "$config"
+}
+
 remove_exceptions() {
 	# shellcheck disable=2086 # Splitting is intended here
 	sed -i'' -e "$(printf "\,%s,d; " $EXCEPTIONS)" "$1"
@@ -459,6 +484,8 @@ change_config() {
 		log "Unable to extract '$archive'"
 		return 1
 	}
+
+	restore_rms_options "$TMP_PATH"
 
 	cmp -s "${TMP_PATH}${PROFILE_VERSION_FILE}" /etc/version || {
 		# Legacy profiles do not have some config files so we need to reset

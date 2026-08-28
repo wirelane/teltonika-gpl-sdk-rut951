@@ -6,10 +6,10 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/download.mk
 
 PKG_NAME:=speedtest
-PKG_VERSION:=2026-05-12
-PKG_RELEASE:=4
+PKG_VERSION:=2026-08-04
+PKG_RELEASE:=1
 
-PKG_SOURCE_VERSION:=1.13
+PKG_SOURCE_VERSION:=1.13.1
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_SOURCE_VERSION)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_SOURCE_SUBDIR).tar.gz
 PKG_LICENSE:=Teltonika-closed
@@ -23,7 +23,7 @@ define Package/speedtest
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=Speedtest
-  DEPENDS:=+luajit2 +libcurl +rpcd
+  DEPENDS:=+luajit2 +libcurl +rpcd +api-core
   USERID:=speedtest:speedtest
   FATTRS:=/usr/libexec/rpcd/speedtest:speedtest:speedtest::
 endef
