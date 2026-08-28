@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Must live outside freeradius package so it's ran before freeradius package is installed
+
+FREERADIUS_DIR="/etc/freeradius3"
+
+move_freeradius_files() {
+    local type="$1"
+
+    [ -d "${FREERADIUS_DIR}/${type}-enabled" ] || return 0
+
+    for file in "${FREERADIUS_DIR}/${type}-enabled/"*; do
+        if [ -e "$file" ] && [ ! -L "$file" ]; then
+            mkdir -p "${FREERADIUS_DIR}/${type}-available"
+            mv -f "$file" "${FREERADIUS_DIR}/${type}-available/"
+            ln -f -s "../${type}-available/$(basename "$file")" "$file"
+        fi
+    done
+}
+
+move_freeradius_files "mods"
+move_freeradius_files "sites"
+
+exit 0

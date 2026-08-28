@@ -1,0 +1,30 @@
+Index: u-boot-2021.01/common/image-sig.c
+===================================================================
+--- u-boot-2021.01.orig/common/image-sig.c
++++ u-boot-2021.01/common/image-sig.c
+@@ -77,6 +77,13 @@ struct crypto_algo crypto_algos[] = {
+ 		.verify = rsa_verify,
+ 	},
+ 	{
++		.name = "rsa3072",
++		.key_len = RSA3072_BYTES,
++		.sign = rsa_sign,
++		.add_verify_data = rsa_add_verify_data,
++		.verify = rsa_verify,
++	},
++	{
+ 		.name = "rsa4096",
+ 		.key_len = RSA4096_BYTES,
+ 		.sign = rsa_sign,
+Index: u-boot-2021.01/include/u-boot/rsa.h
+===================================================================
+--- u-boot-2021.01.orig/include/u-boot/rsa.h
++++ u-boot-2021.01/include/u-boot/rsa.h
+@@ -159,6 +159,7 @@ static inline int padding_pss_verify(str
+ #define RSA_DEFAULT_PADDING_NAME		"pkcs-1.5"
+ 
+ #define RSA2048_BYTES	(2048 / 8)
++#define RSA3072_BYTES	(3072 / 8)
+ #define RSA4096_BYTES	(4096 / 8)
+ 
+ /* This is the minimum/maximum key size we support, in bits */

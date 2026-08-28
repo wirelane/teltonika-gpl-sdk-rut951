@@ -16,7 +16,7 @@ BAD_ARGUMENTS=7
 
 #Error codes for WebUI localization purposes
 EC_NO_MANUF="166"
-EC_NOT_QUECTEL="167"
+EC_NOT_SUPPORTED="167"
 EC_NOT_READY="168"
 EC_CONN_ERROR="169"
 EC_NO_UPDATE="170"
@@ -79,7 +79,7 @@ get_value_from_json() {
 #~ #######################FUNCTIONS##############################
 print_help() {
 	cat <<EOF
-	Tool to update modem firmware using Quectel DFOTA
+	Tool to update modem firmware using DFOTA
 	By default script check if update exist
 	Usage: $0 [option] [<modem_id>]
 	Options:
@@ -319,7 +319,7 @@ export_modem_info() {
 }
 
 check_manufacturer() {
-	#Check if modem is from Quectel
+	#Check if modem supports DFOTA
 	local modem_id="$1"
 	local counter=0
 
@@ -333,8 +333,10 @@ check_manufacturer() {
 
 		[ "$manufacturer" = "Telit" ] && [ "$model" = "LE910C4-WWX" ] && return 0
 
+		[ "$manufacturer" = "Telit" ] && [ "$model" = "FN990A-A28" ] && return 0
+
 		[ "$manufacturer" != "" ] && {
-			print_error "DFOTA is unavailable for this modem!" "$EC_NOT_QUECTEL"
+			print_error "DFOTA is unavailable for this modem!" "$EC_NOT_SUPPORTED"
 			return 1
 		}
 
@@ -644,7 +646,7 @@ do_update_EG915Q() {
 	return 0
 }
 
-do_update_telit_le() {
+do_update_telit() {
 	local free_size
 	local dl_file_size
 	local cmd_port
@@ -692,7 +694,7 @@ do_update_telit_le() {
 		curl -s --ssl-reqd --connect-timeout 30 --max-time 900 -L "$download_link" -o "$cmd_port" ${ca_path}
 	fi
 
-	# exit from uplaod mode
+	# exit from upload mode
     sleep 1
 	if ! ubus call "$modem_id" finish_dfota_upload; then
 		print_error "Failed to exit upload mode!" "$EC_EDL_FAILED"
@@ -1059,8 +1061,8 @@ update_loop(){
 				func=do_update_mobile_only
 			elif [ "$modem_fw_prefix" = "EG915Q" ]; then
 				func=do_update_EG915Q
-			elif [ "$modem_model" = "LE910C4-WWX" ]; then
-				func=do_update_telit_le
+			elif [ "$modem_model" = "LE910C4-WWX" ] || [ "$modem_model" = "FN990A-A28" ]; then
+				func=do_update_telit
 			elif [ "$modem_fw_prefix" = "RG520N" ] && [ "$legacy_AT_commands" -eq 0 ]; then
 				max_wait=240
 				func=do_update

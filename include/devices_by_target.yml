@@ -49,6 +49,8 @@ rutc:
   - RUTC50
   - RUTC51
   - RUTC54
+  - RUTC70
+  - RUTC72
 
 rute:
   - OTD144
@@ -109,6 +111,12 @@ tap200:
 
 tap400:
   - TAP400
+
+teg100:
+  - TEG100
+
+ebg1:
+  - EBG140
 
 trb1:
   - TRB140

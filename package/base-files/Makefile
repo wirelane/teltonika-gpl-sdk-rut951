@@ -16,7 +16,7 @@ PKG_FLAGS:=nonshared
 PKG_RELEASE:=$(COMMITCOUNT)
 
 PKG_FILE_DEPENDS:=$(PLATFORM_DIR)/ $(GENERIC_PLATFORM_DIR)/base-files/
-PKG_BUILD_DEPENDS:=ucert/host
+PKG_BUILD_DEPENDS:=ucert/host fwtool/host
 PKG_LICENSE:=GPL-2.0-only
 PKG_LICENSE_FILES:=GPL-2.0
 
@@ -131,7 +131,6 @@ define Package/base-files/install
 	)
 
 	$(VERSION_SED_SCRIPT) \
-		$(1)/etc/openwrt_version \
 		$(1)/usr/lib/os-release
 
 	$(VERSION_SED_SCRIPT) \

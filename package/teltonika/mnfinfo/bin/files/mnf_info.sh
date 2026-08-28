@@ -21,6 +21,7 @@ usage() {
    -Q, --set_iccid <SIM_NUMBER>     Set iccid for <SIM_NUMBER>
    -q, --iccid <ICCID>              <ICCID> to set
                                     \`-p erase\` to erase the ICCID
+   -V, --secure                     Get Secure/Verified boot enabled flag
    -h, --help                       Show help" 1>&2
    exit 1
 }
@@ -149,6 +150,7 @@ while [[ $# -gt 0 ]]; do
 		--pin) spin "$SIMPIN_IDX" "$2" ;;
 		--set_iccid) SIMPIN_IDX="$2"; shift 2; continue ;; # Shift exactly 2 times
 		--iccid) siccid "$SIMPIN_IDX" "$2" ;;
+		--secure) val secure;;
 		--*)
 			echo "Option does not exist: '$1'" 1>&2
 			usage
@@ -163,7 +165,7 @@ done
 
 
 # Short options, possibly combined
-while getopts "hmtnwsbvHFLBxWQd:C:S:P:p:q:" o; do
+while getopts "hmtnwsbvHFLBxWQVd:C:S:P:p:q:" o; do
 	case "${o}" in
 		h) usage ;;
 		m) val mac ;;
@@ -186,6 +188,7 @@ while getopts "hmtnwsbvHFLBxWQd:C:S:P:p:q:" o; do
 		p) spin "$SIMPIN_IDX" "$2" ;;
 		Q) SIMPIN_IDX="$2"; shift 2 ;;
 		q) siccid "$SIMPIN_IDX" "$2" ;;
+		V) val secure ;;
 		*)
 			echo "Option does not exist: '$1'" 1>&2
 			usage

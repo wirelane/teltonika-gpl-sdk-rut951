@@ -1,0 +1,1 @@
+{"network/traffic_shaping/wfq":{"description":"wfq configuration","read":{"api":{"/wfq/*":["*"],"/interfaces/config/*":["id","name","proto"],"/nat_offloading/global/*":["flow_offloading"]}},"write":{"api":["/wfq/*"]}}}

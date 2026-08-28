@@ -780,6 +780,7 @@ typedef enum {
 	LGSM_UBUS_GET_FUNC,
 	LGSM_UBUS_SET_CLIP,
 	LGSM_UBUS_GET_CLIP,
+	LGSM_UBUS_SET_VOICE_PCM,
 	LGSM_UBUS_SET_CRC,
 	LGSM_UBUS_GET_CRC,
 	LGSM_UBUS_SET_SIGNAL_QRY_CFG,
@@ -994,6 +995,16 @@ typedef enum {
 	LGSM_UBUS_GET_SIM_SLOT_CFG,
 	LGSM_UBUS_SET_SIM_SLOT_CFG,
 	//------
+	/* Appended at the end to preserve the ABI: this enum indexes
+	   g_gsm_methods[] and its values are compiled into other libgsm
+	   clients (e.g. mobifd). Inserting in the middle shifts every
+	   later value and makes an un-rebuilt client call the wrong method. */
+	LGSM_UBUS_SET_DTMF_DETECT,
+	LGSM_UBUS_SET_CALL_STATE_URC,
+	LGSM_UBUS_SET_CALL_WAITING,
+	LGSM_UBUS_SET_SPEAKER_VOLUME,
+	LGSM_UBUS_CALL_ACTION,
+	LGSM_UBUS_SET_CLIR,
 	__LGSM_UBUS_MAX,
 } lgsm_method_t;
 
@@ -2337,6 +2348,20 @@ lgsm_err_t lgsm_set_err_fmt(struct ubus_context *ctx, enum err_msg_fmt_id fmt, f
  */
 lgsm_err_t lgsm_set_clip_mode(struct ubus_context *ctx, enum clip_mode_id fmt, func_t *resp,
 			      uint32_t modem_num);
+lgsm_err_t lgsm_set_voice_pcm(struct ubus_context *ctx, bool enable, func_t *resp,
+			      uint32_t modem_num);
+lgsm_err_t lgsm_set_dtmf_detect(struct ubus_context *ctx, bool enabled, bool volte,
+				func_t *resp, uint32_t modem_num);
+lgsm_err_t lgsm_set_call_state_urc(struct ubus_context *ctx, bool enable,
+				   func_t *resp, uint32_t modem_num);
+lgsm_err_t lgsm_set_call_waiting(struct ubus_context *ctx, bool enable,
+				 func_t *resp, uint32_t modem_num);
+lgsm_err_t lgsm_set_speaker_volume(struct ubus_context *ctx, uint32_t level,
+				   func_t *resp, uint32_t modem_num);
+lgsm_err_t lgsm_call_action(struct ubus_context *ctx, const char *action,
+			    int call_idx, func_t *resp, uint32_t modem_num);
+lgsm_err_t lgsm_set_clir(struct ubus_context *ctx, int mode,
+			 func_t *resp, uint32_t modem_num);
 /**
  * Set modem functionality mode
  * @param[ptr]  ctx   	    Ubus ctx.

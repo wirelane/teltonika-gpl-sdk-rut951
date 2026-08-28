@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openssl
-PKG_VERSION:=3.0.21
+PKG_VERSION:=3.5.7
 PKG_RELEASE:=4
 PKG_BUILD_FLAGS:=no-mips16 gc-sections no-lto
 
@@ -16,7 +16,7 @@ PKG_BUILD_PARALLEL:=1
 
 PKG_BASE:=$(subst $(space),.,$(wordlist 1,2,$(subst .,$(space),$(PKG_VERSION))))
 
-PKG_SOURCE_VERSION:=3.0.21
+PKG_SOURCE_VERSION:=3.5.7
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_SOURCE_VERSION).tar.gz
 PKG_SOURCE_URL:= \
 	http://www.openssl.org/source/ \
@@ -27,7 +27,7 @@ PKG_SOURCE_URL:= \
 	ftp://ftp.pca.dfn.de/pub/tools/net/openssl/source/old/$(PKG_BASE)/
 
 
-PKG_HASH:=617e29af8e421f46649484a4937e48c685e47f46488167c982f88bc4ec1d522f
+PKG_HASH:=a8c0d28a529ca480f9f36cf5792e2cd21984552a3c8e4aa11a24aa31aeac98e8
 
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILES:=LICENSE.txt
@@ -64,7 +64,9 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_OPENSSL_WITH_SRP \
 	CONFIG_OPENSSL_WITH_SSE2 \
 	CONFIG_OPENSSL_WITH_TLS13 \
-	CONFIG_OPENSSL_WITH_WHIRLPOOL
+	CONFIG_OPENSSL_WITH_WHIRLPOOL \
+	CONFIG_OPENSSL_WITH_ECX \
+	CONFIG_OPENSSL_WITH_POST_QUANTUM
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/openssl-module.mk
@@ -221,7 +223,18 @@ and https://openwrt.org/docs/techref/hardware/cryptographic.hardware.accelerator
 The engine_id is "padlock"
 endef
 
-OPENSSL_OPTIONS:= shared no-tests
+OPENSSL_OPTIONS:= shared no-tests no-docs
+
+# We currently don't need these feature, but they could be re-enabled them in the future if we see a need for them.
+OPENSSL_OPTIONS += no-thread-pool no-quic no-integrity-only-ciphers
+
+ifndef CONFIG_OPENSSL_WITH_ECX
+  OPENSSL_OPTIONS += no-ecx
+endif
+
+ifndef CONFIG_OPENSSL_WITH_POST_QUANTUM
+  OPENSSL_OPTIONS += no-ml-kem no-ml-dsa no-slh-dsa
+endif
 
 ifndef CONFIG_OPENSSL_WITH_BLAKE2
   OPENSSL_OPTIONS += no-blake2
@@ -297,6 +310,7 @@ endif
 
 ifeq ($(CONFIG_OPENSSL_SMALL_FOOTPRINT),y)
   OPENSSL_OPTIONS += -DOPENSSL_SMALL_FOOTPRINT
+  OPENSSL_OPTIONS += no-sm2-precomp
 endif
 
 ifdef CONFIG_OPENSSL_ENGINE
@@ -364,14 +378,14 @@ STAMP_CONFIGURED := $(STAMP_CONFIGURED)_$(shell echo $(OPENSSL_OPTIONS) | $(MKHA
 
 define Build/Configure
 	(cd $(PKG_BUILD_DIR); \
+		CFLAGS="$(TARGET_CFLAGS)" \
+		CPPFLAGS="$(TARGET_CPPFLAGS)" \
+		LDFLAGS="$(TARGET_LDFLAGS)" \
 		./Configure $(OPENSSL_TARGET) \
 			--prefix=/usr \
 			--libdir=lib \
 			--openssldir=/etc/ssl \
 			--cross-compile-prefix="$(TARGET_CROSS)" \
-			$(TARGET_CFLAGS) \
-			$(TARGET_CPPFLAGS) \
-			$(TARGET_LDFLAGS) \
 			$(OPENSSL_OPTIONS) && \
 		{ [ -f $(STAMP_CONFIGURED) ] || make clean; } \
 	)
@@ -383,7 +397,6 @@ define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		CC="$(TARGET_CC)" \
 		SOURCE_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
-		OPENWRT_OPTIMIZATION_FLAGS="$(TARGET_CFLAGS)" \
 		$(OPENSSL_MAKEFLAGS) \
 		all
 	$(MAKE) -C $(PKG_BUILD_DIR) \
