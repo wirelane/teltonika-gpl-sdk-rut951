@@ -74,7 +74,8 @@ define Device/TEMPLATE_teltonika_rut901
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.3.1
 	DEVICE_FEATURES += small_flash
 
-	HARDWARE/Mobile/Modem := Quectel EC200A-EU, Quectel EC200A-AU, Teltonika ALA440
+	HARDWARE/Mobile/Module := 4G LTE Cat 4 up to 150 DL/50 UL Mbps; 3G up to 21 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps || 4G LTE Cat 4 up to 75 DL/50 UL Mbps; 3G up to 42 DL/5.76 UL Mbps; 2G up to 236.8 DL/236.8 UL kbps
+	HARDWARE/Mobile/Modem := Quectel EC200A-EU, Quectel EC200A-AU || Teltonika ALA440
 	HARDWARE/Mobile/3GPP_Release := Release 9
 	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi antenna connectors
 	TECHNICAL/Input_Output/Input := 1 $(HW_INPUT_DI_30V)
@@ -281,7 +282,7 @@ define Device/TEMPLATE_teltonika_rut976
 	DEVICE_INITIAL_FIRMWARE_SUPPORT := 7.12.1
 
 	HARDWARE/Mobile/Module := 5G up to 223 DL/ 123 UL Mbps; 4G LTE up to 195 DL/ 105 UL Mbps
-	HARDWARE/Mobile/Modem := Quectel RG255C-GL
+	HARDWARE/Mobile/Modem := Quectel RG255C-GL, Telit FE910C04-WWD
 	HARDWARE/Mobile/3GPP_Release := Release 17
 	TECHNICAL/Physical_Interfaces/IO := $(HW_INTERFACE_IO_10PIN)
 	TECHNICAL/Physical_Interfaces/Antennas := 2 x SMA for LTE, 2 x RP-SMA for Wi-Fi, 1 x SMA for GNSS

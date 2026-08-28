@@ -8,6 +8,72 @@ PKG_GPL_BUILD_DIR ?= $(if $(PKG_VUCI_BUILD_DIR),$(PKG_VUCI_BUILD_DIR),$(PKG_NORM
 
 IS_TLT_LIC := $(findstring Teltonika-,$(PKG_LICENSE))
 IS_NDA_SRC := $(findstring Teltonika-nda-source,$(PKG_LICENSE))
+IS_TLT_CLOSED := $(filter Teltonika-closed,$(PKG_LICENSE))
+
+TLT_PREBUILT_HAS_SRC := $(or $(strip $(PKG_SOURCE_URL)),$(strip $(PKG_UPSTREAM_URL)))
+
+TLT_PREBUILT_DEV_GOALS := develop stage unstage clean uclean refresh update dist distcheck download download_upstream prereq check check-depends gpl-install
+TLT_PREBUILT_EXCLUDED := $(or $(CONFIG_GPL_BUILD),$(PKG_PREBUILT_SKIP),$(USE_SOURCE_DIR),$(USE_GIT_TREE),$(USE_GIT_SRC_CHECKOUT),$(wildcard git),$(filter $(TLT_PREBUILT_DEV_GOALS),$(MAKECMDGOALS)))
+
+TLT_PREBUILT_USE := $(if $(and $(IS_TLT_CLOSED),$(TLT_PREBUILT_HAS_SRC),$(if $(TLT_PREBUILT_EXCLUDED),,1),$(if $(CONFIG_TLT_PREBUILT_SAVE),,1)),1)
+TLT_PREBUILT_SAVE := $(if $(and $(CONFIG_TLT_PREBUILT_SAVE),$(IS_TLT_CLOSED),$(TLT_PREBUILT_HAS_SRC),$(if $(TLT_PREBUILT_EXCLUDED),,1)),1)
+
+PREBUILT_CACHE_DIR ?= $(TMPDIR)/prebuilt
+TLT_PREBUILT_VER = $(if $(PKG_SOURCE_VERSION),$(PKG_SOURCE_VERSION),$(PKG_VERSION))$(if $(PKG_RELEASE),-r$(PKG_RELEASE))
+
+TLT_PREBUILT_TARGET = $(if $(PROFILE_EX),$(subst DEVICE_,,$(PROFILE_EX)),$(BOARD_EX)_$(SUBTARGET_EX))_$(PKGARCH)
+
+TLT_PREBUILT_FILE = $(PREBUILT_CACHE_DIR)/$(PKG_NAME)/$(TLT_PREBUILT_VER)/$(TLT_PREBUILT_TARGET).tar.gz
+TLT_PREBUILT_ARTIFACT = build-cache-$(TLT_PREBUILT_TARGET).tar.gz
+TLT_PREBUILT_URL = $(TLT_PACKAGE_API)/$(PKG_NAME)/$(TLT_PREBUILT_VER)/$(TLT_PREBUILT_ARTIFACT)
+TLT_PREBUILT_AUTH = $(if $(CI_JOB_TOKEN),"JOB-TOKEN: $(CI_JOB_TOKEN)","PRIVATE-TOKEN: $(API_TOKEN)")
+
+tlt_prebuilt_available = $(if $(wildcard $(TLT_PREBUILT_FILE)),1,$(shell curl -fsIL --header $(TLT_PREBUILT_AUTH) "$(TLT_PREBUILT_URL)" >/dev/null 2>&1 && echo 1))
+
+define tlt_prebuilt_save
+	$(call gpl_install_closed)
+	mkdir -p "$(dir $(TLT_PREBUILT_FILE))"
+	$(TAR) --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C "$(PKG_GPL_BUILD_DIR)/bin" -cf - . | gzip -n > "$(TLT_PREBUILT_FILE)"
+	$(if $(or $(CI_JOB_TOKEN),$(API_TOKEN)),\
+		if curl -fsSL --header $(TLT_PREBUILT_AUTH) "$(TLT_PREBUILT_URL)" -o "$(TLT_PREBUILT_FILE).remote" 2>/dev/null \
+			&& cmp -s "$(TLT_PREBUILT_FILE).remote" "$(TLT_PREBUILT_FILE)"; then \
+			$(call MESSAGE,[prebuilt] $(PKG_NAME) already in registry with matching content - skipping upload); \
+		else \
+			$(call MESSAGE,[prebuilt] uploading $(PKG_NAME) -> $(TLT_PREBUILT_URL)); \
+			curl -fsS --header $(TLT_PREBUILT_AUTH) --upload-file "$(TLT_PREBUILT_FILE)" "$(TLT_PREBUILT_URL)" \
+				|| { $(call ERROR_MESSAGE,[prebuilt] WARNING: registry upload failed for $(PKG_NAME)); true; }; \
+		fi; \
+		rm -f "$(TLT_PREBUILT_FILE).remote",\
+		$(call MESSAGE,[prebuilt] no CI_JOB_TOKEN/API_TOKEN - kept local only - skipping registry upload))
+endef
+
+define tlt_prebuilt_save_rule
+$(TLT_PREBUILT_FILE): $(STAMP_BUILT)
+	$$(call tlt_prebuilt_save)
+$(_pkg_target)compile: $(TLT_PREBUILT_FILE)
+endef
+
+define Build/Prepare/Prebuilt
+	@mkdir -p "$(dir $(TLT_PREBUILT_FILE))"; \
+	curl -fsSL --header $(TLT_PREBUILT_AUTH) "$(TLT_PREBUILT_URL)" -o "$(TLT_PREBUILT_FILE).remote" 2>/dev/null || true; \
+	if [ -s "$(TLT_PREBUILT_FILE).remote" ]; then \
+		if cmp -s "$(TLT_PREBUILT_FILE).remote" "$(TLT_PREBUILT_FILE)"; then \
+			rm -f "$(TLT_PREBUILT_FILE).remote"; \
+		else \
+			mv "$(TLT_PREBUILT_FILE).remote" "$(TLT_PREBUILT_FILE)"; \
+		fi; \
+	else \
+		rm -f "$(TLT_PREBUILT_FILE).remote"; \
+	fi; \
+	if [ ! -f "$(TLT_PREBUILT_FILE)" ]; then \
+		$(call ERROR_MESSAGE,[prebuilt] ERROR: no cache for $(PKG_NAME) locally or in registry); \
+		$(call ERROR_MESSAGE,[prebuilt]   url: $(TLT_PREBUILT_URL)); \
+		$(call ERROR_MESSAGE,[prebuilt]   produce it with CONFIG_TLT_PREBUILT_SAVE=y or set API_TOKEN to pull); \
+		exit 1; \
+	fi
+	$(call MESSAGE,[prebuilt] restoring $(PKG_NAME) from $(TLT_PREBUILT_FILE))
+	$(TAR) -C "$(PKG_BUILD_DIR)" -xzf "$(TLT_PREBUILT_FILE)"
+endef
 
 define gpl_clear_install
 	[ -e "$(1)/Makefile" ] && \
