@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iomand
 
-PKG_SOURCE_VERSION:=2.28.2
+PKG_SOURCE_VERSION:=2.28.3
 
 PKG_LICENSE:=Teltonika-closed
 

@@ -100,6 +100,10 @@ define Package/busybox/conffiles
 ifdef CONFIG_BUSYBOX_CONFIG_FEATURE_SYSLOG
 /etc/syslog.conf
 endif
+ifdef CONFIG_BUSYBOX_CONFIG_FEATURE_PASSWORD_POLICY
+/etc/config/password_policy
+/etc/security/opasswd
+endif
 endef
 
 define Package/untpd
@@ -243,10 +247,12 @@ ifneq ($(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_NTPD),)
 	$(INSTALL_DATA) ./files/ntpd_acl.json $(1)/usr/share/acl.d/ntpd.json
 endif
 ifneq ($(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_FEATURE_PASSWORD_POLICY),)
-	$(INSTALL_DIR) $(1)/etc/profile.d $(1)/etc/permtab.d
+	$(INSTALL_DIR) $(1)/etc/profile.d $(1)/etc/permtab.d $(1)/etc/security
 	$(INSTALL_CONF_USR) ./files/password_policy.conf $(1)/etc/config/password_policy
 	$(INSTALL_BIN) ./files/check_password_expiration.sh $(1)/etc/profile.d/check_password_expiration.sh
 	$(INSTALL_DATA) ./files/password_policy.permtab $(1)/etc/permtab.d/password_policy
+	touch $(1)/etc/security/opasswd
+	chmod 0640 $(1)/etc/security/opasswd
 endif
 	-rm -rf $(1)/lib64
 endef

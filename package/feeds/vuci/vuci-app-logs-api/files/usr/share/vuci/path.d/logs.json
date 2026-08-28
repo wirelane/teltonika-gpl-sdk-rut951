@@ -1,1 +1,1 @@
-[{"endpoint":"/events_log/{service_group}/{?sid}","lua_service":"status/events_log","backup_order":32}]
+[{"endpoint":"/events_log/{service_group}/{?sid}","lua_service":"status/events_log","backup_order":33}]

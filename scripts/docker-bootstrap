@@ -2,7 +2,7 @@
 
 IMG_NAME_PREFIX=git.teltonika.lt:4567/docker/buildsys/
 IMG_NAME=${IMG_NAME:-${IMG_NAME_PREFIX}tools}
-IMG_TAG=${IMG_TAG:-3.6}
+IMG_TAG=${IMG_TAG:-3.8}
 
 # Color codes
 RED='\033[0;31m'
@@ -100,7 +100,7 @@ echo "$IMG_NAME" | grep -q '/buildsys/' && {
 	TOKEN=aCb3RawxFnwuSZymE7XM
 }
 echo "$IMG_NAME" | grep -qP '(^|/)tbot' && {
-	TOKEN=bb9IvKvWTEFTlKf7i1A9v286MQp1OmZmCA.01.0y003o9dw
+	TOKEN=ZCDWZn9ZgHLstMWSwqxqq286MQp1OjE1cQk.01.0z0dobqw2
 	FUNC=run_tbot
 }
 

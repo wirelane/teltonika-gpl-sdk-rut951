@@ -31,7 +31,7 @@ define Package/rms_mqtt
 	CATEGORY:=Base system
 	TITLE:=MQTT application for RMS by Teltonika
 	DEPENDS:=+libmosquitto +libmnfinfo +libopenssl +libuci +MOBILE_SUPPORT:libgsm \
-			+libblobmsg-json +libubox +libubus +libpthread +libtlt_uci +libboardjson
+			+libblobmsg-json +libubox +libubus +libpthread +libtlt_uci +libboardjson +luasocket +luasec
 	USERID:=rms=552:rms=552
 	#FATTRS:=/usr/sbin/rms_mqtt::::cap_setuid,cap_setgid=ep
 endef
