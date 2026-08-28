@@ -105,11 +105,15 @@ sub target_config_features(@) {
 		/^no-wired-wan$/ and $ret .= "\tselect NO_WIRED_WAN\n";
 		/^test-image$/ and $ret .= "\tselect TEST_IMAGE\n";
 		/^can-stm$/ and $ret .= "\tselect CAN_BUS_STM\n";
+		/^fxs$/ and $ret .= "\tselect SOUND_FXS\n";
 		/^consumer_access_point$/ and $ret .= "\tselect CONSUMER_AP\n";
 		/^hid_buttons$/ and $ret .= "\tselect HID_BUTTON_SUPPORT\n";
 		/^iec60870_client$/ and $ret .= "\tselect IEC60870_CLIENT_SUPPORT\n";
 		/^iec60870_server$/ and $ret .= "\tselect IEC60870_SERVER_SUPPORT\n";
+		/^asterisk$/ and $ret .= "\tselect HAS_ASTERISK\n";
 		/^power_manager$/ and $ret .= "\tselect POWER_MANAGER_SUPPORT\n";
+		/^sip-gw$/ and $ret .= "\tselect SIP_GATEWAY\n";
+
 	}
 	return $ret;
 }

@@ -297,6 +297,9 @@ define Build/CoreTargets
 endef
 
 define Build/DefaultTargets
+  $(if $(DUMP),,\
+    $(if $(and $(TLT_PREBUILT_USE),$(call tlt_prebuilt_available)),$(eval PKG_SKIP_DOWNLOAD:=1)$(eval Build/Prepare=$$(call Build/Prepare/Prebuilt))$(eval Build/Configure=)$(eval Build/Compile=)$(eval Build/Install=),$(if $(TLT_PREBUILT_USE),$(info $(shell $(call ERROR_MESSAGE,Warning: no prebuilt cache for $(PKG_NAME) locally or in registry - building from source))))) \
+    $(if $(TLT_PREBUILT_SAVE),$(eval $(call tlt_prebuilt_save_rule))))
   $(if $(PKG_SKIP_DOWNLOAD),,$(if $(or $(strip $(PKG_SOURCE_URL)),$(strip $(PKG_UPSTREAM_URL))),$(call Download,default,$(if $(strip $(PKG_SOURCE_URL)),,skip-source))))
   $(if $(DUMP),,$(Build/CoreTargets))
 

@@ -99,12 +99,15 @@ enum modem_lte_band_id {
 	/* */
 	MB_LTE_B66 = (1ULL << 33), //!< LTE B66
 	/* */
-	MB_LTE_B71 = (1ULL << 34), //!< LTE B71
-	MB_LTE_B72 = (1ULL << 35), //!< LTE B72
-	MB_LTE_B73 = (1ULL << 36), //!< LTE B73
+	MB_LTE_B70 = (1ULL << 34), //!< LTE B70
+	MB_LTE_B71 = (1ULL << 35), //!< LTE B71
+	MB_LTE_B72 = (1ULL << 36), //!< LTE B72
+	MB_LTE_B73 = (1ULL << 37), //!< LTE B73
 	/* */
-	MB_LTE_B85 = (1ULL << 37), //!< LTE B85
-	MB_LTE_B87 = (1ULL << 38), //!< LTE B87
+	MB_LTE_B85 = (1ULL << 38), //!< LTE B85
+	MB_LTE_B87 = (1ULL << 39), //!< LTE B87
+	/* */
+	MB_LTE_B106 = (1ULL << 40), //!< LTE B106
 
 	__MB_LTE_MAX,
 	__MB_LTE_ALIGN = ULLONG_MAX,
@@ -162,12 +165,13 @@ enum modem_lte_nb_band_id {
 	/* */
 	MB_LTE_NB66 = (1ULL << 33), //!< LTE B66
 	/* */
-	MB_LTE_NB71 = (1ULL << 34), //!< LTE B71
-	MB_LTE_NB72 = (1ULL << 35), //!< LTE B72
-	MB_LTE_NB73 = (1ULL << 36), //!< LTE B73
+	MB_LTE_NB70 = (1ULL << 34), //!< LTE B70
+	MB_LTE_NB71 = (1ULL << 35), //!< LTE B71
+	MB_LTE_NB72 = (1ULL << 36), //!< LTE B72
+	MB_LTE_NB73 = (1ULL << 37), //!< LTE B73
 	/* */
-	MB_LTE_NB85 = (1ULL << 37), //!< LTE B85
-	MB_LTE_NB87 = (1ULL << 38), //!< LTE B87
+	MB_LTE_NB85 = (1ULL << 38), //!< LTE B85
+	MB_LTE_NB87 = (1ULL << 39), //!< LTE B87
 
 	__MB_LTE_NB_MAX,
 	__MB_LTE_NB_ALIGN = ULLONG_MAX,
@@ -262,23 +266,25 @@ enum modem_5g_band_id {
 	MB_5G_N29 = (1ULL << 15), //!< 5G N29
 	MB_5G_N30 = (1ULL << 16), //!< 5G N30
 	/* */
-	MB_5G_N38 = (1ULL << 17), //!< 5G N38
+	MB_5G_N34 = (1ULL << 17), //!< 5G N34
+	MB_5G_N38 = (1ULL << 18), //!< 5G N38
+	MB_5G_N39 = (1ULL << 19), //!< 5G N39
 	/* */
-	MB_5G_N40 = (1ULL << 18), //!< 5G N40
-	MB_5G_N41 = (1ULL << 19), //!< 5G N41
+	MB_5G_N40 = (1ULL << 20), //!< 5G N40
+	MB_5G_N41 = (1ULL << 21), //!< 5G N41
 	/* */
-	MB_5G_N48 = (1ULL << 20), //!< 5G N48
+	MB_5G_N48 = (1ULL << 22), //!< 5G N48
 	/* */
-	MB_5G_N66 = (1ULL << 21), //!< 5G N66
+	MB_5G_N66 = (1ULL << 23), //!< 5G N66
 	/* */
-	MB_5G_N70 = (1ULL << 22), //!< 5G N70
-	MB_5G_N71 = (1ULL << 23), //!< 5G N71
+	MB_5G_N70 = (1ULL << 24), //!< 5G N70
+	MB_5G_N71 = (1ULL << 25), //!< 5G N71
 	/* */
-	MB_5G_N75 = (1ULL << 24), //!< 5G N75
-	MB_5G_N76 = (1ULL << 25), //!< 5G N76
-	MB_5G_N77 = (1ULL << 26), //!< 5G N77
-	MB_5G_N78 = (1ULL << 27), //!< 5G N78
-	MB_5G_N79 = (1ULL << 28), //!< 5G N79
+	MB_5G_N75 = (1ULL << 26), //!< 5G N75
+	MB_5G_N76 = (1ULL << 27), //!< 5G N76
+	MB_5G_N77 = (1ULL << 28), //!< 5G N77
+	MB_5G_N78 = (1ULL << 29), //!< 5G N78
+	MB_5G_N79 = (1ULL << 30), //!< 5G N79
 
 	__MB_5G_MAX,
 	__MB_5G_ALIGN = ULLONG_MAX,

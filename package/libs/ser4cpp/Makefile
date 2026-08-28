@@ -38,3 +38,4 @@ define Build/InstallDev
 endef
 
 $(eval $(call BuildPackage,ser4cpp))
+

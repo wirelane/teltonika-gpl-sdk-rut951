@@ -12,8 +12,8 @@ menu "Target Images"
 		select BUILD_BOOTLOADER
 
 	config BUILD_VERIFIED_BOOT_IMAGE
-		bool "Build Factory image with verified boot bootloader"
-		depends on VERIFIED_BOOT_SUPPORT
+		bool "Build firmware with U-Boot's Verified Boot support"
+		select VERIFIED_BOOT_SUPPORT
 
 	config BUILD_FACTORY_TEST_IMAGE
 		bool "Build Factory test image"
