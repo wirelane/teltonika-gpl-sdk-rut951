@@ -83,7 +83,7 @@ Index: ubox-2020-10-25-9ef88681/log/logread.c
  
  	if (!check_facility_filter(LOG_FAC(p)))
  			return 0;
-@@ -288,18 +321,36 @@ static int log_notify(struct blob_attr *
+@@ -288,13 +321,40 @@ static int log_notify(struct blob_attr *
  		}
  	} else {
  		if (msg_sender && db_flag == 1 && log_db_init) {
@@ -95,6 +95,24 @@ Index: ubox-2020-10-25-9ef88681/log/logread.c
 +					facility_name = "SYSTEM";
 +				}
 +			}
++
++			if (m) {
++				size_t sender_len = strlen(msg_sender);
++				if (strncmp(m, msg_sender, sender_len) == 0 && m[sender_len] == ':') {
++					m += sender_len + 1;
++					while (*m == ' ')
++						m++;
++				}
++			}
++
++			snprintf(buf, sizeof(buf), "%u %s %s%s.%s %s: %s\n",
++				 id, c, log_timestamp ? buf_ts : "",
++				 facility_name,
++				 getcodetext(LOG_PRI(p), prioritynames),
++				 msg_sender,
++				 m);
++
++			ret = write(sender.fd, buf, strlen(buf));
 +
 +			action = find_action((char *)facility_name);
  			sqlite3_stmt *stmt = NULL;
@@ -108,28 +126,22 @@ Index: ubox-2020-10-25-9ef88681/log/logread.c
  
  			if((stmt = db_prepare(INSERT_QUERY)) == NULL) {
  				return -1;
- 			}
+@@ -316,7 +376,6 @@ static int log_notify(struct blob_attr *
  
-+			if (m) {
-+				size_t sender_len = strlen(msg_sender);
-+				if (strncmp(m, msg_sender, sender_len) == 0 && m[sender_len] == ':') {
-+					m += sender_len + 1;
-+					while (*m == ' ')
-+						m++;
-+				}
-+			}
-+
- 			int i = 1;
- 			if ( sqlite3_bind_int64(stmt, i++, t) != SQLITE_OK ||
- 				sqlite3_bind_text(stmt, i++, msg_sender, strlen(msg_sender), SQLITE_STATIC) != SQLITE_OK ||
-@@ -327,16 +378,19 @@ static int log_notify(struct blob_attr *
+ 			if (stmt)
+ 				sqlite3_finalize(stmt);
+-
+ 		} else if (msg_sender && log_db_init) {
+ 			snprintf(buf, sizeof(buf), "%u %s %s%s.%s %s: %s\n",
+ 				 id, c, log_timestamp ? buf_ts : "",
+@@ -327,16 +386,19 @@ static int log_notify(struct blob_attr *
  
  			ret = write(sender.fd, buf, strlen(buf));
  		} else {
-+			const char *prefix = getcodetext(src, custom_facilitynames);
-+			if (prefix && strcmp(prefix, "<unknown>") == 0) {
-+				prefix = getcodetext(LOG_FAC(p) << 3, custom_facilitynames);
-+			}
++			int facility = LOG_FAC(p) << 3;
++			if (facility == 0)
++				facility = src;
++			const char *prefix = getcodetext(facility, custom_facilitynames);
  			snprintf(buf, sizeof(buf), "%u %s %s%s.%s%s %s\n",
 -				 id, c, log_timestamp ? buf_ts : "",
 -				 getcodetext(LOG_FAC(p) << 3, facilitynames),
@@ -587,6 +599,21 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
  
  struct log_entry {
  	unsigned int id;
+@@ -86,10 +99,10 @@ CODE log_facility_names[] = {
+ 	{ "security" },
+ 	{ "console" },
+ 	{ "cron" },
+-	{ "local0" },
+-	{ "local1" },
+-	{ "local2" },
+-	{ "local3" },
++	{ "events" },       // local0 is "events"
++	{ "system" },       // local1 is "system"
++	{ "network" },      // local2 is "network"
++	{ "connections" },  // local3 is "connections"
+ 	{ "local4" },
+ 	{ "local5" },
+ 	{ "local6" },
 @@ -142,8 +155,11 @@ log_add(char *buf, int size, int source)
  	regmatch_t matches[4];
  	struct log_head *next;
@@ -667,16 +694,55 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
  }
  
  static void log_add_entry(struct log_entry *entry) {
-@@ -240,7 +288,7 @@ static void log_add_entry(struct log_ent
+@@ -228,6 +276,15 @@ static void log_add_entry(struct log_ent
+ 
+ 	entry->msg[size - 1] = 0;
+ 
++	if (entry->sender && entry->sender[0]) {
++		char line[LOG_LINE_SIZE];
++		int len = snprintf(line, sizeof(line), "%s: %s", entry->sender, entry->msg);
++		if (len >= (int)sizeof(line))
++			len = sizeof(line) - 1;
++		current_id = entry->id;
++		log_add_extended(line, len + 1, entry->sender, entry->source, entry->priority, 0, entry->timestamp);
++		return;
++	}
+ 
+ 	next = log_wrap(size);
+ 
+@@ -239,15 +296,11 @@ static void log_add_entry(struct log_ent
+ 	strcpy(newest->data, entry->msg);
  	newest->ts.tv_sec = entry->timestamp;
  
- 	if (entry->sender) {
+-	if (entry->sender) {
 -		ubus_notify_log_extended(newest, entry->sender, 0);
-+		log_add_extended(entry->msg, size, entry->sender, entry->source, entry->priority, 1);
- 	} else {
- 		ubus_notify_log(newest);
- 	}
-@@ -307,7 +355,6 @@ syslog_handle_fd(struct uloop_fd *fd, un
+-	} else {
+-		ubus_notify_log(newest);
+-	}
++	ubus_notify_log(newest);
+ 	newest = next;
+ }
+ 
+-int log_add_extended(char *buf, int size, const char *sender, int source, int prio, int db_flag)
++int log_add_extended(char *buf, int size, const char *sender, int source, int prio, int db_flag, time_t ts)
+ {
+ 	struct log_head *next;
+ 	char *c;
+@@ -279,7 +332,12 @@ int log_add_extended(char *buf, int size
+ 	newest->id = current_id++;
+ 	newest->priority = prio;
+ 	newest->source = source;
+-	clock_gettime(CLOCK_REALTIME, &newest->ts);
++	if (ts) {
++		newest->ts.tv_sec = ts;
++		newest->ts.tv_nsec = 0;
++	} else {
++		clock_gettime(CLOCK_REALTIME, &newest->ts);
++	}
+ 	strcpy(newest->data, buf);
+ 
+ 	ubus_notify_log_extended(newest, sender, db_flag);
+@@ -307,7 +365,6 @@ syslog_handle_fd(struct uloop_fd *fd, un
  			break;
  
  		buf[len] = 0;
@@ -684,7 +750,7 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
  		log_add(buf, strlen(buf) + 1, SOURCE_SYSLOG);
  	}
  }
-@@ -459,23 +506,178 @@ static void parse_log_line(const char *l
+@@ -459,23 +516,178 @@ static void parse_log_line(const char *l
  	entry->priority = (entry->source * 8) + severity_code;
  }
  
@@ -719,7 +785,7 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
 +		cfg.eventlog_level = atoi(v);
 +	if ((v = uci_lookup_option_string(ctx, s, "service_logs")))
 +		cfg.service_logs = atoi(v);
-+	if ((v = uci_lookup_option_string(ctx, s, "log_path")))
++	if ((v = uci_lookup_option_string(ctx, s, "log_file")))
 +		strncpy(cfg.log_path, v, sizeof(cfg.log_path) - 1);
 +
 +	parse_level_bitmask(ctx, s, "log_levels", &cfg.global_levels);
@@ -745,7 +811,7 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
 +
 +	if (old_services[old_idx].levels != new_levels)
 +		return true; // Levels changed
-+
+ 
 +	// Preserve old notify state if levels unchanged
 +	int temp_idx = find_service_index(temp_services, old_count, name);
 +	if (temp_idx >= 0)
@@ -763,7 +829,7 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
 +		if (!(isalnum(*p) || *p == '_' || *p == '-'))
 +			return false;
 +	}
- 
++
 +	if (strstr(name, ".."))
 +		return false;
 +
@@ -840,10 +906,8 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
  		fprintf(stderr, "Failed to allocate UCI context\n");
 -		return NULL;
 +		return;
- 	}
- 
--	if (uci_lookup_ptr(ctx, &ptr, uci_path, true) == UCI_OK && ptr.o && ptr.o->type == UCI_TYPE_STRING) {
--		log_file = strdup(ptr.o->v.string);
++	}
++
 +	struct uci_package *pkg = NULL;
 +	if (uci_load(ctx, "log", &pkg) != UCI_OK) {
 +		fprintf(stderr, "Failed to load log configuration, using defaults\n");
@@ -851,6 +915,8 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
 +		return;
  	}
  
+-	if (uci_lookup_ptr(ctx, &ptr, uci_path, true) == UCI_OK && ptr.o && ptr.o->type == UCI_TYPE_STRING) {
+-		log_file = strdup(ptr.o->v.string);
 +	struct uci_element *e;
 +	uci_foreach_element (&pkg->sections, e) {
 +		struct uci_section *s = uci_to_section(e);
@@ -861,8 +927,8 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
 +			parse_service_config(ctx, s, reload, old_global_levels, old_services,
 +					     old_service_count, temp_services);
 +		}
-+	}
-+
+ 	}
+ 
 +	if (reload)
 +		update_global_level_changes(old_global_levels, old_services, old_service_count);
 +
@@ -872,17 +938,16 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
  }
  
  static int compare_files(const void *a, const void *b) {
-@@ -649,11 +851,189 @@ log_buffer_init(int size)
+@@ -649,11 +861,189 @@ log_buffer_init(int size)
  	return 0;
  }
  
 -void
 -log_init(int _log_size)
 +static int handle_client_msg(int fd)
- {
--	char *log_file = load_log_path();
++{
 +	char buf[256];
- 
++
 +	int n = read(fd, buf, sizeof(buf) - 1);
 +	if (n < 0) {
 +		if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -934,7 +999,8 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
 +}
 +
 +static int add_client(int fd)
-+{
+ {
+-	char *log_file = load_log_path();
 +	pthread_mutex_lock(&clients_mtx);
 +
 +	for (int i = 0; i < MAX_CLIENTS; i++) {
@@ -949,7 +1015,7 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
 +	pthread_mutex_unlock(&clients_mtx);
 +	return -1;
 +}
-+
+ 
 +static void setup_fd_set(fd_set *read_fds, int *max_fd)
 +{
 +	FD_ZERO(read_fds);
@@ -1065,7 +1131,7 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.c
  	if (_log_size > 0)
  		log_size = _log_size;
  
-@@ -664,16 +1044,24 @@ log_init(int _log_size)
+@@ -664,16 +1054,24 @@ log_init(int _log_size)
  		fprintf(stderr, "Failed to allocate log memory\n");
  		exit(-1);
  	}
@@ -1113,7 +1179,7 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.h
  
  enum {
  	SOURCE_KLOG = 0,
-@@ -32,7 +39,23 @@ struct log_head {
+@@ -32,14 +39,30 @@ struct log_head {
  	char data[];
  };
  
@@ -1137,6 +1203,14 @@ Index: ubox-2020-10-25-9ef88681/log/syslog.h
  void log_shutdown(void);
  
  typedef void (*log_list_cb)(struct log_head *h);
+ struct log_head* log_list(int count, struct log_head *h);
+ int log_buffer_init(int size);
+ void log_add(char *buf, int size, int source);
+-int log_add_extended(char *buf, int size, const char *sender, int source, int prio, int db_flag);
++int log_add_extended(char *buf, int size, const char *sender, int source, int prio, int db_flag, time_t ts);
+ void ubus_notify_log(struct log_head *l);
+ void ubus_notify_log_extended(struct log_head *l, const char *sender, int db_flag);
+ 
 Index: ubox-2020-10-25-9ef88681/log/logd.c
 ===================================================================
 --- ubox-2020-10-25-9ef88681.orig/log/logd.c
@@ -1157,7 +1231,7 @@ Index: ubox-2020-10-25-9ef88681/log/logd.c
 +			syslog_num = table;
 +	}
 +
-+	if (log_add_extended(event, strlen(event) + 1, sender, syslog_num, priority, write_db) != 0)
++	if (log_add_extended(event, strlen(event) + 1, sender, syslog_num, priority, write_db, 0) != 0)
  		return UBUS_STATUS_UNKNOWN_ERROR;
  
  	return UBUS_STATUS_OK;

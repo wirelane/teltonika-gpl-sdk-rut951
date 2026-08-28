@@ -403,8 +403,8 @@ DEVICE_HARDWARE_VARS = \
   HARDWARE/Mobile/3GPP_Release/Tooltip \
   HARDWARE/Mobile/eSIM \
   HARDWARE/Mobile/eSIM/Tooltip \
-  HARDWARE/Wireless/Wireless_Mode \
-  HARDWARE/Wireless/Wi\-Fi_Users \
+  HARDWARE/WiFi/Wireless_Mode \
+  HARDWARE/WiFi/Wi\-Fi_Users \
   HARDWARE/Bluetooth/Bluetooth_4.0 \
   HARDWARE/Ethernet/Port \
   HARDWARE/Ethernet/Speed \

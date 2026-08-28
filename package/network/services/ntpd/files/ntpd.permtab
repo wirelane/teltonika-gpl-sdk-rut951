@@ -1,1 +1,2 @@
 /etc/config/ntpd ntp:ntp 664
+/var/lib/ntp ntp:ntp - cd

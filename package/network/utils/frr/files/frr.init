@@ -15,6 +15,7 @@ FRR_BASE_DIR="/etc/frr"
 CONFIG_FILE_BGP="$BASE_DIR/bgpd.conf"
 CONFIG_FILE_RIP="$BASE_DIR/ripd.conf"
 CONFIG_FILE_OSPF="$BASE_DIR/ospfd.conf"
+CONFIG_FILE_OSPF6="$BASE_DIR/ospf6d.conf"
 CONFIG_FILE_EIGRP="$BASE_DIR/eigrpd.conf"
 CONFIG_FILE_NHRP="$BASE_DIR/nhrpd.conf"
 CONFIG_FILE_LDP="$BASE_DIR/ldpd.conf"
@@ -134,6 +135,7 @@ daemons_launch() {
 
 		for daemon in $daemons_enabled; do
 			vty_listen="127.0.0.1"
+			[ "$daemon" = "ospf6" ] || [ "$daemon" = "ripng" ] && vty_listen="::1"
 			if [ "$daemon" = "rip" ]; then
 				local mgmtd_loc="/usr/sbin/mgmtd"
 				[ -x "$mgmtd_loc" ] || mgmtd_loc="/usr/local$mgmtd_loc"
@@ -146,7 +148,13 @@ daemons_launch() {
 			[ -x "$daemon_loc" ] || daemon_loc="/usr/local$daemon_loc"
 			config_load "$daemon"
 			config_get enabled_vty "${daemon}" "enabled_vty" "0"
-			[ "$enabled_vty" = "1" ] && vty_listen="0.0.0.0"
+			if [ "$enabled_vty" = "1" ]; then
+				if [ "$daemon" = "ospf6" ] || [ "$daemon" = "ripng" ]; then
+					vty_listen="::"
+				else
+					vty_listen="0.0.0.0"
+				fi
+			fi
 			local command="procd_set_param command ${daemon_loc} -A $vty_listen -u $daemon -g $group"
 			config_get CUSTOM_CONFIG_FILE "${daemon}" "${daemon}d_custom_conf"
 			procd_open_instance "${daemon}d"
@@ -194,6 +202,7 @@ enable_debug() {
 	local bgp="neighbor-events+updates"
 	local rip="events"
 	local ospf="event"
+	local ospf6="event"
 	local eigrp="packets all+transmit all"
 	local nhrp="common+event"
 
@@ -745,6 +754,26 @@ ospf_parse_interface() {
 }
 
 #################################################
+#                                               #
+#                OSPF6 functions                #
+#                                               #
+#################################################
+
+ospf6_parse_config() {
+	local enabled
+	config_load ospf6
+
+	config_get enabled "ospf6" enabled "0"
+	[ "$enabled" = "0" ] && return 1
+
+	enable_vty "$CONFIG_FILE_OSPF6" "ospf6"
+	xappend "$CONFIG_FILE_OSPF6" "router ospf6"
+
+	echo "" >> "$CONFIG_FILE_OSPF6"
+	add_permissions "ospf6"
+}
+
+#################################################
 #                EIGRP functions                #
 #################################################
 
@@ -1004,7 +1033,7 @@ reload_service()
 
 service_triggers()
 {
-	procd_add_reload_trigger "bgp" "rip" "ospf" "eigrp" "nhrp" "dmvpn"
+	procd_add_reload_trigger "bgp" "rip" "ospf" "eigrp" "nhrp" "dmvpn" "ospf6"
 	config_load 'network'
 	config_foreach add_interface_trigger 'interface'
 }

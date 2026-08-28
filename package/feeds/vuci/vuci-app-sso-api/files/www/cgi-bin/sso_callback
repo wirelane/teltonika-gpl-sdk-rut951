@@ -4,7 +4,7 @@ local Request = require("api.request")
 local util = require("vuci.util")
 local nixio = require("nixio")
 local uci = require("vuci.uci").cursor()
-local socket_url = require("socket.url")
+local socket_url = require("socket_url")
 local http_codes = require("api.http_codes")
 
 local function send_status_line(status_code)

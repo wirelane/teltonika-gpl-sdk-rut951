@@ -4,8 +4,8 @@ define Device/tlt-mt7628-hw-common
 	HARDWARE/System_Characteristics/CPU := Mediatek, 580 MHz, MIPS 24KEc
 	HARDWARE/System_Characteristics/RAM := $(HW_RAM_SIZE_128M), $(HW_RAM_TYPE_DDR2)
 	HARDWARE/System_Characteristics/Flash_Storage := $(HW_FLASH_SIZE_16M), $(HW_FLASH_TYPE_NOR)
-	HARDWARE/Wireless/Wireless_Mode := $(HW_WIFI_4), 2x2 MIMO
-	HARDWARE/Wireless/Wi\-Fi_Users := $(HW_WIFI_100_USERS)
+	HARDWARE/WiFi/Wireless_Mode := $(HW_WIFI_4), 2x2 MIMO
+	HARDWARE/WiFi/Wi\-Fi_Users := $(HW_WIFI_100_USERS)
 	TECHNICAL/Power/Connector := $(HW_POWER_CONNECTOR_4PIN)
 	TECHNICAL/Power/Input_Voltage_Range := $(HW_POWER_VOLTAGE_4PIN_30V)
 	TECHNICAL/Power/PoE_Standards  := $(HW_POWER_POE_PASSIVE_30V)

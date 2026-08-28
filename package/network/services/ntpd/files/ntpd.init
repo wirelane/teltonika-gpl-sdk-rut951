@@ -7,6 +7,7 @@ STOP=65
 USE_PROCD=1
 PROG=/sbin/ntp
 HOTPLUG_HELPER=/usr/sbin/ntpd.hotplug-helper
+NTP_KEYFILE=/var/run/ntpd.keys
 
 config=/var/run/ntpd.conf
 
@@ -21,11 +22,37 @@ emit() {
 validate_ntp_section() {
 	uci_validate_section ntpd timeserver "${1}" \
 		'server:list(host)' 'enabled:bool:1' 'enable_server:bool:0' \
-		'file_flag:bool:0' 'config_file:string'
+		'file_flag:bool:0' 'config_file:string' \
+		'broadcast_enabled:bool:0' 'broadcast_key_id:uinteger' 'broadcast:ipaddr' 'ttl:uinteger' 'broadcast_minpoll:uinteger'
+}
+
+handle_auth_key() {
+	local section="$1"
+	local key_id key_type key
+
+	config_get key_id "$section" key_id
+	config_get key_type "$section" key_type
+	config_get key "$section" key
+
+	echo "$key_id $key_type $key" >> "$NTP_KEYFILE"
+
+	trusted_keys="${trusted_keys:+$trusted_keys }$key_id"
+}
+
+handle_ntp_server() {
+	local section="$1"
+	local key_id host
+
+	config_get host "$section" host
+	config_get key_id "$section" key_id
+
+	emit "server $host iburst ${key_id:+key $key_id}"
 }
 
 start_service() {
 	local server enabled enable_server file_flag config_file intf
+
+	config_load ntpd
 
 	validate_ntp_section ntp || {
 		echo "validation failed"
@@ -51,10 +78,21 @@ start_service() {
 		emit "restrict 127.0.0.1"
 		emit "restrict -6 ::1\n"
 
-		for i in $server
-		do
-		    emit "server $i iburst"
-		done
+		config_foreach handle_ntp_server ntp_server
+
+		[ "$broadcast_enabled" = 1 ] && {
+			emit "broadcast $broadcast${ttl:+ ttl $ttl}${broadcast_minpoll:+ minpoll $broadcast_minpoll}${broadcast_key_id:+ key $broadcast_key_id}"
+		}
+
+		emit "\n# Authentication"
+		emit "keys $NTP_KEYFILE"
+
+		( umask 0066; > "$NTP_KEYFILE" )
+		config_foreach handle_auth_key auth_key
+
+		[ -n "$trusted_keys" ] && {
+			emit "trustedkey $trusted_keys"
+		}
 	fi
 
 	if [ -d "/etc/ntpd.d" ]; then
@@ -70,9 +108,6 @@ start_service() {
 			emit "includefile ${entry}\n"
 		done
 	fi
-
-	mkdir -p /var/lib/ntp
-	chown -R ntp:ntp /var/lib/ntp
 
 	if [ ! -x "$PROG" ]; then
 		PROG="/usr/local$PROG"

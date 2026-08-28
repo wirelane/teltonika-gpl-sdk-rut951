@@ -26,6 +26,7 @@ metadata_json = \
 		"metadata_version": "1.1", \
 		"compat_version": "$(call json_quote,$(compat_version))", \
 		"version":"$(call json_quote,$(TLT_VERSION))", \
+		$(if $(CONFIG_VERIFIED_BOOT_SUPPORT), "verified_boot" : 1$(comma),) \
 		"device_code": [$(DEVICE_COMPAT_CODE)], \
 		"hwver": [".*"], \
 		"batch": [".*"], \
@@ -136,10 +137,17 @@ define Build/fit
 		$(if $(DEVICE_DTS_LOADADDR),-s $(DEVICE_DTS_LOADADDR)) \
 		$(if $(DEVICE_MDTB_NAME),-M $(DEVICE_MDTB_NAME)) \
 		$(if $(DEVICE_DTS_OVERLAY),$(foreach dtso,$(DEVICE_DTS_OVERLAY), -O $(dtso):$(KERNEL_BUILD_DIR)/image-$(dtso).dtbo)) \
-		-c $(if $(DEVICE_DTS_CONFIG),$(DEVICE_DTS_CONFIG),"config@1") \
-		-A $(LINUX_KARCH) -v $(LINUX_VERSION)
-	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage $(if $(findstring external,$(word 3,$(1))),\
-		-E -B 0x1000 $(if $(findstring static,$(word 3,$(1))),-p 0x1000)) -f $@.its $@.new
+		-c $(if $(DEVICE_DTS_CONFIG),$(DEVICE_DTS_CONFIG),"config-1") \
+		-A $(LINUX_KARCH) -v $(LINUX_VERSION) \
+		$(if $(VERIFIED_BOOT_FIT_CONF_KEY_PREFIX),-S "$(VERIFIED_BOOT_FIT_CONF_KEY_PREFIX)") \
+		$(if $(VERIFIED_BOOT_ALGO),-b $(VERIFIED_BOOT_ALGO))
+	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage $(if $(findstring external,$(word 3,$(1))), \
+		-E -B 0x1000 $(if $(findstring static,$(word 3,$(1))),-p 0x2000)) \
+		$(if $(VERIFIED_BOOT_KEY_DIR),-k $(VERIFIED_BOOT_KEY_DIR)) \
+		$(if $(VERIFIED_BOOT_FIT_CERT_KEY_PREFIX), -I "$(VERIFIED_BOOT_FIT_CERT_KEY_PREFIX)" -L "$(VERIFIED_BOOT_ALGO)") \
+		$(if $(CONFIG_VERIFIED_BOOT_LOCAL_SIGN),,-S $(VERIFIED_BOOT_SIGNER)) \
+		-r -f $@.its $@.new
+ 
 	@mv $@.new $@
 endef
 
@@ -161,10 +169,16 @@ define Build/fit-append
 		$(if $(DEVICE_DTS_LOADADDR),-s $(DEVICE_DTS_LOADADDR)) \
 		$(if $(DEVICE_MDTB_NAME),-M $(DEVICE_MDTB_NAME)) \
 		$(if $(DEVICE_DTS_OVERLAY),$(foreach dtso,$(DEVICE_DTS_OVERLAY), -O $(dtso):$(KERNEL_BUILD_DIR)/image-$(dtso).dtbo)) \
-		-c $(if $(DEVICE_DTS_CONFIG),$(DEVICE_DTS_CONFIG),"config@1") \
-		-A $(LINUX_KARCH) -v $(LINUX_VERSION)
+		-c $(if $(DEVICE_DTS_CONFIG),$(DEVICE_DTS_CONFIG),"config-1") \
+		-A $(LINUX_KARCH) -v $(LINUX_VERSION) \
+		$(if $(VERIFIED_BOOT_FIT_CONF_KEY_PREFIX),-S "$(VERIFIED_BOOT_FIT_CONF_KEY_PREFIX)") \
+		$(if $(VERIFIED_BOOT_ALGO),-b $(VERIFIED_BOOT_ALGO))
 	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage $(if $(findstring external,$(word 3,$(1))),\
-		-E -B 0x1000 $(if $(findstring static,$(word 3,$(1))),-p 0x1000)) -f $@.its $@.new
+		-E -B 0x1000 $(if $(findstring static,$(word 3,$(1))),-p 0x2000)) \
+		$(if $(VERIFIED_BOOT_KEY_DIR),-k $(VERIFIED_BOOT_KEY_DIR)) \
+		$(if $(VERIFIED_BOOT_FIT_CERT_KEY_PREFIX), -I "$(VERIFIED_BOOT_FIT_CERT_KEY_PREFIX)" -L "$(VERIFIED_BOOT_ALGO)") \
+		$(if $(CONFIG_VERIFIED_BOOT_LOCAL_SIGN),,-S $(VERIFIED_BOOT_SIGNER)) \
+		-r -f $@.its $@.new
 	cat $@.new >> $@
 	rm $@.new
 endef
